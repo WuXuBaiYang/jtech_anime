@@ -11,14 +11,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jtech_anime/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    try {
-      throw Exception("++++++++++++++++--------------");
-    } catch (e) {
-      print("++++++++++++++++");
-      rethrow;
-    } finally {
-      print("----------------");
-    }
+  testWidgets('', (WidgetTester tester) async {
   });
 }

@@ -14,7 +14,7 @@ class ThemeManage extends BaseManage {
   final String _themeCacheKey = 'theme_cache';
 
   // 默认色调
-  final _defBrightness = Brightness.dark;
+  final _defBrightness = Brightness.light;
 
   static final ThemeManage _instance = ThemeManage._internal();
 
@@ -56,15 +56,11 @@ class ThemeManage extends BaseManage {
         Brightness.dark: _createThemeData(
           colorScheme: const ColorScheme.dark(
             primary: Color(0xff49b7ff),
-            secondary: Color(0xff48b4f8),
-            background: Color(0xff0c1927),
           ),
         ),
         Brightness.light: _createThemeData(
           colorScheme: const ColorScheme.light(
             primary: Color(0xff5168ff),
-            secondary: Color(0xff5168ff),
-            background: Color(0xfff7f7fa),
           ),
         ),
       }[brightness]!;
@@ -74,55 +70,8 @@ class ThemeManage extends BaseManage {
     required ColorScheme colorScheme,
   }) =>
       ThemeData(
+        useMaterial3: true,
         colorScheme: colorScheme,
-        appBarTheme: const AppBarTheme(
-          titleTextStyle: TextStyle(fontSize: 18),
-          centerTitle: true,
-        ),
-        canvasColor: Colors.transparent,
-        scaffoldBackgroundColor: colorScheme.background,
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            textStyle: const TextStyle(fontSize: 18),
-            foregroundColor: Colors.white,
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: colorScheme.primary, width: 0.3),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: colorScheme.primary),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-          fillColor: Colors.white.withOpacity(0.1),
-          filled: true,
-        ),
-        dividerTheme:
-            DividerThemeData(color: colorScheme.primary, thickness: 0.2),
-        drawerTheme: const DrawerThemeData(width: 260),
-        listTileTheme: const ListTileThemeData(minLeadingWidth: 0),
-        cardTheme: const CardTheme(elevation: 1),
-        tabBarTheme: TabBarTheme(
-          splashFactory: NoSplash.splashFactory,
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (states) => states.contains(MaterialState.focused)
-                ? null
-                : Colors.transparent,
-          ),
-          indicator: const BoxDecoration(),
-        ),
-        chipTheme: ChipThemeData(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-          labelStyle: TextStyle(color: colorScheme.primary, fontSize: 12),
-          backgroundColor: colorScheme.primary.withOpacity(0.05),
-          selectedColor: colorScheme.primary.withOpacity(0.3),
-          checkmarkColor: colorScheme.primary,
-        ),
       );
 }
 
