@@ -70,9 +70,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-      ),
     );
   }
 
@@ -80,39 +77,39 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget _buildAppBar() {
     return ValueListenableBuilder<bool>(
       valueListenable: logic.showAppBar,
-      builder: (_, showAppBar, __) {
-        return SliverAppBar(
-          pinned: true,
-          expandedHeight: _HomeLogic.expandedHeight,
-          title: Text(showAppBar ? Common.appName : ''),
-          actions: showAppBar
-              ? [
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.magnifyingGlass),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.handPointDown),
-                    onPressed: () => logic.expandedTimeTable(),
-                  ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.download),
-                    onPressed: () {
-                      SnackTool.showMessage(context, message: '还在施工中~');
-                    },
-                  ),
-                ]
-              : null,
-          flexibleSpace: FlexibleSpaceBar(
-            background: AnimeTimeTable(
+      builder: (_, showAppBar, __) => SliverAppBar(
+        pinned: true,
+        expandedHeight: _HomeLogic.expandedHeight,
+        title: Text(showAppBar ? Common.appName : ''),
+        actions: showAppBar
+            ? [
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.handPointDown),
+                  onPressed: () => logic.expandedTimeTable(),
+                ),
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.download),
+                  onPressed: () {
+                    SnackTool.showMessage(context, message: '还在施工中~');
+                  },
+                ),
+              ]
+            : null,
+        flexibleSpace: FlexibleSpaceBar(
+          background: SafeArea(
+            child: AnimeTimeTable(
               onTap: (item) => router.pushNamed(
                 RoutePath.animeDetail,
                 arguments: {'url': item.url},
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -121,7 +118,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     return SliverGrid.builder(
       itemCount: animeList.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        childAspectRatio: 0.6,
+        childAspectRatio: 0.65,
         crossAxisCount: 3,
       ),
       itemBuilder: (_, i) => _buildAnimeListItem(animeList[i]),

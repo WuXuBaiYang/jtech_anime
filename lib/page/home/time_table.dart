@@ -35,30 +35,28 @@ class AnimeTimeTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 4),
       clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        child: Container(
-          alignment: Alignment.bottomCenter,
-          child: CacheFutureBuilder<List<List<TimeTableItemModel>>>(
-            future: parserHandle.loadAnimeTimeTable,
-            builder: (_, snap) {
-              if (snap.hasData) {
-                final length = snap.data!.length;
-                return DefaultTabController(
-                  initialIndex: _weekday,
-                  length: length,
-                  child: Column(
-                    children: [
-                      _buildTabBar(length),
-                      Expanded(child: _buildTabView(snap.data!)),
-                    ],
-                  ),
-                );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
-          ),
+      margin: const EdgeInsets.symmetric(horizontal: 8).copyWith(bottom: 8),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: CacheFutureBuilder<List<List<TimeTableItemModel>>>(
+          future: parserHandle.loadAnimeTimeTable,
+          builder: (_, snap) {
+            if (snap.hasData) {
+              final length = snap.data!.length;
+              return DefaultTabController(
+                initialIndex: _weekday,
+                length: length,
+                child: Column(
+                  children: [
+                    _buildTabBar(length),
+                    Expanded(child: _buildTabView(snap.data!)),
+                  ],
+                ),
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
         ),
       ),
     );
