@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/logic.dart';
-import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/parser/yhdmz.dart';
 
 /*
@@ -33,14 +33,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       body: Center(
         child: TextButton(
           onPressed: () async {
-            final handle = YHDMZParserHandle();
-            // final result = await handle.getAnimePlayUrl([
-            //   ResourceItemModel.from({
-            //     'name': '第1集',
-            //     'url': 'https://www.yhdmz.org/vp/152-1-0.html',
-            //   })
-            // ]);
-            final result = await handle.loadAnimeTimeTable();
+            final result = parserHandle.loadAnimeTimeTable();
             print('--------------------');
           },
           child: const Text('测试解析'),
