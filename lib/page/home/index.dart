@@ -38,13 +38,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
             //     await handle.loadAnimeList(params: {'order': '更新时间'});
             // final result =
             //     await handle.loadAnimeListNextPage(params: {'order': '更新时间'});
-            // final result = await handle
-            //     .getAnimeDetail('https://www.yhdmz.org/showp/20422.html');
-            final result = await handle.getAnimePlayUrl([
-              ResourceItemModel(
-                url: 'https://www.yhdmz.org/vp/22289-1-0.html',
-              )
-            ]);
+            // final result = await handle.searchAnimeList('鬼');
+            final result = await handle
+                .getAnimeDetail('https://www.yhdmz.org/showp/20422.html');
+            // final result = await handle.getAnimePlayUrl([
+            //   ResourceItemModel(
+            //     url: 'https://www.yhdmz.org/vp/22289-1-0.html',
+            //   )
+            // ]);
             print('--------------------');
           },
           child: const Text('测试解析'),

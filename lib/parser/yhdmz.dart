@@ -20,7 +20,19 @@ class YHDMZParserHandle extends ParserHandle {
   int _pageIndex = 0, _searchPageIndex = 0;
 
   @override
-  Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) {}
+  Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) async {
+    try {
+      final result = await searchAnimeList(
+        keyword,
+        params: {'pageindex': '${_searchPageIndex + 1}', 'pagesize': '24'},
+      );
+      _searchPageIndex += 1;
+      return result;
+    } catch (e) {
+      LogTool.e('樱花动漫z番剧列表获取失败：', error: e);
+    }
+    return [];
+  }
 
   @override
   Future<List<AnimeModel>> searchAnimeList(String keyword,
@@ -28,36 +40,13 @@ class YHDMZParserHandle extends ParserHandle {
     try {
       if (!params.containsKey('pageindex')) _searchPageIndex = 0;
       final resp = await Dio().getUri(
-        _getUri("/s_all", params: params),
+        _getUri("/s_all", params: {'kw': keyword, ...params}),
         options: _options,
       );
       if (resp.statusCode == 200) {
-        final document = parse(resp.data);
-        final result = <AnimeModel>[];
-        for (final li in document.querySelectorAll(
-            'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li')) {
-          final name = li.querySelector('h2 > a')?.text;
-          final cover =
-              li.querySelector('li:nth-child(1) > a > img')?.attributes['src'];
-          final status = li.querySelector('span > font')?.text;
-          final types = li
-              .querySelector('span:nth-child(7)')
-              ?.text
-              .replaceAll('类型：', '')
-              .split(' ');
-          final intro = li.querySelector('p')?.text;
-          final path = li.querySelector('a:nth-child(1)')?.attributes['href'];
-          result.add(AnimeModel(
-            name: name ?? '',
-            cover: cover ?? '',
-            status: status ?? '',
-            types: types ?? [],
-            intro: intro ?? '',
-            url: _getUri(path ?? '').toString(),
-          ));
-          // break;
-        }
-        return result;
+        return _parseAnimeList(resp.data)
+            .map<AnimeModel>((e) => AnimeModel.from(e))
+            .toList();
       } else {
         throw Exception('樱花动漫z番剧列表获取失败：${resp.statusCode}');
       }
@@ -99,32 +88,9 @@ class YHDMZParserHandle extends ParserHandle {
         options: _options,
       );
       if (resp.statusCode == 200) {
-        final document = parse(resp.data);
-        final result = <AnimeModel>[];
-        for (final li in document.querySelectorAll(
-            'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li')) {
-          final name = li.querySelector('h2 > a')?.text;
-          final cover =
-              li.querySelector('li:nth-child(1) > a > img')?.attributes['src'];
-          final status = li.querySelector('span > font')?.text;
-          final types = li
-              .querySelector('span:nth-child(7)')
-              ?.text
-              .replaceAll('类型：', '')
-              .split(' ');
-          final intro = li.querySelector('p')?.text;
-          final path = li.querySelector('a:nth-child(1)')?.attributes['href'];
-          result.add(AnimeModel(
-            name: name ?? '',
-            cover: cover ?? '',
-            status: status ?? '',
-            types: types ?? [],
-            intro: intro ?? '',
-            url: _getUri(path ?? '').toString(),
-          ));
-          // break;
-        }
-        return result;
+        return _parseAnimeList(resp.data)
+            .map<AnimeModel>((e) => AnimeModel.from(e))
+            .toList();
       } else {
         throw Exception('樱花动漫z番剧列表获取失败：${resp.statusCode}');
       }
@@ -138,51 +104,7 @@ class YHDMZParserHandle extends ParserHandle {
     try {
       final resp = await Dio().get(url, options: _options);
       if (resp.statusCode == 200) {
-        final document = parse(resp.data);
-        final info = document
-            .querySelector('body > div:nth-child(3) > div.fire.l > div.rate.r');
-        final name = info?.querySelector('h1')?.text;
-        final cover = document
-            .querySelector(
-                'body > div:nth-child(3) > div.fire.l > div.thumb.l > img')
-            ?.attributes['src'];
-        final updateTime = info
-            ?.querySelector('div.sinfo > span')
-            ?.text
-            .replaceAll(RegExp(r'\n|上映:'), '')
-            .trim();
-        final region =
-            info?.querySelector('div.sinfo > span:nth-child(5) > a')?.text;
-        final types = info
-            ?.querySelectorAll('div.sinfo > span:nth-child(7) > a')
-            .map((e) => e.text)
-            .toList();
-        final status = info?.querySelector('div.sinfo > p:nth-child(13)')?.text;
-        final intro = document
-            .querySelector('body > div:nth-child(3) > div.fire.l > div.info')
-            ?.text;
-        final resources = <List<ResourceItemModel>>[];
-        for (final it in document.querySelectorAll('#main0 > div.movurl')) {
-          final items = it
-              .querySelectorAll('ul > li > a')
-              .map((e) => ResourceItemModel(
-                    name: e.text,
-                    url: _getUri(e.attributes['href'] ?? '').toString(),
-                  ))
-              .toList();
-          if (items.isNotEmpty) resources.add(items);
-        }
-        return AnimeModel(
-          name: name ?? '',
-          cover: cover ?? '',
-          updateTime: updateTime ?? '',
-          region: region ?? '',
-          types: types ?? [],
-          status: status ?? '',
-          url: url,
-          intro: intro ?? '',
-          resources: resources,
-        );
+        return AnimeModel.from(_parseAnimeInfo(resp.data, url));
       } else {
         throw Exception('樱花动漫z番剧详情获取失败：${resp.statusCode}');
       }
@@ -200,11 +122,6 @@ class YHDMZParserHandle extends ParserHandle {
         final resp = await Dio().get(it.url, options: _options);
         if (resp.statusCode == 200) {
           final document = parse(resp.data);
-          final url = document.querySelector('#yh_playfram');
-          result.add(ResourceItemModel(
-            name: it.name,
-            url: '',
-          ));
           progress?.call(result.length, items.length);
         }
       } catch (_) {
@@ -212,6 +129,69 @@ class YHDMZParserHandle extends ParserHandle {
       }
     }
     return result;
+  }
+
+  // 解析番剧列表
+  Stream<Map> _parseAnimeList(String html) async* {
+    final document = parse(html);
+    for (final li in document.querySelectorAll(
+        'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li')) {
+      yield {
+        'name': li.querySelector('h2 > a')?.text,
+        'cover':
+            li.querySelector('li:nth-child(1) > a > img')?.attributes['src'],
+        'status': li.querySelector('span > font')?.text,
+        'types': li
+            .querySelector('span:nth-child(7)')
+            ?.text
+            .replaceAll('类型：', '')
+            .split(' '),
+        'intro': li.querySelector('p')?.text,
+        'url': _getUri(
+                li.querySelector('a:nth-child(1)')?.attributes['href'] ?? '')
+            .toString(),
+      };
+    }
+  }
+
+  // 解析番剧详情信息
+  Map _parseAnimeInfo(String html, String url) {
+    final document = parse(html);
+    final info = document
+        .querySelector('body > div:nth-child(3) > div.fire.l > div.rate.r');
+    return {
+      'url': url,
+      'name': info?.querySelector('h1')?.text,
+      'cover': document
+          .querySelector(
+              'body > div:nth-child(3) > div.fire.l > div.thumb.l > img')
+          ?.attributes['src'],
+      'updateTime': info
+          ?.querySelector('div.sinfo > span')
+          ?.text
+          .replaceAll(RegExp(r'\n|上映:'), '')
+          .trim(),
+      'region': info?.querySelector('div.sinfo > span:nth-child(5) > a')?.text,
+      'types': info
+          ?.querySelectorAll('div.sinfo > span:nth-child(7) > a')
+          .map((e) => e.text)
+          .toList(),
+      'status': info?.querySelector('div.sinfo > p:nth-child(13)')?.text,
+      'intro': document
+          .querySelector('body > div:nth-child(3) > div.fire.l > div.info')
+          ?.text,
+      'resources': document
+          .querySelectorAll('#main0 > div.movurl')
+          .map((e) => e
+              .querySelectorAll('ul > li > a')
+              .map((e) => {
+                    'name': e.text,
+                    'url': _getUri(e.attributes['href'] ?? '').toString(),
+                  })
+              .toList())
+          .where((e) => e.isNotEmpty)
+          .toList(),
+    };
   }
 
   // 获取访问地址

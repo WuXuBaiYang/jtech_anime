@@ -33,17 +33,20 @@ class AnimeModel extends BaseModel {
   // 资源
   final List<List<ResourceItemModel>> resources;
 
-  AnimeModel({
-    this.name = '',
-    this.cover = '',
-    this.status = '',
-    this.types = const [],
-    this.region = '',
-    this.intro = '',
-    this.updateTime = '',
-    this.url = '',
-    this.resources = const [],
-  });
+  AnimeModel.from(obj)
+      : name = obj['name'] ?? '',
+        cover = obj['cover'] ?? '',
+        status = obj['status'] ?? '',
+        types = (obj['types'] ?? []) as List<String>,
+        region = obj['region'] ?? '',
+        intro = obj['intro'] ?? '',
+        updateTime = obj['updateTime'] ?? '',
+        url = obj['url'] ?? '',
+        resources = (obj['resources'] ?? []).map<List<ResourceItemModel>>((e) {
+          return (e as List)
+              .map<ResourceItemModel>((e) => ResourceItemModel.from(e))
+              .toList();
+        }).toList();
 }
 
 /*
@@ -58,8 +61,7 @@ class ResourceItemModel extends BaseModel {
   // 地址
   final String url;
 
-  ResourceItemModel({
-    this.name = '',
-    this.url = '',
-  });
+  ResourceItemModel.from(obj)
+      : name = obj['name'] ?? '',
+        url = obj['url'] ?? '';
 }
