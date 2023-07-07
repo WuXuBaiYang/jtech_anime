@@ -54,14 +54,10 @@ class ThemeManage extends BaseManage {
   // 根据色调获取对应的样式
   ThemeData getThemeByBrightness(Brightness brightness) => {
         Brightness.dark: _createThemeData(
-          colorScheme: const ColorScheme.dark(
-            primary: Color(0xff49b7ff),
-          ),
+          colorScheme: const ColorScheme.dark(),
         ),
         Brightness.light: _createThemeData(
-          colorScheme: const ColorScheme.light(
-            primary: Color(0xff5168ff),
-          ),
+          colorScheme: const ColorScheme.light(),
         ),
       }[brightness]!;
 

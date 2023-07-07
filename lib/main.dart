@@ -26,8 +26,8 @@ void main() async {
   if (Platform.isAndroid) {
     await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
+      statusBarColor: Colors.transparent,
     ));
   }
   runApp(const MyApp());

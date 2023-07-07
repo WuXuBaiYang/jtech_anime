@@ -186,10 +186,13 @@ class YHDMZParserHandle extends ParserHandle {
     final document = parse(html);
     for (final li in document.querySelectorAll(
         'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li')) {
+      var cover = li.querySelector('li > a > img')?.attributes['src'];
+      if (cover?.startsWith('//') ?? false) {
+        cover = 'https:$cover';
+      }
       yield {
         'name': li.querySelector('h2 > a')?.text,
-        'cover':
-            li.querySelector('li:nth-child(1) > a > img')?.attributes['src'],
+        'cover': cover,
         'status': li.querySelector('span > font')?.text,
         'types': li
             .querySelector('span:nth-child(7)')

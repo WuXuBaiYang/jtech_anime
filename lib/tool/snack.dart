@@ -23,7 +23,7 @@ class SnackTool {
   }) {
     // 默认值
     fixed ??= true;
-    duration ??= const Duration(milliseconds: 4000);
+    duration ??= const Duration(milliseconds: 2000);
     return ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: child,
       margin: margin,

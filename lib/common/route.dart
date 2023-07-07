@@ -10,8 +10,12 @@ class RoutePath {
   // 创建路由表
   static Map<String, WidgetBuilder> get routes => {
         home: (_) => const HomePage(),
+        // animeDetail: (_) => const AnimeDetailPage(),
       };
 
   // 首页
   static const String home = '/home';
+
+  // 动漫详情页
+  static const String animeDetail = '/anime/detail';
 }
