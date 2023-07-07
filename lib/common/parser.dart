@@ -5,6 +5,7 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
+import 'package:jtech_anime/model/time_table.dart';
 
 // 进度回调
 typedef ParserProgressCallback = void Function(int count, int total);
@@ -15,6 +16,9 @@ typedef ParserProgressCallback = void Function(int count, int total);
 * @Time 2023/7/6 10:19
 */
 abstract mixin class ParserHandle {
+  // 获取番剧时间表(下标0从周日开启计算)
+  Future<List<List<TimeTableItemModel>>> loadAnimeTimeTable();
+
   // 搜索番剧列表下一页
   Future<List<AnimeModel>> searchAnimeListNextPage(String keyword);
 

@@ -34,12 +34,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         child: TextButton(
           onPressed: () async {
             final handle = YHDMZParserHandle();
-            final result = await handle.getAnimePlayUrl([
-              ResourceItemModel.from({
-                'name': '第1集',
-                'url': 'https://www.yhdmz.org/vp/152-1-0.html',
-              })
-            ]);
+            // final result = await handle.getAnimePlayUrl([
+            //   ResourceItemModel.from({
+            //     'name': '第1集',
+            //     'url': 'https://www.yhdmz.org/vp/152-1-0.html',
+            //   })
+            // ]);
+            final result = await handle.loadAnimeTimeTable();
             print('--------------------');
           },
           child: const Text('测试解析'),
