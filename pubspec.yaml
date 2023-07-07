@@ -73,6 +73,15 @@ dependencies:
   # 网页解析框架
   html: ^0.15.4
 
+  # 浏览器框架
+  flutter_inappwebview: ^5.7.2+3
+
+  # 数据库框架
+  isar: ^3.1.0+1
+
+  # 数据库框架核心
+  isar_flutter_libs: ^3.1.0+1
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
@@ -80,6 +89,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # 数据库框架生成器
+  isar_generator: ^3.1.0+1
+
+  # 构建器
+  build_runner: any
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

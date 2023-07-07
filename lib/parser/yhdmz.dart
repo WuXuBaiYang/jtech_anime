@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/parser.dart';
+import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/tool/log.dart';
@@ -119,13 +121,21 @@ class YHDMZParserHandle extends ParserHandle {
     final result = <ResourceItemModel>[];
     for (final it in items) {
       try {
-        final resp = await Dio().get(it.url, options: _options);
-        if (resp.statusCode == 200) {
-          final document = parse(resp.data);
-          progress?.call(result.length, items.length);
-        }
-      } catch (_) {
-        print(_.toString());
+        var playUrl = await db.getCachePlayUrl(it.url);
+        playUrl ??= await parseByHeadlessBrowser<String?>(it.url, (doc) {
+          final path = doc.querySelector('iframe')?.attributes['src'];
+          if (path == null) return path;
+          return Uri.parse(path).queryParameters['url'];
+        });
+        if (playUrl == null) continue;
+        result.add(ResourceItemModel.from({
+          'name': it.name,
+          'url': playUrl,
+        }));
+        progress?.call(result.length, items.length);
+        await db.cachePlayUrl(it.url, playUrl);
+      } catch (e) {
+        LogTool.e('视频播放地址转换失败：', error: e);
       }
     }
     return result;
