@@ -483,8 +483,7 @@
     "items": [
       {
         "name": "更新时间",
-        "value": "更新时间",
-        "selected": true
+        "value": "更新时间"
       },
       {
         "name": "名称",
