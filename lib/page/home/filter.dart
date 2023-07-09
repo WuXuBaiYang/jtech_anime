@@ -44,6 +44,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
         duration: duration,
         decoration: _decoration,
         curve: Curves.fastOutSlowIn,
+        alignment: Alignment.center,
         height: _showButton ? 65 : 350,
         width: _showButton ? 65 : screenWidth - 14 * 2,
         padding: const EdgeInsets.all(14).copyWith(bottom: 0),
