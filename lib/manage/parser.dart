@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/common/parser.dart';
+import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
@@ -56,17 +57,27 @@ class ParserHandleManage extends BaseManage with ParserHandle {
   Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) =>
       _currentHandler.searchAnimeListNextPage(keyword);
 
+  // 获取过滤条件配置缓存
+  Map<String, dynamic>? get filterConfig => cache.getJson(_filterCacheKey);
+
+  // 缓存过滤条件配置
+  void cacheFilterConfig(Map<String, dynamic> config) =>
+      cache.setJsonMap(_filterCacheKey, config);
+
+  // 获取过滤条件配置缓存key
+  String get _filterCacheKey => 'filter_cache_${currentSource.name}';
+
   // 解析源
   ParserSource? _source;
+
+  // 获取当前解析源
+  ParserSource get currentSource => _source ??= ParserSource.yhdmz;
 
   // 解析器
   ParserHandle? _handler;
 
-  // 获取当前解析源
-  ParserSource get _currentSource => _source ??= ParserSource.yhdmz;
-
   // 获取当前解析器
-  ParserHandle get _currentHandler => _handler ??= _currentSource.handle;
+  ParserHandle get _currentHandler => _handler ??= currentSource.handle;
 
   // 切换解析源
   void switchSource(ParserSource source) {
@@ -74,9 +85,6 @@ class ParserHandleManage extends BaseManage with ParserHandle {
     _handler = source.handle;
     _source = source;
   }
-
-  // 获取当前解析源名称
-  String get currentSourceName => _currentSource.name;
 }
 
 // 单例调用
@@ -91,7 +99,7 @@ enum ParserSource {
 // 解析源美剧扩展
 extension ParserSourceExtension on ParserSource {
   // 获取中文名
-  String get name => {
+  String get nameCN => {
         ParserSource.yhdmz: '樱花动漫z',
       }[this]!;
 

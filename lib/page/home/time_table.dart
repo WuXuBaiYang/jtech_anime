@@ -17,17 +17,17 @@ class AnimeTimeTable extends StatelessWidget {
   final AnimeTimeTableTap? onTap;
 
   // 周/天下标
-  final int _weekday = DateTime.now().weekday;
+  final int _weekday = DateTime.now().weekday - 1;
 
   // 周/天换算表
   final _weekdayMap = {
-    0: [FontAwesomeIcons.faceSadTear, '周日'],
-    1: [FontAwesomeIcons.faceDizzy, '周一'],
-    2: [FontAwesomeIcons.faceFrown, '周二'],
-    3: [FontAwesomeIcons.faceFlushed, '周三'],
-    4: [FontAwesomeIcons.faceGrimace, '周四'],
-    5: [FontAwesomeIcons.faceGrinStars, '周五'],
-    6: [FontAwesomeIcons.faceLaughWink, '周六'],
+    0: [FontAwesomeIcons.faceDizzy, '周一'],
+    1: [FontAwesomeIcons.faceFrown, '周二'],
+    2: [FontAwesomeIcons.faceFlushed, '周三'],
+    3: [FontAwesomeIcons.faceGrimace, '周四'],
+    4: [FontAwesomeIcons.faceGrinStars, '周五'],
+    5: [FontAwesomeIcons.faceLaughWink, '周六'],
+    6: [FontAwesomeIcons.faceSadTear, '周日'],
   };
 
   AnimeTimeTable({super.key, this.onTap});

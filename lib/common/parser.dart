@@ -16,7 +16,7 @@ typedef ParserProgressCallback = void Function(int count, int total);
 * @Time 2023/7/6 10:19
 */
 abstract mixin class ParserHandle {
-  // 获取番剧时间表(下标0从周日开启计算)
+  // 获取番剧时间表(下标0从周一开启计算)
   Future<List<List<TimeTableItemModel>>> loadAnimeTimeTable();
 
   // 搜索番剧列表下一页

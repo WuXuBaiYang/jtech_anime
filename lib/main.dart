@@ -21,7 +21,7 @@ void main() async {
   await notice.init(); // 通知服务
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务
-  await db.init(); // 数据库
+  // await db.init(); // 数据库
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
     await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);

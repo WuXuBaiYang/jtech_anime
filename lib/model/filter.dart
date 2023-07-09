@@ -39,11 +39,7 @@ class AnimeFilterItemModel extends BaseModel {
   // 值
   final String value;
 
-  // 是否选中
-  final bool selected;
-
   AnimeFilterItemModel.from(obj)
       : name = obj['name'] ?? '',
-        value = obj['value'] ?? '',
-        selected = obj["selected"] ?? false;
+        value = obj['value'] ?? '';
 }

@@ -28,7 +28,7 @@ class YHDMZParserHandle extends ParserHandle {
       final resp = await Dio().getUri(_getUri(null), options: _options);
       if (resp.statusCode == 200) {
         return _parseAnimeTimeTable(resp.data)
-            .map<List<TimeTableItemModel>>((e) => (e as List)
+            .map<List<TimeTableItemModel>>((e) => e
                 .map<TimeTableItemModel>((e) => TimeTableItemModel.from(e))
                 .toList())
             .toList();
@@ -165,7 +165,7 @@ class YHDMZParserHandle extends ParserHandle {
     final document = parse(html);
     final uls = document.querySelectorAll(
         'body > div.area > div.side.r > div.bg > div.tlist > ul');
-    for (final ul in uls..insert(0, uls.removeLast())) {
+    for (final ul in uls) {
       final temp = <Map>[];
       for (final li in ul.querySelectorAll('li')) {
         final status = li.querySelectorAll('a').first.text;

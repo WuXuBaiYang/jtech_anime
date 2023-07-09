@@ -7,6 +7,7 @@ import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
@@ -54,7 +55,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator.adaptive(
+      body: RefreshIndicator(
         onRefresh: () => logic.loadAnimeList(context, false),
         child: ValueListenableBuilder<List<AnimeModel>>(
           valueListenable: logic.animeList,
@@ -69,6 +70,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
             );
           },
         ),
+      ),
+      floatingActionButton: AnimeFilterConfigFAB(
+        filterConfig: logic.filterConfig,
+        complete: () => Tool.showLoading(context,
+            loadFuture: logic.loadAnimeList(context, false)),
       ),
     );
   }
@@ -217,9 +223,14 @@ class _HomeLogic extends BaseLogic {
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
+  // 记录过滤条件
+  final filterConfig = MapValueChangeNotifier<String, dynamic>.empty();
+
   @override
   void init() {
     super.init();
+    // 加载过滤条件
+    filterConfig.setValue(parserHandle.filterConfig ?? {});
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
@@ -242,8 +253,8 @@ class _HomeLogic extends BaseLogic {
     _loading = true;
     try {
       final result = await (loadMore
-          ? parserHandle.loadAnimeListNextPage()
-          : parserHandle.loadAnimeList());
+          ? parserHandle.loadAnimeListNextPage(params: filterConfig.value)
+          : parserHandle.loadAnimeList(params: filterConfig.value));
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');

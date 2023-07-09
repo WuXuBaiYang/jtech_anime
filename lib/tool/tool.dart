@@ -28,7 +28,7 @@ class Tool {
       crypto.md5.convert(utf8.encode(value)).toString();
 
   // 获取屏幕宽度
-  static double getScreenWith(BuildContext context) =>
+  static double getScreenWidth(BuildContext context) =>
       MediaQuery.of(context).size.width;
 
   // 获取屏幕高度
@@ -95,7 +95,7 @@ class Tool {
         ),
       )..whenComplete(() => _loadingDialog = null);
       await Future.delayed(const Duration(milliseconds: 150));
-      return loadFuture;
+      return await loadFuture;
     } catch (e) {
       LogTool.e('弹窗请求异常：', error: e);
       rethrow;
