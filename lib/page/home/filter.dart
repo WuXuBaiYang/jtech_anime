@@ -38,8 +38,8 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = Tool.getScreenWidth(context);
-    final height = _showButton ? 65.0 : 350.0;
-    final width = _showButton ? 65.0 : screenWidth - 14.0 * 2;
+    final height = _showButton ? 55.0 : 350.0;
+    final width = _showButton ? 55.0 : screenWidth - 14.0 * 2;
     return Theme(
       data: _theme,
       child: AnimatedContainer(
@@ -138,8 +138,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
                     icon: Icon(iconData),
                     onPressed: () => setState(() {
                       if (hasEdited) {
-                        parserHandle
-                            .cacheFilterConfig(widget.filterConfig.value);
+                        parserHandle.cacheFilterConfig(configMap);
                         widget.complete();
                       }
                       fadeState = CrossFadeState.showFirst;
@@ -222,7 +221,11 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
                 result = result..add(it.value);
               }
             }
-            widget.filterConfig.putValue(item.key, result);
+            if (result.isEmpty) {
+              widget.filterConfig.removeValue(item.key);
+            } else {
+              widget.filterConfig.putValue(item.key, result);
+            }
           }),
         );
       }),

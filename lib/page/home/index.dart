@@ -252,9 +252,10 @@ class _HomeLogic extends BaseLogic {
     if (_loading) return;
     _loading = true;
     try {
+      final params = filterConfig.value;
       final result = await (loadMore
-          ? parserHandle.loadAnimeListNextPage(params: filterConfig.value)
-          : parserHandle.loadAnimeList(params: filterConfig.value));
+          ? parserHandle.loadAnimeListNextPage(params: params)
+          : parserHandle.loadAnimeList(params: params));
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
