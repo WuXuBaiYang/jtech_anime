@@ -138,6 +138,21 @@ class MapValueChangeNotifier<K, V> extends ValueChangeNotifier<Map<K, V>> {
 
   MapValueChangeNotifier.empty() : this({});
 
+  // 获取数据长度
+  int get length => value.length;
+
+  // 判断是否为空
+  bool get isEmpty => value.isEmpty;
+
+  // 判断是否非空
+  bool get isNotEmpty => value.isNotEmpty;
+
+  // 获取key集合
+  Iterable<K> get keys => value.keys;
+
+  // 获取value集合
+  Iterable<V> get values => value.values;
+
   // 清除数据
   void clear() {
     value.clear();
