@@ -57,7 +57,10 @@ class ThemeManage extends BaseManage {
           colorScheme: const ColorScheme.dark(),
         ),
         Brightness.light: _createThemeData(
-          colorScheme: const ColorScheme.light(),
+          colorScheme: const ColorScheme.light(
+            primary: Color(0xFFFF7DB0),
+            secondary: Color(0xFF84EBE1),
+          ),
         ),
       }[brightness]!;
 

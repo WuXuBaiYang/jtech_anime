@@ -26,36 +26,36 @@ class AnimeFilterConfigFAB extends StatefulWidget {
 }
 
 class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
-  // 动画时长
-  final duration = const Duration(milliseconds: 200);
-
   // 状态切换
   CrossFadeState fadeState = CrossFadeState.showFirst;
 
   // 是否展示过滤配置表
   bool showFilterConfig = false;
 
+  // 记录编辑前的hash值
+  int? lastConfigHash;
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = Tool.getScreenWidth(context);
+    final height = _showButton ? 65.0 : 350.0;
+    final width = _showButton ? 65.0 : screenWidth - 14.0 * 2;
     return Theme(
       data: _theme,
       child: AnimatedContainer(
-        duration: duration,
+        width: width,
+        height: height,
         decoration: _decoration,
         curve: Curves.fastOutSlowIn,
-        alignment: Alignment.center,
-        height: _showButton ? 65 : 350,
-        width: _showButton ? 65 : screenWidth - 14 * 2,
-        padding: const EdgeInsets.all(14).copyWith(bottom: 0),
+        duration: const Duration(milliseconds: 200),
         onEnd: () {
           if (!_showButton) setState(() => showFilterConfig = true);
         },
         child: AnimatedCrossFade(
-          duration: duration,
           crossFadeState: fadeState,
           firstChild: _buildFAButton(),
           secondChild: _buildFilterConfig(),
+          duration: const Duration(milliseconds: 50),
         ),
       ),
     );
@@ -68,9 +68,9 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
   BoxDecoration get _decoration => BoxDecoration(
         borderRadius: BorderRadius.circular(_showButton ? 14 : 8),
         color: kPrimaryColor,
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            offset: Offset(2, 2),
+            offset: Offset.fromDirection(90, 1),
             color: Colors.black26,
             spreadRadius: 1,
             blurRadius: 4,
@@ -80,19 +80,38 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 样式管理
   ThemeData get _theme => ThemeData(
+        useMaterial3: true,
         colorScheme: const ColorScheme.dark(),
+        canvasColor: Colors.transparent,
+        dividerTheme: DividerThemeData(
+          color: Colors.white.withOpacity(0.2),
+          endIndent: 14,
+          thickness: 1,
+          indent: 14,
+        ),
+        chipTheme: const ChipThemeData(
+          backgroundColor: Colors.transparent,
+          selectedColor: Colors.transparent,
+          checkmarkColor: Colors.white,
+          side: BorderSide.none,
+        ),
       );
 
   // 构建按钮
   Widget _buildFAButton() {
-    return IconButton(
-      icon: const Icon(FontAwesomeIcons.filter),
-      onPressed: () => setState(() {
-        fadeState = CrossFadeState.showSecond;
-        showFilterConfig = false;
-      }),
+    return Center(
+      child: IconButton(
+        icon: const Icon(FontAwesomeIcons.filter),
+        onPressed: () => setState(() {
+          fadeState = CrossFadeState.showSecond;
+          showFilterConfig = false;
+        }),
+      ),
     );
   }
+
+  // 标题文本样式
+  TextStyle titleTextStyle = TextStyle(color: Colors.white.withOpacity(0.6));
 
   // 构建过滤配置
   Widget _buildFilterConfig() {
@@ -101,21 +120,34 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(child: _buildFilterConfigList()),
-        Divider(color: Colors.white.withOpacity(0.2), thickness: 1, height: 1),
+        const Divider(height: 1),
         Row(
           children: [
-            Text('选择过滤条件',
-                style: TextStyle(color: Colors.white.withOpacity(0.6))),
+            const SizedBox(width: 8),
+            Text('选择过滤条件', style: titleTextStyle),
             const Spacer(),
-            IconButton(
-              icon: const Icon(FontAwesomeIcons.check),
-              onPressed: () => setState(() {
-                parserHandle.cacheFilterConfig(widget.filterConfig.value);
-                fadeState = CrossFadeState.showFirst;
-                showFilterConfig = false;
-                widget.complete();
-              }),
-            ),
+            ValueListenableBuilder<Map<String, dynamic>>(
+                valueListenable: widget.filterConfig,
+                builder: (_, configMap, __) {
+                  final hashCode = configMap.values.toString().hashCode;
+                  final hasEdited = (lastConfigHash ??= hashCode) != hashCode;
+                  final iconData = hasEdited
+                      ? FontAwesomeIcons.check
+                      : FontAwesomeIcons.xmark;
+                  return IconButton(
+                    icon: Icon(iconData),
+                    onPressed: () => setState(() {
+                      if (hasEdited) {
+                        parserHandle
+                            .cacheFilterConfig(widget.filterConfig.value);
+                        widget.complete();
+                      }
+                      fadeState = CrossFadeState.showFirst;
+                      showFilterConfig = false;
+                      lastConfigHash = null;
+                    }),
+                  );
+                }),
           ],
         ),
       ],
@@ -124,7 +156,6 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建过滤配置列表
   Widget _buildFilterConfigList() {
-    const textStyle = TextStyle(color: Colors.white);
     return FutureBuilder<List<AnimeFilterModel>>(
       future: parserHandle.loadFilterList(),
       builder: (_, snap) {
@@ -134,27 +165,9 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
             valueListenable: widget.filterConfig,
             builder: (_, configMap, __) {
               return ListView.builder(
+                padding: const EdgeInsets.only(top: 14),
                 itemBuilder: (_, i) {
-                  final item = dataList[i];
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: SizedBox(
-                            width: 50,
-                            child: Text(
-                              item.name,
-                              textAlign: TextAlign.right,
-                              style: textStyle,
-                            )),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _buildFilterConfigListTags(item, configMap),
-                      ),
-                    ],
-                  );
+                  return _buildFilterConfigListItem(dataList[i], configMap);
                 },
                 itemCount: dataList.length,
               );
@@ -166,32 +179,50 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
     );
   }
 
+  // 构建过滤配置列表项
+  Widget _buildFilterConfigListItem(
+      AnimeFilterModel item, Map<String, dynamic> configMap) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(item.name,
+              textAlign: TextAlign.right, style: titleTextStyle),
+        ),
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.only(left: 30),
+          child: _buildFilterConfigListItemTags(item, configMap),
+        ),
+      ],
+    );
+  }
+
   // 构建过滤配置列表标签集合
-  Widget _buildFilterConfigListTags(
+  Widget _buildFilterConfigListItemTags(
       AnimeFilterModel item, Map<String, dynamic> configMap) {
     return Wrap(
       spacing: 8,
+      runSpacing: 4,
       children: List.generate(item.items.length, (i) {
         final it = item.items[i];
         final selects = configMap[item.key];
-        if (selects?.contains(it.value) ?? false) {
-          return ElevatedButton(
-            child: Text(it.name),
-            onPressed: () => setState(() {
-              final result = (selects ?? [])..remove(it.value);
-              widget.filterConfig.putValue(item.key, result);
-            }),
-          );
-        }
-        return OutlinedButton(
-          child: Text(it.name),
-          onPressed: () => setState(() {
-            final result = (selects ?? []);
-            if (item.maxSelected == 1) {
-              widget.filterConfig.putValue(item.key, [it.value]);
-            } else if (result.length < item.maxSelected) {
-              widget.filterConfig.putValue(item.key, result..add(it.value));
+        return ChoiceChip(
+          selected: selects?.contains(it.value) ?? false,
+          label: Text(it.name),
+          onSelected: (v) => setState(() {
+            var result = selects ?? [];
+            if (!v) {
+              result.remove(it.value);
+            } else {
+              if (item.maxSelected == 1) {
+                result = [it.value];
+              } else if (result.length < item.maxSelected) {
+                result = result..add(it.value);
+              }
             }
+            widget.filterConfig.putValue(item.key, result);
           }),
         );
       }),
