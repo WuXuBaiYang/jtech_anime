@@ -59,6 +59,9 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
               ),
             ],
           );
+          final child = folded
+              ? _buildFAButton()
+              : (expanded ? _buildFilterConfig() : const SizedBox());
           return AnimatedContainer(
             duration: duration,
             decoration: decoration,
@@ -68,21 +71,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
             onEnd: () {
               if (!folded) filterStatus.setValue(FilterStatus.expanded);
             },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedOpacity(
-                  duration: duration,
-                  opacity: folded ? 1 : 0,
-                  child: _buildFAButton(),
-                ),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: expanded ? 1 : 0,
-                  child: _buildFilterConfig(),
-                ),
-              ],
-            ),
+            child: child,
           );
         },
       ),

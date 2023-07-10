@@ -13,6 +13,7 @@ import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -84,33 +85,25 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   // 构建页面头部
   Widget _buildAppBar(BuildContext context) {
-    const duration = Duration(milliseconds: 150);
-    return ValueListenableBuilder<bool>(
-      valueListenable: logic.showAppBar,
-      builder: (_, showAppBar, __) {
-        final padding = MediaQuery.paddingOf(context);
-        final opacity = showAppBar ? 1.0 : 0.0;
+    final edgeInsets = MediaQuery.paddingOf(context);
+    return ValueListenableBuilder2<List<Map>, bool>(
+      first: logic.filterTags,
+      second: logic.showAppBar,
+      builder: (_, tags, showAppBar, __) {
+        final padding = EdgeInsets.only(
+          bottom: tags.isNotEmpty ? kToolbarHeight : 0.0,
+          top: edgeInsets.top,
+        );
         return SliverAppBar(
-          title: AnimatedOpacity(
-            opacity: opacity,
-            duration: duration,
-            child: const Text(Common.appName),
-          ),
+          title: Text(showAppBar ? Common.appName : ''),
           expandedHeight: _HomeLogic.expandedHeight,
           actions: [
-            AnimatedOpacity(
-              opacity: opacity,
-              duration: duration,
-              child: Row(children: _actions),
-            ),
+            if (showAppBar) ..._actions,
           ],
           pinned: true,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: EdgeInsets.only(
-                bottom: kToolbarHeight,
-                top: padding.top,
-              ),
+              padding: padding,
               child: AnimeTimeTable(
                 onTap: (item) => router.pushNamed(
                   RoutePath.animeDetail,
@@ -119,10 +112,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               ),
             ),
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(kToolbarHeight),
-            child: _buildFilterChips(),
-          ),
+          bottom: tags.isNotEmpty
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(kToolbarHeight),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _buildFilterChips(tags),
+                  ))
+              : null,
         );
       },
     );
@@ -147,24 +144,19 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       ];
 
   // 构建番剧过滤配置组件
-  Widget _buildFilterChips() {
-    return ValueListenableBuilder<List<Map>>(
-      valueListenable: logic.filterTags,
-      builder: (_, tags, __) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(tags.length, (i) {
-              final text = '${tags[i].keys.firstOrNull} · '
-                  '${tags[i].values.firstOrNull}';
-              return Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: RawChip(label: Text(text)),
-              );
-            }),
-          ),
-        );
-      },
+  Widget _buildFilterChips(List<Map> tags) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(tags.length, (i) {
+          final text = '${tags[i].keys.firstOrNull} · '
+              '${tags[i].values.firstOrNull}';
+          return Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: RawChip(label: Text(text)),
+          );
+        }),
+      ),
     );
   }
 
