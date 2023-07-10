@@ -5,6 +5,7 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/cache_future_builder.dart';
 
 /*
 * 番剧过滤条件配置
@@ -26,11 +27,11 @@ class AnimeFilterConfigFAB extends StatefulWidget {
 }
 
 class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
-  // 状态切换
-  CrossFadeState fadeState = CrossFadeState.showFirst;
+  // fab状态管理
+  final filterStatus = ValueChangeNotifier<FilterStatus>(FilterStatus.fold);
 
-  // 是否展示过滤配置表
-  bool showFilterConfig = false;
+  // 动画时长
+  final duration = const Duration(milliseconds: 200);
 
   // 记录编辑前的hash值
   int? lastConfigHash;
@@ -38,45 +39,54 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = Tool.getScreenWidth(context);
-    final height = _showButton ? 55.0 : 350.0;
-    final width = _showButton ? 55.0 : screenWidth - 14.0 * 2;
     return Theme(
       data: _theme,
-      child: AnimatedContainer(
-        width: width,
-        height: height,
-        decoration: _decoration,
-        curve: Curves.fastOutSlowIn,
-        duration: const Duration(milliseconds: 200),
-        onEnd: () {
-          if (!_showButton) setState(() => showFilterConfig = true);
+      child: ValueListenableBuilder<FilterStatus>(
+        valueListenable: filterStatus,
+        builder: (_, status, __) {
+          final folded = status == FilterStatus.fold;
+          final expanded = status == FilterStatus.expanded;
+          final decoration = BoxDecoration(
+            borderRadius: BorderRadius.circular(folded ? 14 : 8),
+            color: kPrimaryColor,
+            boxShadow: [
+              BoxShadow(
+                offset: Offset.fromDirection(90, 1),
+                color: Colors.black26,
+                spreadRadius: 1,
+                blurRadius: 4,
+              ),
+            ],
+          );
+          return AnimatedContainer(
+            duration: duration,
+            decoration: decoration,
+            curve: Curves.fastOutSlowIn,
+            height: folded ? 55.0 : 350.0,
+            width: folded ? 55.0 : screenWidth - 14.0 * 2,
+            onEnd: () {
+              if (!folded) filterStatus.setValue(FilterStatus.expanded);
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedOpacity(
+                  duration: duration,
+                  opacity: folded ? 1 : 0,
+                  child: _buildFAButton(),
+                ),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 150),
+                  opacity: expanded ? 1 : 0,
+                  child: _buildFilterConfig(),
+                ),
+              ],
+            ),
+          );
         },
-        child: AnimatedCrossFade(
-          crossFadeState: fadeState,
-          firstChild: _buildFAButton(),
-          secondChild: _buildFilterConfig(),
-          duration: const Duration(milliseconds: 50),
-        ),
       ),
     );
   }
-
-  // 判断是否展示button
-  bool get _showButton => fadeState == CrossFadeState.showFirst;
-
-  // 获取容器装饰
-  BoxDecoration get _decoration => BoxDecoration(
-        borderRadius: BorderRadius.circular(_showButton ? 14 : 8),
-        color: kPrimaryColor,
-        boxShadow: [
-          BoxShadow(
-            offset: Offset.fromDirection(90, 1),
-            color: Colors.black26,
-            spreadRadius: 1,
-            blurRadius: 4,
-          ),
-        ],
-      );
 
   // 样式管理
   ThemeData get _theme => ThemeData(
@@ -99,14 +109,9 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建按钮
   Widget _buildFAButton() {
-    return Center(
-      child: IconButton(
-        icon: const Icon(FontAwesomeIcons.filter),
-        onPressed: () => setState(() {
-          fadeState = CrossFadeState.showSecond;
-          showFilterConfig = false;
-        }),
-      ),
+    return IconButton(
+      icon: const Icon(FontAwesomeIcons.filter),
+      onPressed: () => filterStatus.setValue(FilterStatus.opening),
     );
   }
 
@@ -115,7 +120,6 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建过滤配置
   Widget _buildFilterConfig() {
-    if (!showFilterConfig) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -136,15 +140,14 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
                       : FontAwesomeIcons.xmark;
                   return IconButton(
                     icon: Icon(iconData),
-                    onPressed: () => setState(() {
+                    onPressed: () {
                       if (hasEdited) {
                         parserHandle.cacheFilterConfig(configMap);
                         widget.complete();
                       }
-                      fadeState = CrossFadeState.showFirst;
-                      showFilterConfig = false;
                       lastConfigHash = null;
-                    }),
+                      filterStatus.setValue(FilterStatus.fold);
+                    },
                   );
                 }),
           ],
@@ -155,8 +158,8 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建过滤配置列表
   Widget _buildFilterConfigList() {
-    return FutureBuilder<List<AnimeFilterModel>>(
-      future: parserHandle.loadFilterList(),
+    return CacheFutureBuilder<List<AnimeFilterModel>>(
+      future: parserHandle.loadFilterList,
       builder: (_, snap) {
         if (snap.hasData) {
           final dataList = snap.data!;
@@ -232,3 +235,6 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
     );
   }
 }
+
+// fab状态管理
+enum FilterStatus { fold, opening, expanded }

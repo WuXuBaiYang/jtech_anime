@@ -12,7 +12,6 @@ import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/cache_future_builder.dart';
 import 'package:jtech_anime/widget/image.dart';
 
 /*
@@ -65,8 +64,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
             return CustomScrollView(
               controller: logic.scrollController,
               slivers: [
-                _buildAppBar(),
-                SliverList.list(children: [_buildFilterChips()]),
+                _buildAppBar(context),
+                // SliverList.list(children: [_buildFilterChips()]),
                 _buildAnimeList(animeList),
                 _buildLoadMoreItem(),
               ],
@@ -76,46 +75,44 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       ),
       floatingActionButton: AnimeFilterConfigFAB(
         filterConfig: logic.filterConfig,
-        complete: () => Tool.showLoading(context,
-            loadFuture: logic.loadAnimeList(context, false)),
+        complete: () {
+          Tool.showLoading(context,
+              loadFuture: logic.loadAnimeList(context, false));
+          logic.convertFilterTags();
+        },
       ),
     );
   }
 
   // 构建页面头部
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
+    const duration = Duration(milliseconds: 150);
     return ValueListenableBuilder<bool>(
       valueListenable: logic.showAppBar,
       builder: (_, showAppBar, __) {
-        final title = showAppBar
-            ? (logic.filterConfig.isEmpty
-                ? const Text(Common.appName)
-                : _buildFilterChips())
-            : null;
+        final padding = MediaQuery.paddingOf(context);
+        final opacity = showAppBar ? 1.0 : 0.0;
         return SliverAppBar(
-          pinned: true,
+          title: AnimatedOpacity(
+            opacity: opacity,
+            duration: duration,
+            child: const Text(Common.appName),
+          ),
           expandedHeight: _HomeLogic.expandedHeight,
-          title: title,
-          actions: showAppBar
-              ? [
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.magnifyingGlass),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.handPointDown),
-                    onPressed: () => logic.expandedTimeTable(),
-                  ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.download),
-                    onPressed: () {
-                      SnackTool.showMessage(context, message: '还在施工中~');
-                    },
-                  ),
-                ]
-              : null,
+          actions: [
+            AnimatedOpacity(
+              opacity: opacity,
+              duration: duration,
+              child: Row(children: _actions),
+            ),
+          ],
+          pinned: true,
           flexibleSpace: FlexibleSpaceBar(
-            background: SafeArea(
+            background: Padding(
+              padding: EdgeInsets.only(
+                bottom: kToolbarHeight,
+                top: padding.top,
+              ),
               child: AnimeTimeTable(
                 onTap: (item) => router.pushNamed(
                   RoutePath.animeDetail,
@@ -124,47 +121,51 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               ),
             ),
           ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: _buildFilterChips(),
+          ),
         );
       },
     );
   }
 
+  // 标题栏动作按钮集合
+  List<Widget> get _actions => [
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+          onPressed: () {},
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.handPointDown),
+          onPressed: () => logic.expandedTimeTable(),
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.download),
+          onPressed: () {
+            SnackTool.showMessage(context, message: '还在施工中~');
+          },
+        ),
+      ];
+
   // 构建番剧过滤配置组件
   Widget _buildFilterChips() {
-    return CacheFutureBuilder<Map<String, AnimeFilterModel>>(
-      future: () => parserHandle.loadFilterList().then(
-            (v) => v.asMap().map((_, e) => MapEntry(e.key, e)),
-          ),
-      builder: (_, snap) {
-        if (snap.hasData) {
-          final filterMap = snap.data;
-          return ValueListenableBuilder<Map<String, dynamic>>(
-            valueListenable: logic.filterConfig,
-            builder: (_, configMap, __) {
-              final tags = configMap.keys.expand((k) sync* {
-                final item = filterMap?[k];
-                for (final v in configMap[k]) {
-                  final name = item?.items
-                      .firstWhere((e) => e.value == v,
-                          orElse: () => AnimeFilterItemModel.from({}))
-                      .name;
-                  yield '${item?.name} · $name';
-                }
-              }).toList();
-              return SizedBox(
-                height: 50,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  itemBuilder: (_, i) => RawChip(label: Text(tags[i])),
-                  separatorBuilder: (_, i) => const SizedBox(width: 8),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: tags.length,
-                ),
+    return ValueListenableBuilder<List<Map>>(
+      valueListenable: logic.filterTags,
+      builder: (_, tags, __) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(tags.length, (i) {
+              final text = '${tags[i].keys.firstOrNull} · '
+                  '${tags[i].values.firstOrNull}';
+              return Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: RawChip(label: Text(text)),
               );
-            },
-          );
-        }
-        return const SizedBox();
+            }),
+          ),
+        );
       },
     );
   }
@@ -197,10 +198,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                   alignment: Alignment.bottomCenter,
                   children: [
                     Positioned.fill(
-                      child: ImageView.net(
-                        item.cover,
-                        fit: BoxFit.cover,
-                      ),
+                      child: ImageView.net(item.cover, fit: BoxFit.cover),
                     ),
                     Container(
                       width: double.maxFinite,
@@ -261,7 +259,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 */
 class _HomeLogic extends BaseLogic {
   // 折叠高度
-  static const double expandedHeight = 340.0;
+  static const double expandedHeight = 350.0;
 
   // 标题栏展示状态
   final showAppBar = ValueChangeNotifier<bool>(false);
@@ -276,11 +274,16 @@ class _HomeLogic extends BaseLogic {
   // 记录过滤条件
   final filterConfig = MapValueChangeNotifier<String, dynamic>.empty();
 
+  // 过滤条件标签
+  final filterTags = ListValueChangeNotifier<Map>.empty();
+
   @override
   void init() {
     super.init();
     // 加载过滤条件
     filterConfig.setValue(parserHandle.filterConfig ?? {});
+    // 转换过滤条件
+    convertFilterTags();
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
@@ -312,5 +315,26 @@ class _HomeLogic extends BaseLogic {
     } finally {
       _loading = false;
     }
+  }
+
+  // 过滤配置列表缓存
+  Map<String, AnimeFilterModel>? _filterMap;
+
+  // 转换过滤条件标签
+  Future<void> convertFilterTags() async {
+    _filterMap ??= (await parserHandle.loadFilterList())
+        .asMap()
+        .map((_, v) => MapEntry(v.key, v));
+    final tags = filterConfig.keys.expand((k) sync* {
+      final item = _filterMap![k];
+      for (final v in filterConfig.value[k]) {
+        final name = item?.items
+            .firstWhere((e) => e.value == v,
+                orElse: () => AnimeFilterItemModel.from({}))
+            .name;
+        yield {item?.name: name};
+      }
+    }).toList();
+    filterTags.setValue(tags);
   }
 }
