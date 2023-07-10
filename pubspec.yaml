@@ -44,7 +44,7 @@ dependencies:
   path_provider: ^2.0.15
 
   # 通知栏消息
-  flutter_local_notifications: ^15.0.1
+  flutter_local_notifications: ^15.1.0+1
 
   # sp缓存
   shared_preferences: ^2.2.0
@@ -59,7 +59,7 @@ dependencies:
   logger: ^1.4.0
 
   # 权限管理
-  permission_handler: ^10.4.1
+  permission_handler: ^10.4.2
 
   # 网络请求框架
   dio: ^5.2.1+1
@@ -81,6 +81,9 @@ dependencies:
 
   # 数据库框架核心
   isar_flutter_libs: ^3.1.0+1
+
+  # 动画
+  lottie: ^2.4.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -117,6 +120,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/filter/
+    - assets/anime/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

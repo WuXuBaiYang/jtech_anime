@@ -6,6 +6,7 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/cache_future_builder.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 /*
 * 番剧过滤条件配置
@@ -158,25 +159,21 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建过滤配置列表
   Widget _buildFilterConfigList() {
-    return CacheFutureBuilder<List<AnimeFilterModel>>(
+    return StatusBoxCacheFuture<List<AnimeFilterModel>>(
       future: parserHandle.loadFilterList,
-      builder: (_, snap) {
-        if (snap.hasData) {
-          final dataList = snap.data!;
-          return ValueListenableBuilder<Map<String, dynamic>>(
-            valueListenable: widget.filterConfig,
-            builder: (_, configMap, __) {
-              return ListView.builder(
-                padding: const EdgeInsets.only(top: 14),
-                itemBuilder: (_, i) {
-                  return _buildFilterConfigListItem(dataList[i], configMap);
-                },
-                itemCount: dataList.length,
-              );
-            },
-          );
-        }
-        return const Center(child: CircularProgressIndicator());
+      builder: (dataList) {
+        return ValueListenableBuilder<Map<String, dynamic>>(
+          valueListenable: widget.filterConfig,
+          builder: (_, configMap, __) {
+            return ListView.builder(
+              padding: const EdgeInsets.only(top: 14),
+              itemBuilder: (_, i) {
+                return _buildFilterConfigListItem(dataList[i], configMap);
+              },
+              itemCount: dataList.length,
+            );
+          },
+        );
       },
     );
   }

@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/widget/cache_future_builder.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 // 时间表点击回调
 typedef AnimeTimeTableTap = void Function(TimeTableItemModel item);
@@ -36,23 +37,19 @@ class AnimeTimeTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: CacheFutureBuilder<List<List<TimeTableItemModel>>>(
+      child: StatusBoxCacheFuture<List<List<TimeTableItemModel>>>(
         future: parserHandle.loadAnimeTimeTable,
-        builder: (_, snap) {
-          if (snap.hasData) {
-            final length = snap.data!.length;
-            return DefaultTabController(
-              initialIndex: _weekday,
-              length: length,
-              child: Column(
-                children: [
-                  _buildTabBar(length),
-                  Expanded(child: _buildTabView(snap.data!)),
-                ],
-              ),
-            );
-          }
-          return const Center(child: CircularProgressIndicator());
+        builder: (dataList) {
+          return DefaultTabController(
+            initialIndex: _weekday,
+            length: dataList.length,
+            child: Column(
+              children: [
+                _buildTabBar(dataList.length),
+                Expanded(child: _buildTabView(dataList)),
+              ],
+            ),
+          );
         },
       ),
     );

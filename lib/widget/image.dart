@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 // 图片状态加载
 typedef ImageViewStateLoad = Widget? Function();
@@ -228,9 +230,15 @@ class _ImageViewState extends State<ImageView> {
 
   // 构建加载中状态
   Widget _buildLoadingState(ExtendedImageState state) {
+    final defSize = widget.size ?? 24;
+    final animSize =
+        min(widget.width ?? defSize, widget.height ?? defSize) * 0.6;
     return widget.loadingState?.call() ??
-        const Center(
-          child: CircularProgressIndicator(),
+        Center(
+          child: StatusBox(
+            status: StatusBoxStatus.loading,
+            animSize: animSize,
+          ),
         );
   }
 

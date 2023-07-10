@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/tool/log.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'date.dart';
@@ -88,8 +89,12 @@ class Tool {
         builder: (_) => const Center(
           child: Card(
             child: Padding(
-              padding: EdgeInsets.all(14),
-              child: CircularProgressIndicator(),
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: StatusBox(
+                status: StatusBoxStatus.loading,
+                title: Text('加载中~'),
+                animSize: 28,
+              ),
             ),
           ),
         ),

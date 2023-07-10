@@ -41,42 +41,6 @@ class YHDMZParserHandle extends ParserHandle {
   }
 
   @override
-  Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) async {
-    try {
-      final result = await searchAnimeList(
-        keyword,
-        params: {'pageindex': '${_searchPageIndex + 1}', 'pagesize': '24'},
-      );
-      _searchPageIndex += 1;
-      return result;
-    } catch (e) {
-      LogTool.e('樱花动漫z番剧列表获取失败：', error: e);
-    }
-    return [];
-  }
-
-  @override
-  Future<List<AnimeModel>> searchAnimeList(String keyword,
-      {Map<String, dynamic> params = const {}}) async {
-    try {
-      if (!params.containsKey('pageindex')) _searchPageIndex = 0;
-      final resp = await Dio().getUri(
-        _getUri('/s_all', params: {'kw': keyword, ...params}),
-        options: _options,
-      );
-      if (resp.statusCode == 200) {
-        return _parseAnimeList(resp.data)
-            .map<AnimeModel>((e) => AnimeModel.from(e))
-            .toList();
-      } else {
-        throw Exception('樱花动漫z番剧列表获取失败：${resp.statusCode}');
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
   Future<List<AnimeFilterModel>> loadFilterList() async {
     final json = await rootBundle.loadString(_filterJson);
     return jsonDecode(json)
@@ -89,7 +53,11 @@ class YHDMZParserHandle extends ParserHandle {
       {Map<String, dynamic> params = const {}}) async {
     try {
       final result = await loadAnimeList(
-        params: {'pageindex': '${_pageIndex + 1}', 'pagesize': '24'},
+        params: {
+          'pageindex': '${_pageIndex + 1}',
+          'pagesize': '24',
+          ...params,
+        },
       );
       _pageIndex += 1;
       return result;
@@ -118,6 +86,42 @@ class YHDMZParserHandle extends ParserHandle {
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  Future<List<AnimeModel>> searchAnimeList(String keyword,
+      {Map<String, dynamic> params = const {}}) async {
+    try {
+      if (!params.containsKey('pageindex')) _searchPageIndex = 0;
+      final resp = await Dio().getUri(
+        _getUri('/s_all', params: {'kw': keyword, ...params}),
+        options: _options,
+      );
+      if (resp.statusCode == 200) {
+        return _parseAnimeList(resp.data)
+            .map<AnimeModel>((e) => AnimeModel.from(e))
+            .toList();
+      } else {
+        throw Exception('樱花动漫z番剧列表获取失败：${resp.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) async {
+    try {
+      final result = await searchAnimeList(
+        keyword,
+        params: {'pageindex': '${_searchPageIndex + 1}', 'pagesize': '24'},
+      );
+      _searchPageIndex += 1;
+      return result;
+    } catch (e) {
+      LogTool.e('樱花动漫z番剧列表获取失败：', error: e);
+    }
+    return [];
   }
 
   @override

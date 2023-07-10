@@ -9,6 +9,15 @@ import 'package:flutter/widgets.dart';
 class Common {
   // app名称
   static const String appName = 'JTechAnime';
+
+  // 动画-加载动
+  static const String statusLoadingAsset = 'assets/anime/status_loading.json';
+
+  // 动画-空内容
+  static const String statusEmptyAsset = 'assets/anime/status_empty.json';
+
+  // 动画-错误
+  static const String statusErrorAsset = 'assets/anime/status_error.json';
 }
 
 /*
