@@ -78,7 +78,7 @@ class DBManage extends BaseManage {
             .filter()
             .keyEqualTo(item.key)
             .and()
-            .sourceEqualTo(item.name);
+            .sourceEqualTo(item.source);
         if (maxSelected == 1) {
           // 如果最大选择数为1，则移除所有符合条件的结果
           await queryBuilder.deleteAll();
