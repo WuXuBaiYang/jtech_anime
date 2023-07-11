@@ -108,6 +108,18 @@ class Tool {
       if (_loadingDialog != null) await navigator.maybePop();
     }
   }
+
+  // 函数防抖
+  static Function debounce(Function func,
+      [Duration delay = const Duration(milliseconds: 2000)]) {
+    Timer? timer;
+    return () {
+      if (timer?.isActive ?? false) {
+        timer?.cancel();
+      }
+      timer = Timer(delay, () => func.call());
+    };
+  }
 }
 
 /*

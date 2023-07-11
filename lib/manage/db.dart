@@ -3,6 +3,7 @@ import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/filter_select.dart';
+import 'package:jtech_anime/model/search_record.dart';
 import 'package:jtech_anime/model/video_cache.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -28,10 +29,40 @@ class DBManage extends BaseManage {
       [
         VideoCacheSchema,
         FilterSelectSchema,
+        SearchRecordSchema,
       ],
       directory: dir.path,
     );
   }
+
+  // 获取搜索记录列表
+  Future<List<SearchRecord>> getSearchRecordList() =>
+      isar.searchRecords.where().sortByHeatDesc().findAll();
+
+  // 添加搜索记录
+  Future<SearchRecord?> addSearchRecord(String keyword) =>
+      isar.writeTxn<SearchRecord?>(() async {
+        // 查询是否已存在搜索记录
+        var item = await isar.searchRecords
+            .where()
+            .keywordEqualTo(
+              keyword,
+            )
+            .findFirst();
+        // 不存在则创建新的搜索记录并热度+1
+        item ??= SearchRecord();
+        return isar.searchRecords
+            .put(item
+              ..heat += 1
+              ..keyword = keyword)
+            .then((id) => isar.searchRecords.get(id));
+      });
+
+  // 移除搜索记录
+  Future<bool> removeSearchRecord(int id) => isar.writeTxn<bool>(() {
+        // 移除搜索记录
+        return isar.searchRecords.delete(id);
+      });
 
   // 获取已选过滤条件
   Future<List<FilterSelect>> getFilterSelectList(AnimeSource source) =>
@@ -72,9 +103,9 @@ class DBManage extends BaseManage {
       });
 
   // 移除过滤条件
-  Future<bool> removeFilterSelect(FilterSelect item) => isar.writeTxn(() {
+  Future<bool> removeFilterSelect(int id) => isar.writeTxn<bool>(() {
         // 删除过滤条件
-        return isar.filterSelects.delete(item.id);
+        return isar.filterSelects.delete(id);
       });
 
   // 根据原视频地址获取已缓存播放地址

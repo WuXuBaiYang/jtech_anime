@@ -213,7 +213,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
                 widget.filterConfig.setValue(temp);
               }
             } else if (selectItem != null) {
-              final result = await db.removeFilterSelect(selectItem);
+              final result = await db.removeFilterSelect(selectItem.id);
               if (result) widget.filterConfig.removeValue(key);
             }
           },

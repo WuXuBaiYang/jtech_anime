@@ -270,6 +270,9 @@ class _HomeLogic extends BaseLogic {
   // 记录过滤条件
   final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
 
+  // 加载状态管理
+  final loading = ValueChangeNotifier<bool>(false);
+
   @override
   void init() {
     super.init();
@@ -292,15 +295,12 @@ class _HomeLogic extends BaseLogic {
   void expandedTimeTable() => scrollController.animateTo(0,
       duration: const Duration(milliseconds: 400), curve: Curves.ease);
 
-  // 记录当前加载状态，避免重复加载
-  bool _loading = false;
-
   // 加载番剧列表
   Future<void> loadAnimeList(BuildContext context, bool loadMore) async {
-    if (_loading) return;
+    if (loading.value) return;
     return Tool.showLoading<void>(context, loadFuture: Future(() async {
-      _loading = true;
       try {
+        loading.setValue(true);
         final params =
             filterConfig.value.map((_, v) => MapEntry(v.key, v.value));
         final result = await (loadMore
@@ -310,7 +310,7 @@ class _HomeLogic extends BaseLogic {
       } catch (e) {
         SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
       } finally {
-        _loading = false;
+        loading.setValue(false);
       }
     }));
   }

@@ -41,13 +41,18 @@ class StatusBox extends StatelessWidget {
             status.assetsFile,
             width: animSize * ratio,
           ),
-          const SizedBox(height: 24),
-          title ?? const SizedBox(),
-          const SizedBox(height: 6),
-          DefaultTextStyle(
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-            child: subTitle ?? const SizedBox(),
-          ),
+          if (title != null) ...[
+            const SizedBox(height: 24),
+            title ?? const SizedBox(),
+          ],
+          if (subTitle != null) ...[
+            if (title == null) const SizedBox(height: 24),
+            if (title != null) const SizedBox(height: 6),
+            DefaultTextStyle(
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+              child: subTitle ?? const SizedBox(),
+            ),
+          ]
         ],
       ),
     );
