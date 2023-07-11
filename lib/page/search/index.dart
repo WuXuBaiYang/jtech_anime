@@ -2,12 +2,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/search_record.dart';
 import 'package:jtech_anime/page/search/search.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 /*
 * 搜索页
@@ -33,9 +37,11 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: _buildSearchBar(context),
+      body: Stack(
+        children: [
+          _buildSearchList(context),
+          _buildSearchBar(context),
+        ],
       ),
     );
   }
@@ -43,14 +49,82 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   // 构建搜索条
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14).copyWith(
-        top: MediaQuery.paddingOf(context).top,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14)
+          .copyWith(top: MediaQuery.of(context).padding.top),
       child: SearchBarView(
         inSearching: logic.inSearching,
         searchRecordList: logic.searchRecordList,
         search: (keyword) => logic.search(context, keyword, false),
         recordDelete: (item) => logic.deleteSearchRecord(context, item),
+      ),
+    );
+  }
+
+  // 构建搜索列表
+  Widget _buildSearchList(BuildContext context) {
+    return SafeArea(
+      child: ValueListenableBuilder<List<AnimeModel>>(
+        valueListenable: logic.searchList,
+        builder: (_, searchList, __) {
+          if (searchList.isEmpty) {
+            return const Center(
+              child: StatusBox(
+                status: StatusBoxStatus.empty,
+                title: Text('搜搜看~'),
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.only(top: kToolbarHeight),
+            itemCount: searchList.length,
+            itemBuilder: (_, i) {
+              final item = searchList[i];
+              return _buildSearchListItem(item);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  // 标题文本样式
+  final titleStyle = const TextStyle(fontSize: 14, color: Colors.black87);
+
+  // 内容文本样式
+  final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);
+
+  // 构建搜索列表子项
+  Widget _buildSearchListItem(AnimeModel item) {
+    // ,
+    // maxLines: 2,
+    // overflow: TextOverflow.ellipsis
+    return InkWell(
+      child: DefaultTextStyle(
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: ImageView.net(item.cover,
+                  width: 100, height: 120, fit: BoxFit.cover),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(item.name, style: titleStyle),
+                  Text(item.status, style: subTitleStyle),
+                  Text(item.intro, style: subTitleStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      onTap: () => router.pushNamed(
+        RoutePath.animeDetail,
+        arguments: {'url': item.url},
       ),
     );
   }
@@ -70,6 +144,9 @@ class _SearchLogic extends BaseLogic {
 
   // 是否正在搜索中
   final inSearching = ValueChangeNotifier<bool>(false);
+
+  // 滚动控制器
+  final scrollController = ScrollController();
 
   @override
   void init() {

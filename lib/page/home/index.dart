@@ -193,7 +193,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         childAspectRatio: 0.65,
         crossAxisCount: 3,
       ),
-      itemBuilder: (_, i) => _buildAnimeListItem(animeList[i]),
+      itemBuilder: (_, i) {
+        return _buildAnimeListItem(animeList[i]);
+      },
     );
   }
 

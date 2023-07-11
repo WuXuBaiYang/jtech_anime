@@ -129,6 +129,7 @@ class SearchBarView extends StatelessWidget {
     return Align(
       alignment: Alignment.topLeft,
       child: Material(
+        color: Colors.transparent,
         child: Card(
           clipBehavior: Clip.antiAlias,
           margin: const EdgeInsets.only(left: 4, right: 30),
