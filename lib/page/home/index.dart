@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
@@ -93,7 +92,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           top: edgeInsets.top,
         );
         return SliverAppBar(
-          title: Text(showAppBar ? Common.appName : ''),
+          title: _buildSearchButton(showAppBar),
           expandedHeight: _HomeLogic.expandedHeight,
           actions: [
             if (showAppBar) ..._actions,
@@ -123,12 +122,25 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     );
   }
 
+  // 构建搜索按钮
+  Widget _buildSearchButton(bool showAppBar) {
+    if (!showAppBar) return const SizedBox();
+    const color = Colors.black38;
+    const textStyle = TextStyle(color: color, fontSize: 16);
+    return ElevatedButton(
+      child: const Row(
+        children: [
+          Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
+          SizedBox(width: 8),
+          Text('嗖嗖嗖~', style: textStyle),
+        ],
+      ),
+      onPressed: () => router.pushNamed(RoutePath.search),
+    );
+  }
+
   // 标题栏动作按钮集合
   List<Widget> get _actions => [
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.magnifyingGlass),
-          onPressed: () => router.pushNamed(RoutePath.search),
-        ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.handPointDown),
           onPressed: () => logic.expandedTimeTable(),
