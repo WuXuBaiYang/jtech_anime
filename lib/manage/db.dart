@@ -69,20 +69,16 @@ class DBManage extends BaseManage {
       isar.filterSelects.where().sourceEqualTo(source.name).findAll();
 
   // 添加过滤条件
-  Future<FilterSelect?> addFilterSelect(
-    AnimeFilterModel parent,
-    AnimeFilterItemModel item, {
-    AnimeSource source = AnimeSource.yhdmz,
-  }) =>
+  Future<FilterSelect?> addFilterSelect(FilterSelect item,
+          [int maxSelected = 1]) =>
       isar.writeTxn<FilterSelect?>(() async {
-        final maxSelected = parent.maxSelected;
         if (maxSelected < 1) return null;
         final queryBuilder = isar.filterSelects
             .where()
             .filter()
-            .keyEqualTo(parent.key)
+            .keyEqualTo(item.key)
             .and()
-            .sourceEqualTo(source.name);
+            .sourceEqualTo(item.name);
         if (maxSelected == 1) {
           // 如果最大选择数为1，则移除所有符合条件的结果
           await queryBuilder.deleteAll();
@@ -92,14 +88,9 @@ class DBManage extends BaseManage {
           if (count >= maxSelected) return null;
         }
         // 插入过滤条件并返回
-        return isar.filterSelects
-            .put(FilterSelect()
-              ..key = parent.key
-              ..value = item.value
-              ..source = source.name
-              ..name = item.name
-              ..parentName = parent.name)
-            .then((id) => isar.filterSelects.get(id));
+        return isar.filterSelects.put(item).then(
+              (id) => isar.filterSelects.get(id),
+            );
       });
 
   // 移除过滤条件

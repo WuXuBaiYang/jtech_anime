@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
@@ -9,34 +8,44 @@ import 'package:jtech_anime/model/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
+// 过滤条件选择回调
+typedef FilterSelectCallback = void Function(
+    bool selected, FilterSelect item, int maxSelected);
+
 /*
 * 番剧过滤条件配置
 * @author wuxubaiyang
 * @Time 2023/7/7 15:27
 */
-class AnimeFilterConfigFAB extends StatefulWidget {
+class AnimeFilterConfigFAB extends StatelessWidget {
   // 过滤条件配置
   final MapValueChangeNotifier<String, FilterSelect> filterConfig;
+
+  // 选择回调
+  final FilterSelectCallback filterSelect;
 
   // 过滤配置条件回调
   final VoidCallback complete;
 
-  const AnimeFilterConfigFAB(
-      {super.key, required this.filterConfig, required this.complete});
-
-  @override
-  State<StatefulWidget> createState() => _AnimeFilterConfigFABState();
-}
-
-class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
   // fab状态管理
   final filterStatus = ValueChangeNotifier<FilterStatus>(FilterStatus.fold);
+
+  // 标题文本样式
+  final TextStyle titleTextStyle =
+      TextStyle(color: Colors.white.withOpacity(0.6));
+
+  // 记录编辑前的hash值
+  final lastConfigHash = ValueChangeNotifier<int?>(null);
 
   // 动画时长
   final duration = const Duration(milliseconds: 200);
 
-  // 记录编辑前的hash值
-  int? lastConfigHash;
+  AnimeFilterConfigFAB({
+    super.key,
+    required this.filterConfig,
+    required this.filterSelect,
+    required this.complete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,31 +57,18 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
         builder: (_, status, __) {
           final folded = status == FilterStatus.fold;
           final expanded = status == FilterStatus.expanded;
-          final decoration = BoxDecoration(
-            borderRadius: BorderRadius.circular(folded ? 14 : 8),
-            color: kPrimaryColor,
-            boxShadow: [
-              BoxShadow(
-                offset: Offset.fromDirection(90, 1),
-                color: Colors.black26,
-                spreadRadius: 1,
-                blurRadius: 4,
-              ),
-            ],
-          );
-          final child = folded
-              ? _buildFAButton()
-              : (expanded ? _buildFilterConfig() : const SizedBox());
           return AnimatedContainer(
             duration: duration,
-            decoration: decoration,
             curve: Curves.fastOutSlowIn,
             height: folded ? 55.0 : 350.0,
+            decoration: _createDecoration(folded),
             width: folded ? 55.0 : screenWidth - 14.0 * 2,
             onEnd: () {
               if (!folded) filterStatus.setValue(FilterStatus.expanded);
             },
-            child: child,
+            child: !folded
+                ? (expanded ? _buildFilterConfig() : const SizedBox())
+                : _buildFAButton(),
           );
         },
       ),
@@ -98,6 +94,20 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
         ),
       );
 
+  // 创建装饰器
+  BoxDecoration _createDecoration(bool folded) => BoxDecoration(
+        borderRadius: BorderRadius.circular(folded ? 14 : 8),
+        color: kPrimaryColor,
+        boxShadow: [
+          BoxShadow(
+            offset: Offset.fromDirection(90, 1),
+            color: Colors.black26,
+            spreadRadius: 1,
+            blurRadius: 4,
+          ),
+        ],
+      );
+
   // 构建按钮
   Widget _buildFAButton() {
     return IconButton(
@@ -105,9 +115,6 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
       onPressed: () => filterStatus.setValue(FilterStatus.opening),
     );
   }
-
-  // 标题文本样式
-  TextStyle titleTextStyle = TextStyle(color: Colors.white.withOpacity(0.6));
 
   // 构建过滤配置
   Widget _buildFilterConfig() {
@@ -122,19 +129,22 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
             Text('选择过滤条件', style: titleTextStyle),
             const Spacer(),
             ValueListenableBuilder<Map<String, FilterSelect>>(
-                valueListenable: widget.filterConfig,
+                valueListenable: filterConfig,
                 builder: (_, configMap, __) {
                   final hashCode = configMap.keys.toString().hashCode;
-                  final hasEdited = (lastConfigHash ??= hashCode) != hashCode;
+                  if (lastConfigHash.value == null) {
+                    lastConfigHash.setValue(hashCode);
+                  }
+                  final hasEdited = lastConfigHash.value != hashCode;
                   final iconData = hasEdited
                       ? FontAwesomeIcons.check
                       : FontAwesomeIcons.xmark;
                   return IconButton(
                     icon: Icon(iconData),
                     onPressed: () {
-                      if (hasEdited) widget.complete();
+                      if (hasEdited) complete();
                       filterStatus.setValue(FilterStatus.fold);
-                      lastConfigHash = null;
+                      lastConfigHash.setValue(null);
                     },
                   );
                 }),
@@ -150,7 +160,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
       future: parserHandle.loadFilterList,
       builder: (dataList) {
         return ValueListenableBuilder<Map<String, FilterSelect>>(
-          valueListenable: widget.filterConfig,
+          valueListenable: filterConfig,
           builder: (_, selectMap, __) {
             return ListView.builder(
               padding: const EdgeInsets.only(top: 14),
@@ -192,30 +202,19 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
       spacing: 8,
       runSpacing: 4,
       children: List.generate(item.items.length, (i) {
-        final it = item.items[i];
-        final key = item.key + it.value;
-        final selectItem = selectMap[key];
+        final sub = item.items[i];
+        var selectItem = selectMap['${item.key}${sub.value}'];
         return ChoiceChip(
-          label: Text(it.name),
+          label: Text(sub.name),
           selected: selectItem != null,
-          onSelected: (v) async {
-            if (v) {
-              final result = await db.addFilterSelect(item, it,
-                  source: parserHandle.currentSource);
-              if (result != null) {
-                final temp = {result.key + result.value: result};
-                if (item.maxSelected == 1) {
-                  temp.addAll(selectMap
-                    ..removeWhere(
-                      (_, v) => v.key == item.key,
-                    ));
-                }
-                widget.filterConfig.setValue(temp);
-              }
-            } else if (selectItem != null) {
-              final result = await db.removeFilterSelect(selectItem.id);
-              if (result) widget.filterConfig.removeValue(key);
-            }
+          onSelected: (v) {
+            selectItem ??= FilterSelect()
+              ..key = item.key
+              ..value = sub.value
+              ..parentName = item.name
+              ..name = sub.name
+              ..source = parserHandle.currentSource.name;
+            filterSelect(v, selectItem!, item.maxSelected);
           },
         );
       }),

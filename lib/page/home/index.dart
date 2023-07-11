@@ -76,6 +76,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       floatingActionButton: AnimeFilterConfigFAB(
         complete: () => logic.loadAnimeList(context, false),
         filterConfig: logic.filterConfig,
+        filterSelect: logic.filterSelect,
       ),
     );
   }
@@ -279,7 +280,7 @@ class _HomeLogic extends BaseLogic {
     // 加载过滤条件
     db.getFilterSelectList(parserHandle.currentSource).then(
           (result) => filterConfig.setValue(result.asMap().map(
-                (_, v) => MapEntry(v.key + v.value, v),
+                (_, v) => MapEntry(_genFilterKey(v), v),
               )),
         );
     // 监听容器滚动
@@ -314,4 +315,28 @@ class _HomeLogic extends BaseLogic {
       }
     }));
   }
+
+  // 选择过滤条件
+  Future<void> filterSelect(
+      bool selected, FilterSelect item, int maxSelected) async {
+    if (selected) {
+      final result = await db.addFilterSelect(item, maxSelected);
+      if (result != null) {
+        final temp = filterConfig.value;
+        if (maxSelected == 1) {
+          temp.removeWhere((_, v) => v.key == item.key);
+        }
+        filterConfig.setValue({
+          ...temp,
+          _genFilterKey(result): result,
+        });
+      }
+    } else {
+      final result = await db.removeFilterSelect(item.id);
+      if (result) filterConfig.removeValue(_genFilterKey(item));
+    }
+  }
+
+  // 生成过滤条件唯一key
+  String _genFilterKey(FilterSelect item) => '${item.key}${item.value}';
 }
