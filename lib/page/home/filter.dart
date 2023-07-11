@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
+import 'package:jtech_anime/model/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/cache_future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -15,7 +16,7 @@ import 'package:jtech_anime/widget/status_box.dart';
 */
 class AnimeFilterConfigFAB extends StatefulWidget {
   // 过滤条件配置
-  final MapValueChangeNotifier<String, dynamic> filterConfig;
+  final MapValueChangeNotifier<String, FilterSelect> filterConfig;
 
   // 过滤配置条件回调
   final VoidCallback complete;
@@ -120,10 +121,10 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
             const SizedBox(width: 8),
             Text('选择过滤条件', style: titleTextStyle),
             const Spacer(),
-            ValueListenableBuilder<Map<String, dynamic>>(
+            ValueListenableBuilder<Map<String, FilterSelect>>(
                 valueListenable: widget.filterConfig,
                 builder: (_, configMap, __) {
-                  final hashCode = configMap.values.toString().hashCode;
+                  final hashCode = configMap.keys.toString().hashCode;
                   final hasEdited = (lastConfigHash ??= hashCode) != hashCode;
                   final iconData = hasEdited
                       ? FontAwesomeIcons.check
@@ -131,12 +132,9 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
                   return IconButton(
                     icon: Icon(iconData),
                     onPressed: () {
-                      if (hasEdited) {
-                        parserHandle.cacheFilterConfig(configMap);
-                        widget.complete();
-                      }
-                      lastConfigHash = null;
+                      if (hasEdited) widget.complete();
                       filterStatus.setValue(FilterStatus.fold);
+                      lastConfigHash = null;
                     },
                   );
                 }),
@@ -151,13 +149,13 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
     return StatusBoxCacheFuture<List<AnimeFilterModel>>(
       future: parserHandle.loadFilterList,
       builder: (dataList) {
-        return ValueListenableBuilder<Map<String, dynamic>>(
+        return ValueListenableBuilder<Map<String, FilterSelect>>(
           valueListenable: widget.filterConfig,
-          builder: (_, configMap, __) {
+          builder: (_, selectMap, __) {
             return ListView.builder(
               padding: const EdgeInsets.only(top: 14),
               itemBuilder: (_, i) {
-                return _buildFilterConfigListItem(dataList[i], configMap);
+                return _buildFilterConfigListItem(dataList[i], selectMap);
               },
               itemCount: dataList.length,
             );
@@ -169,7 +167,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建过滤配置列表项
   Widget _buildFilterConfigListItem(
-      AnimeFilterModel item, Map<String, dynamic> configMap) {
+      AnimeFilterModel item, Map<String, FilterSelect> selectMap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -181,7 +179,7 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
         const Divider(),
         Padding(
           padding: const EdgeInsets.only(left: 30),
-          child: _buildFilterConfigListItemTags(item, configMap),
+          child: _buildFilterConfigListItemTags(item, selectMap),
         ),
       ],
     );
@@ -189,33 +187,36 @@ class _AnimeFilterConfigFABState extends State<AnimeFilterConfigFAB> {
 
   // 构建过滤配置列表标签集合
   Widget _buildFilterConfigListItemTags(
-      AnimeFilterModel item, Map<String, dynamic> configMap) {
+      AnimeFilterModel item, Map<String, FilterSelect> selectMap) {
     return Wrap(
       spacing: 8,
       runSpacing: 4,
       children: List.generate(item.items.length, (i) {
         final it = item.items[i];
-        final selects = configMap[item.key];
+        final key = item.key + it.value;
+        final selectItem = selectMap[key];
         return ChoiceChip(
-          selected: selects?.contains(it.value) ?? false,
           label: Text(it.name),
-          onSelected: (v) => setState(() {
-            var result = selects ?? [];
-            if (!v) {
-              result.remove(it.value);
-            } else {
-              if (item.maxSelected == 1) {
-                result = [it.value];
-              } else if (result.length < item.maxSelected) {
-                result = result..add(it.value);
+          selected: selectItem != null,
+          onSelected: (v) async {
+            if (v) {
+              final result = await db.addFilterSelect(item, it,
+                  source: parserHandle.currentSource);
+              if (result != null) {
+                final temp = {result.key + result.value: result};
+                if (item.maxSelected == 1) {
+                  temp.addAll(selectMap
+                    ..removeWhere(
+                      (_, v) => v.key == item.key,
+                    ));
+                }
+                widget.filterConfig.setValue(temp);
               }
+            } else if (selectItem != null) {
+              final result = await db.removeFilterSelect(selectItem);
+              if (result) widget.filterConfig.removeValue(key);
             }
-            if (result.isEmpty) {
-              widget.filterConfig.removeValue(item.key);
-            } else {
-              widget.filterConfig.putValue(item.key, result);
-            }
-          }),
+          },
         );
       }),
     );

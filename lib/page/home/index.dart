@@ -4,10 +4,11 @@ import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/filter.dart';
+import 'package:jtech_anime/model/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
@@ -74,11 +75,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         ),
       ),
       floatingActionButton: AnimeFilterConfigFAB(
+        complete: () => logic.loadAnimeList(context, false),
         filterConfig: logic.filterConfig,
-        complete: () {
-          logic.loadAnimeList(context, false);
-          logic.convertFilterTags();
-        },
       ),
     );
   }
@@ -86,12 +84,12 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   // 构建页面头部
   Widget _buildAppBar(BuildContext context) {
     final edgeInsets = MediaQuery.paddingOf(context);
-    return ValueListenableBuilder2<List<Map>, bool>(
-      first: logic.filterTags,
+    return ValueListenableBuilder2<Map<String, FilterSelect>, bool>(
+      first: logic.filterConfig,
       second: logic.showAppBar,
-      builder: (_, tags, showAppBar, __) {
+      builder: (_, selectMap, showAppBar, __) {
         final padding = EdgeInsets.only(
-          bottom: tags.isNotEmpty ? kToolbarHeight : 0.0,
+          bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
           top: edgeInsets.top,
         );
         return SliverAppBar(
@@ -112,12 +110,12 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               ),
             ),
           ),
-          bottom: tags.isNotEmpty
+          bottom: selectMap.isNotEmpty
               ? PreferredSize(
                   preferredSize: const Size.fromHeight(kToolbarHeight),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: _buildFilterChips(tags),
+                    child: _buildFilterChips(selectMap),
                   ))
               : null,
         );
@@ -144,13 +142,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       ];
 
   // 构建番剧过滤配置组件
-  Widget _buildFilterChips(List<Map> tags) {
+  Widget _buildFilterChips(Map<String, FilterSelect> selectMap) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: List.generate(tags.length, (i) {
-          final text = '${tags[i].keys.firstOrNull} · '
-              '${tags[i].values.firstOrNull}';
+        children: List.generate(selectMap.length, (i) {
+          final item = selectMap.values.elementAt(i);
+          final text = '${item.parentName} · ${item.name}';
           return Padding(
             padding: const EdgeInsets.only(left: 8),
             child: RawChip(label: Text(text)),
@@ -258,18 +256,17 @@ class _HomeLogic extends BaseLogic {
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
   // 记录过滤条件
-  final filterConfig = MapValueChangeNotifier<String, dynamic>.empty();
-
-  // 过滤条件标签
-  final filterTags = ListValueChangeNotifier<Map>.empty();
+  final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
 
   @override
   void init() {
     super.init();
     // 加载过滤条件
-    filterConfig.setValue(parserHandle.filterConfig ?? {});
-    // 转换过滤条件
-    convertFilterTags();
+    db.getFilterSelectList(parserHandle.currentSource).then(
+          (result) => filterConfig.setValue(result.asMap().map(
+                (_, v) => MapEntry(v.key + v.value, v),
+              )),
+        );
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
@@ -292,7 +289,8 @@ class _HomeLogic extends BaseLogic {
     return Tool.showLoading<void>(context, loadFuture: Future(() async {
       _loading = true;
       try {
-        final params = filterConfig.value;
+        final params =
+            filterConfig.value.map((_, v) => MapEntry(v.key, v.value));
         final result = await (loadMore
             ? parserHandle.loadAnimeListNextPage(params: params)
             : parserHandle.loadAnimeList(params: params));
@@ -303,26 +301,5 @@ class _HomeLogic extends BaseLogic {
         _loading = false;
       }
     }));
-  }
-
-  // 过滤配置列表缓存
-  Map<String, AnimeFilterModel>? _filterMap;
-
-  // 转换过滤条件标签
-  Future<void> convertFilterTags() async {
-    _filterMap ??= (await parserHandle.loadFilterList())
-        .asMap()
-        .map((_, v) => MapEntry(v.key, v));
-    final tags = filterConfig.keys.expand((k) sync* {
-      final item = _filterMap![k];
-      for (final v in filterConfig.value[k]) {
-        final name = item?.items
-            .firstWhere((e) => e.value == v,
-                orElse: () => AnimeFilterItemModel.from({}))
-            .name;
-        yield {item?.name: name};
-      }
-    }).toList();
-    filterTags.setValue(tags);
   }
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/common/parser.dart';
-import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
@@ -57,21 +56,11 @@ class ParserHandleManage extends BaseManage with ParserHandle {
   Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) =>
       _currentHandler.searchAnimeListNextPage(keyword);
 
-  // 获取过滤条件配置缓存
-  Map<String, dynamic>? get filterConfig => cache.getJson(_filterCacheKey);
-
-  // 缓存过滤条件配置
-  void cacheFilterConfig(Map<String, dynamic> config) =>
-      cache.setJsonMap(_filterCacheKey, config);
-
-  // 获取过滤条件配置缓存key
-  String get _filterCacheKey => 'filter_cache_${currentSource.name}';
-
   // 解析源
-  ParserSource? _source;
+  AnimeSource? _source;
 
   // 获取当前解析源
-  ParserSource get currentSource => _source ??= ParserSource.yhdmz;
+  AnimeSource get currentSource => _source ??= AnimeSource.yhdmz;
 
   // 解析器
   ParserHandle? _handler;
@@ -80,8 +69,8 @@ class ParserHandleManage extends BaseManage with ParserHandle {
   ParserHandle get _currentHandler => _handler ??= currentSource.handle;
 
   // 切换解析源
-  void switchSource(ParserSource source) {
-    event.send(ParserSourceEvent(source));
+  void switchSource(AnimeSource source) {
+    event.send(AnimeSourceEvent(source));
     _handler = source.handle;
     _source = source;
   }
@@ -91,28 +80,28 @@ class ParserHandleManage extends BaseManage with ParserHandle {
 final parserHandle = ParserHandleManage();
 
 // 解析源枚举
-enum ParserSource {
+enum AnimeSource {
   // 樱花动漫z
   yhdmz,
 }
 
-// 解析源美剧扩展
-extension ParserSourceExtension on ParserSource {
+// 解析源扩展
+extension AnimeSourceExtension on AnimeSource {
   // 获取中文名
   String get nameCN => {
-        ParserSource.yhdmz: '樱花动漫z',
+        AnimeSource.yhdmz: '樱花动漫z',
       }[this]!;
 
   // 获取解析源
   ParserHandle get handle => {
-        ParserSource.yhdmz: YHDMZParserHandle(),
+        AnimeSource.yhdmz: YHDMZParserHandle(),
       }[this]!;
 }
 
 // 解析源事件
-class ParserSourceEvent extends EventModel {
+class AnimeSourceEvent extends EventModel {
   // 解析源
-  final ParserSource source;
+  final AnimeSource source;
 
-  ParserSourceEvent(this.source);
+  AnimeSourceEvent(this.source);
 }

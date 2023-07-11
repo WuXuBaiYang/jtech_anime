@@ -13,8 +13,14 @@ class FilterSelect {
   String name = '';
 
   // 父分类key
+  @Index(type: IndexType.hash)
   String key = '';
 
   // 子分类值
+  @Index(type: IndexType.hash)
   String value = '';
+
+  // 过滤数据源
+  @Index(type: IndexType.hash)
+  String source = '';
 }

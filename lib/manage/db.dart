@@ -1,5 +1,8 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/manage.dart';
+import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/model/filter.dart';
+import 'package:jtech_anime/model/filter_select.dart';
 import 'package:jtech_anime/model/video_cache.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -22,28 +25,72 @@ class DBManage extends BaseManage {
   Future<void> init() async {
     final dir = await getApplicationDocumentsDirectory();
     isar = await Isar.open(
-      [VideoCacheSchema],
+      [
+        VideoCacheSchema,
+        FilterSelectSchema,
+      ],
       directory: dir.path,
     );
   }
 
+  // 获取已选过滤条件
+  Future<List<FilterSelect>> getFilterSelectList(AnimeSource source) =>
+      isar.filterSelects.where().sourceEqualTo(source.name).findAll();
+
+  // 添加过滤条件
+  Future<FilterSelect?> addFilterSelect(
+    AnimeFilterModel parent,
+    AnimeFilterItemModel item, {
+    AnimeSource source = AnimeSource.yhdmz,
+  }) =>
+      isar.writeTxn<FilterSelect?>(() async {
+        final maxSelected = parent.maxSelected;
+        if (maxSelected < 1) return null;
+        final queryBuilder = isar.filterSelects
+            .where()
+            .filter()
+            .keyEqualTo(parent.key)
+            .and()
+            .sourceEqualTo(source.name);
+        if (maxSelected == 1) {
+          // 如果最大选择数为1，则移除所有符合条件的结果
+          await queryBuilder.deleteAll();
+        } else {
+          // 如果最大选择数大于1,则判断是否已超过选择上限，超过的话则停止选择
+          final count = await queryBuilder.count();
+          if (count >= maxSelected) return null;
+        }
+        // 插入过滤条件并返回
+        return isar.filterSelects
+            .put(FilterSelect()
+              ..key = parent.key
+              ..value = item.value
+              ..source = source.name
+              ..name = item.name
+              ..parentName = parent.name)
+            .then((id) => isar.filterSelects.get(id));
+      });
+
+  // 移除过滤条件
+  Future<bool> removeFilterSelect(FilterSelect item) => isar.writeTxn(() {
+        // 删除过滤条件
+        return isar.filterSelects.delete(item.id);
+      });
+
   // 根据原视频地址获取已缓存播放地址
-  Future<String?> getCachePlayUrl(String url) async {
-    final cache = await isar.videoCaches.where().urlEqualTo(url).findFirst();
-    return cache?.playUrl;
-  }
+  Future<String?> getCachePlayUrl(String url) async =>
+      (await isar.videoCaches.where().urlEqualTo(url).findFirst())?.playUrl;
 
   // 缓存视频播放地址
-  Future<void> cachePlayUrl(String url, String playUrl) async {
-    await isar.writeTxn(() {
-      // 插入或更新
-      return isar.videoCaches.put(
-        VideoCache()
-          ..url = url
-          ..playUrl = playUrl,
-      );
-    });
-  }
+  Future<VideoCache?> cachePlayUrl(String url, String playUrl) =>
+      isar.writeTxn<VideoCache?>(() {
+        // 插入视频缓存并返回
+        return isar.videoCaches
+            .put(VideoCache()
+              ..url = url
+              ..playUrl = playUrl)
+            .then((id) => isar.videoCaches.get(id));
+      });
 }
 
 // 单例调用
