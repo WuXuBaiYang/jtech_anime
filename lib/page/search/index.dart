@@ -35,6 +35,22 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   _SearchLogic initLogic() => _SearchLogic();
 
   @override
+  void initState() {
+    super.initState();
+    // 初始加载数据
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      // 监听容器滚动
+      logic.scrollController.addListener(() {
+        // 判断是否已滚动到底部
+        if (logic.scrollController.offset >=
+            logic.scrollController.position.maxScrollExtent) {
+          logic.searchLoadMore(context);
+        }
+      });
+    });
+  }
+
+  @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -75,8 +91,9 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.only(top: kToolbarHeight),
             itemCount: searchList.length,
+            controller: logic.scrollController,
+            padding: const EdgeInsets.only(top: kToolbarHeight),
             itemBuilder: (_, i) {
               final item = searchList[i];
               return _buildSearchListItem(item);
@@ -95,31 +112,37 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
 
   // 构建搜索列表子项
   Widget _buildSearchListItem(AnimeModel item) {
-    // ,
-    // maxLines: 2,
-    // overflow: TextOverflow.ellipsis
     return InkWell(
       child: DefaultTextStyle(
         maxLines: 2,
+        style: subTitleStyle,
         overflow: TextOverflow.ellipsis,
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: ImageView.net(item.cover,
-                  width: 100, height: 120, fit: BoxFit.cover),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(item.name, style: titleStyle),
-                  Text(item.status, style: subTitleStyle),
-                  Text(item.intro, style: subTitleStyle),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: ImageView.net(item.cover,
+                    width: 80, height: 120, fit: BoxFit.cover),
               ),
-            ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(item.name, style: titleStyle),
+                    const SizedBox(height: 14),
+                    Text('${item.status} · ${item.types.join('/')}'),
+                    const SizedBox(height: 8),
+                    Text(item.intro),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       onTap: () => router.pushNamed(
@@ -157,19 +180,32 @@ class _SearchLogic extends BaseLogic {
     });
   }
 
+  // 缓存最后一次搜索关键字
+  String? _lastKeyword;
+
+  // 执行加载更多搜索
+  Future<void> searchLoadMore(BuildContext context) async {
+    if (_lastKeyword == null) return;
+    return search(context, _lastKeyword!, true);
+  }
+
   // 执行搜索
   Future<void> search(
       BuildContext context, String keyword, bool loadMore) async {
     if (inSearching.value) return;
-    if (keyword.trim().isEmpty) return;
+    if (keyword.isEmpty) return;
     try {
       inSearching.setValue(true);
-      // 缓存搜索记录
-      final record = await db.addSearchRecord(keyword);
-      if (record != null) {
-        searchRecordList
-          ..removeWhere((e) => e.id == record.id, notify: false)
-          ..addValue(record);
+      if (!loadMore) {
+        // 缓存搜索记录
+        final record = await db.addSearchRecord(keyword);
+        if (record != null) {
+          searchRecordList
+            ..removeWhere((e) => e.id == record.id, notify: false)
+            ..addValue(record);
+        }
+        // 记录搜索关键字
+        _lastKeyword = keyword;
       }
       // 执行搜索请求
       final result = await (loadMore

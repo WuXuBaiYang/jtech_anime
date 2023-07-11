@@ -158,6 +158,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget _buildFilterChips(Map<String, FilterSelect> selectMap) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.only(right: 8),
       child: Row(
         children: List.generate(selectMap.length, (i) {
           final item = selectMap.values.elementAt(i);
@@ -289,7 +290,7 @@ class _HomeLogic extends BaseLogic {
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
       showAppBar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight,
+        scrollController.offset > expandedHeight - kToolbarHeight - 50,
       );
     });
   }

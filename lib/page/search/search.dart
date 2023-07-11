@@ -46,7 +46,7 @@ class SearchBarView extends StatelessWidget {
       builder: (_, searchRecords, ___) {
         return Autocomplete<SearchRecord>(
           optionsBuilder: (v) {
-            final keyword = v.text.trim();
+            final keyword = v.text.trim().toLowerCase();
             if (keyword.isEmpty) return [];
             return searchRecords.where(
               (e) => e.keyword.contains(keyword),
@@ -55,7 +55,7 @@ class SearchBarView extends StatelessWidget {
           fieldViewBuilder: _buildFieldView,
           displayStringForOption: (e) => e.keyword,
           optionsViewBuilder: _buildOptionsView,
-          onSelected: (v) => search(v.keyword),
+          onSelected: (v) => search(v.keyword.trim()),
         );
       },
     );
@@ -132,7 +132,7 @@ class SearchBarView extends StatelessWidget {
         color: Colors.transparent,
         child: Card(
           clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.only(left: 4, right: 30),
+          margin: const EdgeInsets.only(left: 4, right: 30, top: 8),
           child: ListView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
