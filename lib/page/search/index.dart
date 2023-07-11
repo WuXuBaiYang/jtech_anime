@@ -3,7 +3,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/cache.dart';
-import 'package:jtech_anime/tool/tool.dart';
 
 /*
 * 搜索页
