@@ -89,7 +89,7 @@ class Tool {
         builder: (_) => const Center(
           child: Card(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               child: StatusBox(
                 status: StatusBoxStatus.loading,
                 title: Text('加载中~'),

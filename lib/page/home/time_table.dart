@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/time_table.dart';
-import 'package:jtech_anime/widget/cache_future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 // 时间表点击回调
@@ -37,20 +36,23 @@ class AnimeTimeTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: StatusBoxCacheFuture<List<List<TimeTableItemModel>>>(
-        future: parserHandle.loadAnimeTimeTable,
-        builder: (dataList) {
-          return DefaultTabController(
-            initialIndex: _weekday,
-            length: dataList.length,
-            child: Column(
-              children: [
-                _buildTabBar(dataList.length),
-                Expanded(child: _buildTabView(dataList)),
-              ],
-            ),
-          );
-        },
+      child: SafeArea(
+        child: StatusBoxCacheFuture<List<List<TimeTableItemModel>>>(
+          future: parserHandle.loadAnimeTimeTable,
+          builder: (dataList) {
+            return DefaultTabController(
+              initialIndex: _weekday,
+              length: dataList.length,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTabBar(dataList.length),
+                  Expanded(child: _buildTabView(dataList)),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -86,7 +88,11 @@ class AnimeTimeTable extends StatelessWidget {
           itemBuilder: (_, i) {
             final item = items[i];
             final updateIcon = item.isUpdate
-                ? const Icon(FontAwesomeIcons.fire, size: 18)
+                ? const Icon(
+                    FontAwesomeIcons.seedling,
+                    color: Colors.green,
+                    size: 18,
+                  )
                 : null;
             return ListTile(
               dense: true,

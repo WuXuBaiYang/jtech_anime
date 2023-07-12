@@ -147,7 +147,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       ),
       onTap: () => router.pushNamed(
         RoutePath.animeDetail,
-        arguments: {'url': item.url},
+        arguments: {'animeDetail': item},
       ),
     );
   }

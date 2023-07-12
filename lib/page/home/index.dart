@@ -83,29 +83,32 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   // 构建页面头部
   Widget _buildAppBar(BuildContext context) {
-    final edgeInsets = MediaQuery.paddingOf(context);
     return ValueListenableBuilder2<Map<String, FilterSelect>, bool>(
       first: logic.filterConfig,
-      second: logic.showAppBar,
-      builder: (_, selectMap, showAppBar, __) {
-        final padding = EdgeInsets.only(
-          bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
-          top: edgeInsets.top,
-        );
+      second: logic.showAppbar,
+      builder: (_, selectMap, showAppbar, __) {
         return SliverAppBar(
-          title: _buildSearchButton(showAppBar),
+          title: _buildSearchButton(showAppbar),
           expandedHeight: _HomeLogic.expandedHeight,
           actions: [
-            if (showAppBar) ..._actions,
+            if (showAppbar) ..._actions,
           ],
           pinned: true,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: padding,
+              padding: EdgeInsets.only(
+                bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
+              ),
               child: AnimeTimeTable(
                 onTap: (item) => router.pushNamed(
                   RoutePath.animeDetail,
-                  arguments: {'url': item.url},
+                  arguments: {
+                    'animeDetail': AnimeModel.from({
+                      'name': item.name,
+                      'url': item.url,
+                      'status': item.status,
+                    })
+                  },
                 ),
               ),
             ),
@@ -124,8 +127,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 构建搜索按钮
-  Widget _buildSearchButton(bool showAppBar) {
-    if (!showAppBar) return const SizedBox();
+  Widget _buildSearchButton(bool showAppbar) {
+    if (!showAppbar) return const SizedBox();
     const color = Colors.black38;
     const textStyle = TextStyle(color: color, fontSize: 16);
     return ElevatedButton(
@@ -143,14 +146,29 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   // 标题栏动作按钮集合
   List<Widget> get _actions => [
         IconButton(
-          icon: const Icon(FontAwesomeIcons.handPointDown),
-          onPressed: () => logic.expandedTimeTable(),
+          icon: const Icon(FontAwesomeIcons.heart),
+          onPressed: () {
+            SnackTool.showMessage(context, message: '还在施工中~');
+            // router.pushNamed(RoutePath.collect);
+          },
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.clockRotateLeft),
+          onPressed: () {
+            SnackTool.showMessage(context, message: '还在施工中~');
+            // router.pushNamed(RoutePath.history);
+          },
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () {
             SnackTool.showMessage(context, message: '还在施工中~');
+            // router.pushNamed(RoutePath.download);
           },
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.handPointDown),
+          onPressed: () => logic.expandedTimeTable(),
         ),
       ];
 
@@ -191,7 +209,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     return SliverGrid.builder(
       itemCount: animeList.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        childAspectRatio: 0.65,
+        mainAxisExtent: 190,
         crossAxisCount: 3,
       ),
       itemBuilder: (_, i) {
@@ -246,7 +264,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       ),
       onTap: () => router.pushNamed(
         RoutePath.animeDetail,
-        arguments: {'url': item.url},
+        arguments: {'animeDetail': item},
       ),
     );
   }
@@ -262,7 +280,7 @@ class _HomeLogic extends BaseLogic {
   static const double expandedHeight = 350.0;
 
   // 标题栏展示状态
-  final showAppBar = ValueChangeNotifier<bool>(true);
+  final showAppbar = ValueChangeNotifier<bool>(true);
 
   // 滚动控制器
   final scrollController = ScrollController(
@@ -289,7 +307,7 @@ class _HomeLogic extends BaseLogic {
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
-      showAppBar.setValue(
+      showAppbar.setValue(
         scrollController.offset > expandedHeight - kToolbarHeight - 50,
       );
     });
