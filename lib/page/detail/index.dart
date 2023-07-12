@@ -184,8 +184,7 @@ class _AnimeDetailPageState
         ),
         onTap: () => router.pushNamed(RoutePath.player, arguments: {
           'animeDetail': logic.animeDetail.value,
-          'resIndex': resIndex,
-          'index': i,
+          'item': item,
         }),
       ),
     );

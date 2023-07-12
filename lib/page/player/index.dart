@@ -5,6 +5,7 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/model/video_cache.dart';
 import 'package:jtech_anime/page/player/player.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
@@ -48,11 +49,11 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   // 构建视频播放器
   Widget _buildVideoPlayer(BuildContext context) {
-    return ValueListenableBuilder2<String, bool>(
-      first: logic.videoUrl,
+    return ValueListenableBuilder2<VideoCache?, bool>(
+      first: logic.videoInfo,
       second: logic.loading,
-      builder: (_, url, loading, __) {
-        if (url.isEmpty || loading) {
+      builder: (_, videoInfo, loading, __) {
+        if (videoInfo == null || loading) {
           return const Center(
             child: StatusBox(
               status: StatusBoxStatus.loading,
@@ -61,8 +62,11 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
             ),
           );
         }
+        final animeInfo = logic.animeInfo.value;
         return CustomVideoPlayer(
-          url: url,
+          url: videoInfo.playUrl,
+          title: animeInfo.name,
+          resources: animeInfo.resources,
           videoInitCompleted: logic.setVideoController,
           loadingView: const Center(
             child: StatusBox(
@@ -71,6 +75,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
               animSize: 24,
             ),
           ),
+          changeVideoResource: (item) {
+            logic.changeVideo(context, item);
+          },
         );
       },
     );
@@ -86,14 +93,8 @@ class _PlayerLogic extends BaseLogic {
   // 当前番剧信息
   late ValueChangeNotifier<AnimeModel> animeInfo;
 
-  // 当前使用资源下标
-  final resourcesIndex = ValueChangeNotifier<int>(0);
-
-  // 当前播放视频下标
-  final videoIndex = ValueChangeNotifier<int>(0);
-
   // 当前视频播放地址
-  final videoUrl = ValueChangeNotifier<String>('');
+  final videoInfo = ValueChangeNotifier<VideoCache?>(null);
 
   // 加载状态管理
   final loading = ValueChangeNotifier<bool>(false);
@@ -112,11 +113,7 @@ class _PlayerLogic extends BaseLogic {
   void setupArguments(BuildContext context, Map arguments) {
     animeInfo = ValueChangeNotifier(arguments['animeDetail']);
     // 选择当前视频
-    changeVideo(
-      context,
-      arguments['resIndex'],
-      arguments['index'],
-    ).catchError((_) {
+    changeVideo(context, arguments['item']).catchError((_) {
       setOrientation(true);
       router.pop();
     });
@@ -135,24 +132,17 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 选择资源/视频
-  Future<void> changeVideo(
-      BuildContext context, int resIndex, int index) async {
+  Future<void> changeVideo(BuildContext context, ResourceItemModel item) async {
     if (loading.value) return;
-    if (resIndex < 0 || index < 0) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
-    if (resIndex >= resources.length) return;
-    if (index >= resources[resIndex].length) return;
     try {
       loading.setValue(true);
       _controller?.dispose();
-      videoIndex.setValue(index);
-      resourcesIndex.setValue(resIndex);
       // 根据资源与视频下标切换视频播放地址
-      final item = resources[resIndex][index];
-      final result = await parserHandle.getAnimePlayUrl([item]);
+      final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
-      videoUrl.setValue(result.first.url);
+      videoInfo.setValue(result.first);
     } catch (e) {
       SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
       rethrow;

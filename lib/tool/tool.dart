@@ -90,10 +90,16 @@ class Tool {
           child: Card(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              child: StatusBox(
-                status: StatusBoxStatus.loading,
-                title: Text('加载中~'),
-                animSize: 28,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatusBox(
+                    status: StatusBoxStatus.loading,
+                    animSize: 28,
+                  ),
+                  SizedBox(height: 14),
+                  Text('加载中~', style: TextStyle(color: Colors.black26)),
+                ],
               ),
             ),
           ),

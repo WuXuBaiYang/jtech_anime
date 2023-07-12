@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
+import 'package:jtech_anime/model/anime.dart';
 import 'package:lecle_yoyo_player/lecle_yoyo_player.dart';
 
 // 初始化完成回调
 typedef VideoInitCompletedCallback = void Function(
     VideoPlayerController controller);
+// 选集切换回调
+typedef ChangeVideoResourceCallback = void Function(ResourceItemModel item);
 
 /*
 * 视频播放器
@@ -16,17 +21,29 @@ class CustomVideoPlayer extends StatefulWidget {
   // 视频地址
   final String url;
 
+  // 标题
+  final String? title;
+
   // 加载提示组件
   final Widget? loadingView;
+
+  // 视频资源集合
+  final List<List<ResourceItemModel>>? resources;
 
   // 初始化完成回调
   final VideoInitCompletedCallback? videoInitCompleted;
 
+  // 选集切换回调
+  final ChangeVideoResourceCallback? changeVideoResource;
+
   const CustomVideoPlayer({
     super.key,
     required this.url,
+    this.title,
+    this.resources,
     this.loadingView,
     this.videoInitCompleted,
+    this.changeVideoResource,
   });
 
   @override
@@ -72,27 +89,47 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   }
 
   // 播放器样式
-  VideoStyle get videoStyle => const VideoStyle(
-        qualityStyle: TextStyle(
-          fontSize: 16,
+  VideoStyle get videoStyle => VideoStyle(
+        title: Text(widget.title ?? ''),
+        actionBarPadding: EdgeInsets.zero,
+        spaceBetweenBottomBarButtons: 14,
+        actionBarBgColor: Colors.black.withOpacity(0.6),
+        playIcon: const Icon(
+          FontAwesomeIcons.play,
           color: Colors.white,
-          fontWeight: FontWeight.w500,
+          size: 40,
         ),
-        forwardAndBackwardBtSize: 30.0,
-        playButtonIconSize: 40.0,
-        playIcon: Icon(
-          Icons.add_circle_outline_outlined,
-          size: 40.0,
+        pauseIcon: const Icon(
+          FontAwesomeIcons.pause,
           color: Colors.white,
+          size: 40,
         ),
-        pauseIcon: Icon(
-          Icons.remove_circle_outline_outlined,
-          size: 40.0,
+        backwardIcon: const Icon(
+          FontAwesomeIcons.backward,
           color: Colors.white,
+          size: 24,
         ),
-        videoQualityPadding: EdgeInsets.all(5.0),
-        fullscreenIcon: SizedBox(),
-        orientation: [DeviceOrientation.landscapeLeft],
+        forwardIcon: const Icon(
+          FontAwesomeIcons.forward,
+          color: Colors.white,
+          size: 24,
+        ),
+        progressIndicatorColors: VideoProgressColors(
+          playedColor: kPrimaryColor,
+        ),
+        progressIndicatorPadding: const EdgeInsets.only(bottom: 8),
+        bottomBarPadding:
+            const EdgeInsets.symmetric(vertical: 4, horizontal: 14)
+                .copyWith(top: 0),
+        actions: [
+          if (widget.resources != null)
+            OutlinedButton(
+              child: const Text('选集'),
+              onPressed: () {
+                /// 选集切换功能
+              },
+            ),
+        ],
       );
 
   // 视频加载样式

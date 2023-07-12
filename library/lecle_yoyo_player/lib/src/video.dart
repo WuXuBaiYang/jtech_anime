@@ -14,7 +14,8 @@ import 'package:lecle_yoyo_player/src/widgets/video_quality_picker.dart';
 import 'package:lecle_yoyo_player/src/widgets/video_quality_widget.dart';
 import 'package:lecle_yoyo_player/src/widgets/widget_bottombar.dart';
 
-import 'package:wakelock/wakelock.dart';import 'package:video_player/video_player.dart';
+import 'package:wakelock/wakelock.dart';
+import 'package:video_player/video_player.dart';
 
 import 'responses/regex_response.dart';
 
@@ -374,47 +375,55 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       visible: showMenu,
       child: Align(
         alignment: Alignment.topCenter,
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          padding: widget.videoStyle.actionBarPadding ??
-              const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 8.0,
-              ),
-          color: widget.videoStyle.actionBarBgColor,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              VideoQualityWidget(
-                key: videoQualityKey,
-                videoStyle: widget.videoStyle,
-                onTap: () {
-                  // Quality function
-                  setState(() {
-                    m3u8Show = !m3u8Show;
-
-                    if (m3u8Show) {
-                      showOverlay();
-                    } else {
-                      removeOverlay();
-                    }
-                  });
-                },
-                child: Text(m3u8Quality, style: widget.videoStyle.qualityStyle),
-              ),
-              SizedBox(
-                width: widget.videoStyle.qualityButtonAndFullScrIcoSpace,
-              ),
-              InkWell(
-                onTap: () => ScreenUtils.toggleFullScreen(fullScreen),
-                child: widget.videoStyle.fullscreenIcon ??
-                    Icon(
-                      Icons.fullscreen,
-                      color: widget.videoStyle.fullScreenIconColor,
-                      size: widget.videoStyle.fullScreenIconSize,
-                    ),
-              ),
-            ],
+        child: DefaultTextStyle(
+          maxLines: 1,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            padding: widget.videoStyle.actionBarPadding ??
+                const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 8.0,
+                ),
+            color: widget.videoStyle.actionBarBgColor,
+            child: Row(
+              children: [
+                const BackButton(color: Colors.white),
+                const SizedBox(width: 8),
+                widget.videoStyle.title ?? const SizedBox(),
+                const Spacer(),
+                ...widget.videoStyle.actions ?? [],
+                // VideoQualityWidget(
+                //   key: videoQualityKey,
+                //   videoStyle: widget.videoStyle,
+                //   onTap: () {
+                //     // Quality function
+                //     setState(() {
+                //       m3u8Show = !m3u8Show;
+                //
+                //       if (m3u8Show) {
+                //         showOverlay();
+                //       } else {
+                //         removeOverlay();
+                //       }
+                //     });
+                //   },
+                //   child: Text(m3u8Quality, style: widget.videoStyle.qualityStyle),
+                // ),
+                // SizedBox(
+                //   width: widget.videoStyle.qualityButtonAndFullScrIcoSpace,
+                // ),
+                // InkWell(
+                //   onTap: () => ScreenUtils.toggleFullScreen(fullScreen),
+                //   child: widget.videoStyle.fullscreenIcon ??
+                //       Icon(
+                //         Icons.fullscreen,
+                //         color: widget.videoStyle.fullScreenIconColor,
+                //         size: widget.videoStyle.fullScreenIconSize,
+                //       ),
+                // ),
+              ],
+            ),
           ),
         ),
       ),

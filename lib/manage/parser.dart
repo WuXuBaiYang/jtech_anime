@@ -6,6 +6,7 @@ import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/time_table.dart';
+import 'package:jtech_anime/model/video_cache.dart';
 import 'package:jtech_anime/parser/yhdmz.dart';
 
 /*
@@ -25,9 +26,9 @@ class ParserHandleManage extends BaseManage with ParserHandle {
       _currentHandler.getAnimeDetail(url);
 
   @override
-  Future<List<ResourceItemModel>> getAnimePlayUrl(List<ResourceItemModel> items,
+  Future<List<VideoCache>> getAnimeVideoCache(List<ResourceItemModel> items,
           {ParserProgressCallback? progress}) =>
-      _currentHandler.getAnimePlayUrl(items, progress: progress);
+      _currentHandler.getAnimeVideoCache(items, progress: progress);
 
   @override
   Future<List<AnimeModel>> loadAnimeList(

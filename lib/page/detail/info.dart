@@ -55,7 +55,7 @@ class AnimeDetailInfo extends StatelessWidget {
   Widget _buildInfo(BuildContext context) {
     return SafeArea(
       child: DefaultTextStyle(
-        maxLines: 2,
+        maxLines: 1,
         style: textStyle,
         overflow: TextOverflow.ellipsis,
         child: Column(

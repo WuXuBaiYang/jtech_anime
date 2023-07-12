@@ -6,6 +6,7 @@ import 'package:html/parser.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/time_table.dart';
+import 'package:jtech_anime/model/video_cache.dart';
 
 // 进度回调
 typedef ParserProgressCallback = void Function(int count, int total);
@@ -41,7 +42,7 @@ abstract mixin class ParserHandle {
   Future<AnimeModel> getAnimeDetail(String url);
 
   // 获取视频播放地址
-  Future<List<ResourceItemModel>> getAnimePlayUrl(List<ResourceItemModel> items,
+  Future<List<VideoCache>> getAnimeVideoCache(List<ResourceItemModel> items,
       {ParserProgressCallback? progress});
 
   // 无头浏览器

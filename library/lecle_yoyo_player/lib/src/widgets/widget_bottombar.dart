@@ -47,125 +47,129 @@ class PlayerBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Visibility(
       visible: showBottomBar,
-      child: Padding(
-        padding: videoStyle.bottomBarPadding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            VideoProgressIndicator(
-              controller,
-              allowScrubbing: videoStyle.allowScrubbing ?? true,
-              colors: videoStyle.progressIndicatorColors ??
-                  const VideoProgressColors(
-                    playedColor: Color.fromARGB(250, 0, 255, 112),
-                  ),
-              padding: videoStyle.progressIndicatorPadding ?? EdgeInsets.zero,
-            ),
-            Padding(
-              padding: videoStyle.videoDurationsPadding ??
-                  const EdgeInsets.only(top: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16.0),
-                    child: Text(
-                      videoSeek,
-                      style: videoStyle.videoSeekStyle ??
-                          const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+      child: Container(
+        color: Colors.black.withOpacity(0.6),
+        child: Padding(
+          padding: videoStyle.bottomBarPadding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              VideoProgressIndicator(
+                controller,
+                allowScrubbing: videoStyle.allowScrubbing ?? true,
+                colors: videoStyle.progressIndicatorColors ??
+                    const VideoProgressColors(
+                      playedColor: Color.fromARGB(250, 0, 255, 112),
                     ),
-                  ),
-                  Transform.translate(
-                    offset: const Offset(0.0, -4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            controller.rewind().then((value) {
-                              onRewind?.call(controller.value);
-                            });
-                          },
-                          child: videoStyle.backwardIcon ??
-                              Icon(
-                                Icons.fast_rewind_rounded,
-                                color: videoStyle.forwardIconColor,
-                                size: videoStyle.forwardAndBackwardBtSize,
-                              ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.symmetric(
-                            horizontal: videoStyle.spaceBetweenBottomBarButtons,
-                          ),
-                          child: InkWell(
-                            onTap: onPlayButtonTap,
-                            child: () {
-                              var defaultIcon = Icon(
-                                controller.value.isPlaying
-                                    ? Icons.pause_circle_outline
-                                    : Icons.play_circle_outline,
-                                color: videoStyle.playButtonIconColor ??
-                                    Colors.white,
-                                size: videoStyle.playButtonIconSize ?? 35,
-                              );
-
-                              if (videoStyle.playIcon != null &&
-                                  videoStyle.pauseIcon == null) {
-                                return controller.value.isPlaying
-                                    ? defaultIcon
-                                    : videoStyle.playIcon;
-                              } else if (videoStyle.pauseIcon != null &&
-                                  videoStyle.playIcon == null) {
-                                return controller.value.isPlaying
-                                    ? videoStyle.pauseIcon
-                                    : defaultIcon;
-                              } else if (videoStyle.playIcon != null &&
-                                  videoStyle.pauseIcon != null) {
-                                return controller.value.isPlaying
-                                    ? videoStyle.pauseIcon
-                                    : videoStyle.playIcon;
-                              }
-
-                              return defaultIcon;
-                            }(),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            controller.fastForward().then((value) {
-                              onFastForward?.call(controller.value);
-                            });
-                          },
-                          child: videoStyle.forwardIcon ??
-                              Icon(
-                                Icons.fast_forward_rounded,
-                                color: videoStyle.forwardIconColor,
-                                size: videoStyle.forwardAndBackwardBtSize,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16.0),
-                    child: Text(
-                      videoDuration,
-                      style: videoStyle.videoDurationStyle ??
-                          const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                    ),
-                  ),
-                ],
+                padding: videoStyle.progressIndicatorPadding ?? EdgeInsets.zero,
               ),
-            ),
-          ],
+              Padding(
+                padding: videoStyle.videoDurationsPadding ??
+                    const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        videoSeek,
+                        style: videoStyle.videoSeekStyle ??
+                            const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                      ),
+                    ),
+                    Transform.translate(
+                      offset: const Offset(0.0, -4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              controller.rewind().then((value) {
+                                onRewind?.call(controller.value);
+                              });
+                            },
+                            child: videoStyle.backwardIcon ??
+                                Icon(
+                                  Icons.fast_rewind_rounded,
+                                  color: videoStyle.forwardIconColor,
+                                  size: videoStyle.forwardAndBackwardBtSize,
+                                ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.symmetric(
+                              horizontal:
+                                  videoStyle.spaceBetweenBottomBarButtons,
+                            ),
+                            child: InkWell(
+                              onTap: onPlayButtonTap,
+                              child: () {
+                                var defaultIcon = Icon(
+                                  controller.value.isPlaying
+                                      ? Icons.pause_circle_outline
+                                      : Icons.play_circle_outline,
+                                  color: videoStyle.playButtonIconColor ??
+                                      Colors.white,
+                                  size: videoStyle.playButtonIconSize ?? 35,
+                                );
+
+                                if (videoStyle.playIcon != null &&
+                                    videoStyle.pauseIcon == null) {
+                                  return controller.value.isPlaying
+                                      ? defaultIcon
+                                      : videoStyle.playIcon;
+                                } else if (videoStyle.pauseIcon != null &&
+                                    videoStyle.playIcon == null) {
+                                  return controller.value.isPlaying
+                                      ? videoStyle.pauseIcon
+                                      : defaultIcon;
+                                } else if (videoStyle.playIcon != null &&
+                                    videoStyle.pauseIcon != null) {
+                                  return controller.value.isPlaying
+                                      ? videoStyle.pauseIcon
+                                      : videoStyle.playIcon;
+                                }
+
+                                return defaultIcon;
+                              }(),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              controller.fastForward().then((value) {
+                                onFastForward?.call(controller.value);
+                              });
+                            },
+                            child: videoStyle.forwardIcon ??
+                                Icon(
+                                  Icons.fast_forward_rounded,
+                                  color: videoStyle.forwardIconColor,
+                                  size: videoStyle.forwardAndBackwardBtSize,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        videoDuration,
+                        style: videoStyle.videoDurationStyle ??
+                            const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

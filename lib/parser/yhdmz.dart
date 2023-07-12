@@ -7,6 +7,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/time_table.dart';
+import 'package:jtech_anime/model/video_cache.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:html/parser.dart';
 
@@ -139,9 +140,9 @@ class YHDMZParserHandle extends ParserHandle {
   }
 
   @override
-  Future<List<ResourceItemModel>> getAnimePlayUrl(List<ResourceItemModel> items,
+  Future<List<VideoCache>> getAnimeVideoCache(List<ResourceItemModel> items,
       {ParserProgressCallback? progress}) async {
-    final result = <ResourceItemModel>[];
+    final result = <VideoCache>[];
     for (final it in items) {
       try {
         var playUrl = await db.getCachePlayUrl(it.url);
@@ -151,10 +152,9 @@ class YHDMZParserHandle extends ParserHandle {
           return Uri.parse(path).queryParameters['url'];
         });
         if (playUrl == null || playUrl.isEmpty) continue;
-        result.add(ResourceItemModel.from({
-          'name': it.name,
-          'url': playUrl,
-        }));
+        result.add(VideoCache()
+          ..url = it.url
+          ..playUrl = playUrl);
         progress?.call(result.length, items.length);
         await db.cachePlayUrl(it.url, playUrl);
       } catch (e) {

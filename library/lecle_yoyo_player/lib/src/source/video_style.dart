@@ -151,8 +151,20 @@ class VideoStyle {
   /// default.
   final List<DeviceOrientation>? orientation;
 
+  /// 标题
+  final Widget? title;
+
+  /// 动作条按钮集合
+  final List<Widget>? actions;
+
+  // 底部右侧按钮集合
+  final List<Widget>? bottomBarRightActions;
+
   /// Constructor
   const VideoStyle({
+    this.bottomBarRightActions,
+    this.actions,
+    this.title,
     this.playIcon,
     this.pauseIcon,
     this.fullscreenIcon,
