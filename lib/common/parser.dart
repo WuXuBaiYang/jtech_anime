@@ -53,25 +53,27 @@ abstract mixin class ParserHandle {
   // 创建无头浏览器并发起请求，在请求完成之后获取数据
   Future<T?> parseByHeadlessBrowser<T>(
       String url, T Function(Document document) handle) async {
-    final completer = Completer<T?>();
-    _headlessWebView ??= HeadlessInAppWebView(
-      initialOptions: InAppWebViewGroupOptions(
-        crossPlatform: InAppWebViewOptions(
-          javaScriptEnabled: true,
-          mediaPlaybackRequiresUserGesture: false,
+    if (_headlessWebView == null) {
+      final completer = Completer<T?>();
+      _headlessWebView ??= HeadlessInAppWebView(
+        initialOptions: InAppWebViewGroupOptions(
+          crossPlatform: InAppWebViewOptions(
+            javaScriptEnabled: true,
+            mediaPlaybackRequiresUserGesture: false,
+          ),
         ),
-      ),
-      onWebViewCreated: (c) async {
-        _headlessWebViewController = c;
-        completer.complete(await parseByHeadlessBrowser(url, handle));
-      },
-      onLoadStop: (c, url) async {
-        final html = await _headlessWebViewController!.getHtml();
-        completer.complete(html != null ? handle(parse(html)) : null);
-      },
-    )..run();
-    _headlessWebViewController?.loadUrl(
+        onWebViewCreated: (c) async {
+          _headlessWebViewController = c;
+          completer.complete(parseByHeadlessBrowser(url, handle));
+        },
+      )..run();
+      return completer.future;
+    }
+    // 请求目标网址并获取解析结果
+    await _headlessWebViewController?.loadUrl(
         urlRequest: URLRequest(url: Uri.parse(url)));
-    return completer.future;
+    final html = await _headlessWebViewController?.getHtml();
+    if (html == null) return null;
+    return handle(parse(html));
   }
 }

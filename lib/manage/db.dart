@@ -105,7 +105,8 @@ class DBManage extends BaseManage {
 
   // 缓存视频播放地址
   Future<VideoCache?> cachePlayUrl(String url, String playUrl) =>
-      isar.writeTxn<VideoCache?>(() {
+      isar.writeTxn<VideoCache?>(() async {
+        if (playUrl.isEmpty) return null;
         // 插入视频缓存并返回
         return isar.videoCaches
             .put(VideoCache()

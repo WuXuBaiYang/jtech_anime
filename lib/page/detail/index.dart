@@ -176,10 +176,14 @@ class _AnimeDetailPageState
               border: Border.all(
                 color: Colors.black26,
               )),
-          child: Text(item.name),
+          child: Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         onTap: () => router.pushNamed(RoutePath.player, arguments: {
-          'animeDetail': item,
+          'animeDetail': logic.animeDetail.value,
           'resIndex': resIndex,
           'index': i,
         }),

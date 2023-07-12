@@ -150,7 +150,7 @@ class YHDMZParserHandle extends ParserHandle {
           if (path == null) return path;
           return Uri.parse(path).queryParameters['url'];
         });
-        if (playUrl == null) continue;
+        if (playUrl == null || playUrl.isEmpty) continue;
         result.add(ResourceItemModel.from({
           'name': it.name,
           'url': playUrl,
