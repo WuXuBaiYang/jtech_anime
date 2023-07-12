@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/logic.dart';
+import 'package:jtech_anime/page/player/player.dart';
 
 /*
 * 播放器页面（全屏播放）
@@ -25,10 +26,14 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('播放器页面（全屏播放）'),
-      ),
+      backgroundColor: Colors.black,
+      body: _buildVideoPlayer(context),
     );
+  }
+
+  // 构建视频播放器
+  Widget _buildVideoPlayer(BuildContext context) {
+    return VideoPlayer();
   }
 }
 

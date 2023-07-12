@@ -52,9 +52,6 @@ dependencies:
   # 加密算法
   crypto: ^3.0.3
 
-  # 包信息
-  package_info_plus: ^4.0.2
-
   # 日志
   logger: ^1.4.0
 
@@ -78,6 +75,9 @@ dependencies:
 
   # 数据库框架
   isar: ^3.1.0+1
+
+  # 包信息
+  package_info_plus: ^4.0.2
 
   # 数据库框架核心
   isar_flutter_libs: ^3.1.0+1
