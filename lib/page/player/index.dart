@@ -112,6 +112,9 @@ class _PlayerLogic extends BaseLogic {
     super.init();
     // 强制横屏
     setOrientation(false);
+
+    /// 定制完播放器之后，需要实现播放记录的返回与记录
+    /// 以及初始化跳转到指定播放位置
   }
 
   @override

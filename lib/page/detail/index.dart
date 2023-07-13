@@ -100,7 +100,10 @@ class _AnimeDetailPageState
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(kToolbarHeight),
-            child: _buildAppbarBottom(item.resources.length),
+            child: Container(
+              color: !showAppbar ? Colors.white : null,
+              child: _buildAppbarBottom(item.resources.length),
+            ),
           ),
         );
       },

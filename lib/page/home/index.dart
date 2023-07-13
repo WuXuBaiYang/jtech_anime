@@ -117,10 +117,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           bottom: selectMap.isNotEmpty
               ? PreferredSize(
                   preferredSize: const Size.fromHeight(kToolbarHeight),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
+                  child: Container(
+                    color: !showAppbar ? Colors.white : null,
                     child: _buildFilterChips(selectMap),
-                  ))
+                  ),
+                )
               : null,
         );
       },
@@ -172,18 +173,21 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   // 构建番剧过滤配置组件
   Widget _buildFilterChips(Map<String, FilterSelect> selectMap) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.only(right: 8),
-      child: Row(
-        children: List.generate(selectMap.length, (i) {
-          final item = selectMap.values.elementAt(i);
-          final text = '${item.parentName} · ${item.name}';
-          return Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: RawChip(label: Text(text)),
-          );
-        }),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.only(right: 8),
+        child: Row(
+          children: List.generate(selectMap.length, (i) {
+            final item = selectMap.values.elementAt(i);
+            final text = '${item.parentName} · ${item.name}';
+            return Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: RawChip(label: Text(text)),
+            );
+          }),
+        ),
       ),
     );
   }
