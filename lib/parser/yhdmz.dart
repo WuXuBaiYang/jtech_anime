@@ -7,7 +7,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/time_table.dart';
-import 'package:jtech_anime/model/video_cache.dart';
+import 'package:jtech_anime/model/database/video_cache.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:html/parser.dart';
 

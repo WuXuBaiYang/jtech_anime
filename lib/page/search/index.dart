@@ -7,7 +7,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/search_record.dart';
+import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/page/search/search.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
@@ -38,7 +38,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   void initState() {
     super.initState();
     // 初始加载数据
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       // 监听容器滚动
       logic.scrollController.addListener(() {
         // 判断是否已滚动到底部

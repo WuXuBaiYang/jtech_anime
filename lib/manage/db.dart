@@ -1,10 +1,10 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/manage/parser.dart';
-import 'package:jtech_anime/model/filter.dart';
-import 'package:jtech_anime/model/filter_select.dart';
-import 'package:jtech_anime/model/search_record.dart';
-import 'package:jtech_anime/model/video_cache.dart';
+import 'package:jtech_anime/model/database/filter_select.dart';
+import 'package:jtech_anime/model/database/play_record.dart';
+import 'package:jtech_anime/model/database/search_record.dart';
+import 'package:jtech_anime/model/database/video_cache.dart';
 import 'package:path_provider/path_provider.dart';
 
 /*
@@ -30,9 +30,34 @@ class DBManage extends BaseManage {
         VideoCacheSchema,
         FilterSelectSchema,
         SearchRecordSchema,
+        PlayRecordSchema,
       ],
       directory: dir.path,
     );
+  }
+
+  // 更新播放记录
+  Future<PlayRecord?> updatePlayRecord(PlayRecord item) =>
+      isar.writeTxn<PlayRecord?>(() {
+        // 插入播放记录并返回最新记录
+        return isar.playRecords.put(item).then(isar.playRecords.get);
+      });
+
+  // 根据播放地址获取播放记录
+  Future<PlayRecord?> getPlayRecord(String url) =>
+      isar.playRecords.where().urlEqualTo(url).findFirst();
+
+  // 获取播放记录(分页)
+  Future<List<PlayRecord>> getPlayRecordList(AnimeSource source,
+      {int pageIndex = 1, int pageSize = 15}) async {
+    if (pageIndex < 1 || pageSize < 1) return [];
+    return isar.playRecords
+        .where()
+        .sourceEqualTo(source.name)
+        .sortByUpdateTimeDesc()
+        .offset((--pageIndex) * pageSize)
+        .limit(pageSize)
+        .findAll();
   }
 
   // 获取搜索记录列表
@@ -45,9 +70,7 @@ class DBManage extends BaseManage {
         // 查询是否已存在搜索记录
         var item = await isar.searchRecords
             .where()
-            .keywordEqualTo(
-              keyword,
-            )
+            .keywordEqualTo(keyword)
             .findFirst();
         // 不存在则创建新的搜索记录并热度+1
         item ??= SearchRecord();
@@ -55,7 +78,7 @@ class DBManage extends BaseManage {
             .put(item
               ..heat += 1
               ..keyword = keyword)
-            .then((id) => isar.searchRecords.get(id));
+            .then(isar.searchRecords.get);
       });
 
   // 移除搜索记录
@@ -88,9 +111,7 @@ class DBManage extends BaseManage {
           if (count >= maxSelected) return null;
         }
         // 插入过滤条件并返回
-        return isar.filterSelects.put(item).then(
-              (id) => isar.filterSelects.get(id),
-            );
+        return isar.filterSelects.put(item).then(isar.filterSelects.get);
       });
 
   // 移除过滤条件
@@ -112,7 +133,7 @@ class DBManage extends BaseManage {
             .put(VideoCache()
               ..url = url
               ..playUrl = playUrl)
-            .then((id) => isar.videoCaches.get(id));
+            .then(isar.videoCaches.get);
       });
 }
 

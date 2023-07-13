@@ -5,7 +5,7 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/video_cache.dart';
+import 'package:jtech_anime/model/database/video_cache.dart';
 import 'package:jtech_anime/page/player/player.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';

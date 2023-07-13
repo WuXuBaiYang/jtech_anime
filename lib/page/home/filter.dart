@@ -4,7 +4,7 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
-import 'package:jtech_anime/model/filter_select.dart';
+import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 

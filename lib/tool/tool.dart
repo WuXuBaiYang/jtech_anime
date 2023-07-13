@@ -80,12 +80,14 @@ class Tool {
   static Future<T?> showLoading<T>(
     BuildContext context, {
     required Future<T?> loadFuture,
+    bool dismissible = true,
   }) async {
     final navigator = Navigator.of(context);
     try {
       if (_loadingDialog != null) navigator.maybePop();
       _loadingDialog = showDialog<void>(
         context: context,
+        barrierDismissible: dismissible,
         builder: (_) => const Center(
           child: Card(
             child: Padding(

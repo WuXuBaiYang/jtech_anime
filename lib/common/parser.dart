@@ -6,7 +6,7 @@ import 'package:html/parser.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/time_table.dart';
-import 'package:jtech_anime/model/video_cache.dart';
+import 'package:jtech_anime/model/database/video_cache.dart';
 
 // 进度回调
 typedef ParserProgressCallback = void Function(int count, int total);

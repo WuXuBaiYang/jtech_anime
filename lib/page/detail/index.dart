@@ -3,9 +3,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
@@ -32,16 +34,6 @@ class _AnimeDetailPageState
     extends LogicState<AnimeDetailPage, _AnimeDetailLogic> {
   @override
   _AnimeDetailLogic initLogic() => _AnimeDetailLogic();
-
-  @override
-  void initState() {
-    super.initState();
-    // 初始化加载
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 初始化加载动漫详情
-      logic.loadAnimeDetail(context);
-    });
-  }
 
   @override
   Widget buildWidget(BuildContext context) {
@@ -162,20 +154,12 @@ class _AnimeDetailPageState
         height: double.maxFinite,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.black26,
-            )),
-        child: Text(
-          item.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.black26),
         ),
+        child: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
-      onTap: () => router.pushNamed(RoutePath.player, arguments: {
-        'animeDetail': logic.animeDetail.value,
-        'item': item,
-      }),
+      onTap: () => logic.play(item),
     );
   }
 }
@@ -204,6 +188,9 @@ class _AnimeDetailLogic extends BaseLogic {
   // 当前展示的资源列表下标
   final resourceIndex = ValueChangeNotifier<int>(0);
 
+  // 播放记录
+  final playRecord = ValueChangeNotifier<PlayRecord?>(null);
+
   @override
   void init() {
     super.init();
@@ -220,6 +207,35 @@ class _AnimeDetailLogic extends BaseLogic {
   void setupArguments(BuildContext context, Map arguments) {
     // 设置传入的番剧信息
     animeDetail = ValueChangeNotifier(arguments['animeDetail']);
+    // 判断是否需要播放观看记录
+    final play = arguments['playTheRecord'] ?? false;
+    // 初始化加载
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 初始化加载番剧详情
+      loadAnimeDetail(context).whenComplete(() {
+        // 加载完番剧详情后播放记录
+        if (play) playTheRecord();
+      });
+    });
+  }
+
+  // 播放记录
+  Future<T?>? playTheRecord<T>() {
+    final record = playRecord.value;
+    if (record == null) return null;
+    if (animeDetail.value.resources.isEmpty) return null;
+    return play<T>(ResourceItemModel(
+      name: record.resName,
+      url: record.resUrl,
+    ));
+  }
+
+  // 播放视频
+  Future<T?>? play<T>(ResourceItemModel item) {
+    return router.pushNamed<T>(RoutePath.player, arguments: {
+      'animeDetail': animeDetail.value,
+      'item': item,
+    });
   }
 
   // 加载番剧详情
@@ -230,6 +246,10 @@ class _AnimeDetailLogic extends BaseLogic {
     return Tool.showLoading(context, loadFuture: Future(() async {
       loading.setValue(true);
       try {
+        // 获取播放记录
+        final record = await db.getPlayRecord(animeUrl);
+        playRecord.setValue(record);
+        // 获取番剧详细信息
         final result = await parserHandle.getAnimeDetail(animeUrl);
         animeDetail.setValue(result);
       } catch (e) {

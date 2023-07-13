@@ -78,6 +78,11 @@ class ResourceItemModel extends BaseModel {
   // 地址
   final String url;
 
+  ResourceItemModel({
+    required this.name,
+    required this.url,
+  });
+
   ResourceItemModel.from(obj)
       : name = obj['name'] ?? '',
         url = obj['url'] ?? '';

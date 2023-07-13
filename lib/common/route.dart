@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/collect/index.dart';
 import 'package:jtech_anime/page/detail/index.dart';
 import 'package:jtech_anime/page/download/index.dart';
-import 'package:jtech_anime/page/history/index.dart';
 import 'package:jtech_anime/page/home/index.dart';
 import 'package:jtech_anime/page/player/index.dart';
+import 'package:jtech_anime/page/record/index.dart';
 import 'package:jtech_anime/page/search/index.dart';
 
 /*
@@ -19,7 +20,7 @@ class RoutePath {
         search: (_) => const SearchPage(),
         player: (_) => const PlayerPage(),
         collect: (_) => const CollectPage(),
-        history: (_) => const HistoryPage(),
+        record: (_) => const PlayRecordPage(),
         download: (_) => const DownloadPage(),
         animeDetail: (_) => const AnimeDetailPage(),
       };
@@ -36,8 +37,8 @@ class RoutePath {
   // 收藏页
   static const String collect = '/collect';
 
-  // 历史记录页
-  static const String history = '/history';
+  // 播放记录页
+  static const String record = '/record';
 
   // 下载管理页
   static const String download = '/download';

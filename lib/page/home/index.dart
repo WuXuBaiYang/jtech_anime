@@ -7,7 +7,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/filter_select.dart';
+import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
@@ -41,7 +41,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   void initState() {
     super.initState();
     // 初始加载数据
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       // 初始化加载
       logic.loadAnimeList(context, false);
       // 监听容器滚动
@@ -66,7 +66,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           },
           body: RefreshIndicator(
             onRefresh: () => logic.loadAnimeList(context, false),
-            child: _buildAnimeList(),
+            child: _buildAnimeList(context),
           ),
         ),
       ),
@@ -151,10 +151,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.clockRotateLeft),
-          onPressed: () {
-            SnackTool.showMessage(context, message: '还在施工中~');
-            // router.pushNamed(RoutePath.history);
-          },
+          onPressed: () => router.pushNamed(RoutePath.record),
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
@@ -188,7 +185,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 构建番剧列表
-  Widget _buildAnimeList() {
+  Widget _buildAnimeList(BuildContext context) {
     return ValueListenableBuilder<List<AnimeModel>>(
       valueListenable: logic.animeList,
       builder: (_, animeList, __) {
@@ -276,11 +273,10 @@ class _HomeLogic extends BaseLogic {
   static const double expandedHeight = 350.0;
 
   // 标题栏展示状态
-  final showAppbar = ValueChangeNotifier<bool>(true);
+  final showAppbar = ValueChangeNotifier<bool>(false);
 
   // 滚动控制器
-  final scrollController = ScrollController(
-      initialScrollOffset: expandedHeight - kToolbarHeight + 1);
+  final scrollController = ScrollController();
 
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
@@ -304,7 +300,7 @@ class _HomeLogic extends BaseLogic {
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
       showAppbar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight,
+        scrollController.offset > expandedHeight - kToolbarHeight - 50,
       );
     });
   }

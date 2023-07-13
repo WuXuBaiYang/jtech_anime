@@ -3,6 +3,11 @@ import 'package:jtech_anime/model/anime.dart';
 
 part 'video_cache.g.dart';
 
+/*
+* 视频缓存
+* @author wuxubaiyang
+* @Time 2023/7/13 16:06
+*/
 @collection
 class VideoCache {
   Id id = Isar.autoIncrement;
