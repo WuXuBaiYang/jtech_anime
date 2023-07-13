@@ -46,17 +46,22 @@ class _AnimeDetailPageState
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: ValueListenableBuilder<AnimeModel>(
-        valueListenable: logic.animeDetail,
-        builder: (_, animeDetail, __) {
-          return CustomScrollView(
-            controller: logic.scrollController,
-            slivers: [
-              _buildAppbar(animeDetail),
-              _buildAnimeResources(animeDetail.resources),
-            ],
-          );
-        },
+      body: PrimaryScrollController(
+        controller: logic.scrollController,
+        child: ValueListenableBuilder<AnimeModel>(
+          valueListenable: logic.animeDetail,
+          builder: (_, animeDetail, __) {
+            return DefaultTabController(
+              length: animeDetail.resources.length,
+              child: NestedScrollView(
+                headerSliverBuilder: (_, __) {
+                  return [_buildAppbar(animeDetail)];
+                },
+                body: _buildAnimeResources(animeDetail.resources),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -101,92 +106,76 @@ class _AnimeDetailPageState
 
   // 构建标题栏底部
   Widget _buildAppbarBottom(int length) {
-    return DefaultTabController(
-      length: length,
-      child: Row(
-        children: [
-          TabBar(
-            isScrollable: true,
-            onTap: logic.resourceIndex.setValue,
-            tabs: List.generate(
-              length,
-              (i) => Tab(text: '资源${i + 1}'),
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.download),
-            onPressed: () {
-              SnackTool.showMessage(context, message: '正在施工中~');
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
+    return Row(
+      children: [
+        TabBar(
+          isScrollable: true,
+          onTap: logic.resourceIndex.setValue,
+          tabs: List.generate(length, (i) => Tab(text: '资源${i + 1}')),
+        ),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.download),
+          onPressed: () {
+            SnackTool.showMessage(context, message: '正在施工中~');
+          },
+        ),
+        const SizedBox(width: 4),
+      ],
     );
   }
 
   // 构建动漫资源列表
   Widget _buildAnimeResources(List<List<ResourceItemModel>> resources) {
     if (resources.isEmpty) {
-      return SliverList.list(children: [
-        SizedBox(
-          height: Tool.getScreenHeight(context) + 100,
-          child: const Padding(
-            padding: EdgeInsets.only(top: 100),
-            child: StatusBox(status: StatusBoxStatus.empty),
-          ),
-        ),
-      ]);
+      return const Center(
+        child: StatusBox(status: StatusBoxStatus.empty),
+      );
     }
-    return ValueListenableBuilder<int>(
-      valueListenable: logic.resourceIndex,
-      builder: (_, resIndex, __) {
-        final items = resources[resIndex];
-        return SliverPadding(
-          padding: const EdgeInsets.only(top: 8),
-          sliver: SliverGrid.builder(
-            itemCount: items.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              mainAxisExtent: 50,
-              crossAxisCount: 4,
-            ),
-            itemBuilder: (_, i) {
-              final item = items[i];
-              return _buildAnimeResourcesItem(item, resIndex, i);
-            },
+    return TabBarView(
+      children: List.generate(resources.length, (i) {
+        final items = resources[i];
+        return GridView.builder(
+          itemCount: items.length,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            mainAxisExtent: 40,
+            crossAxisCount: 4,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
           ),
+          itemBuilder: (_, i) {
+            final item = items[i];
+            return _buildAnimeResourcesItem(item);
+          },
         );
-      },
+      }),
     );
   }
 
   // 构建番剧资源子项
-  Widget _buildAnimeResourcesItem(ResourceItemModel item, int resIndex, int i) {
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: double.maxFinite,
-          height: double.maxFinite,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.black26,
-              )),
-          child: Text(
-            item.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+  Widget _buildAnimeResourcesItem(ResourceItemModel item) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.maxFinite,
+        height: double.maxFinite,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.black26,
+            )),
+        child: Text(
+          item.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        onTap: () => router.pushNamed(RoutePath.player, arguments: {
-          'animeDetail': logic.animeDetail.value,
-          'item': item,
-        }),
       ),
+      onTap: () => router.pushNamed(RoutePath.player, arguments: {
+        'animeDetail': logic.animeDetail.value,
+        'item': item,
+      }),
     );
   }
 }
