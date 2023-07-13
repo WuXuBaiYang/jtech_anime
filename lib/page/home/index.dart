@@ -58,19 +58,16 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => logic.loadAnimeList(context, false),
-        child: ValueListenableBuilder<List<AnimeModel>>(
-          valueListenable: logic.animeList,
-          builder: (_, animeList, __) {
-            return CustomScrollView(
-              controller: logic.scrollController,
-              slivers: [
-                _buildAppBar(context),
-                _buildAnimeList(context, animeList),
-              ],
-            );
+      body: PrimaryScrollController(
+        controller: logic.scrollController,
+        child: NestedScrollView(
+          headerSliverBuilder: (_, __) {
+            return [_buildAppBar(context)];
           },
+          body: RefreshIndicator(
+            onRefresh: () => logic.loadAnimeList(context, false),
+            child: _buildAnimeList(),
+          ),
         ),
       ),
       floatingActionButton: AnimeFilterConfigFAB(
@@ -191,29 +188,32 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 构建番剧列表
-  Widget _buildAnimeList(BuildContext context, List<AnimeModel> animeList) {
-    if (animeList.isEmpty) {
-      return SliverList.list(children: [
-        SizedBox(
-          height: Tool.getScreenHeight(context) + 100,
-          child: const Padding(
-            padding: EdgeInsets.only(top: 100),
+  Widget _buildAnimeList() {
+    return ValueListenableBuilder<List<AnimeModel>>(
+      valueListenable: logic.animeList,
+      builder: (_, animeList, __) {
+        if (animeList.isEmpty) {
+          return const Center(
             child: StatusBox(
               status: StatusBoxStatus.empty,
-              title: Text('试试下拉~'),
+              title: Text('下拉试试看~'),
             ),
+          );
+        }
+        return GridView.builder(
+          itemCount: animeList.length,
+          padding: const EdgeInsets.all(8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            mainAxisExtent: 190,
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
           ),
-        ),
-      ]);
-    }
-    return SliverGrid.builder(
-      itemCount: animeList.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        mainAxisExtent: 190,
-        crossAxisCount: 3,
-      ),
-      itemBuilder: (_, i) {
-        return _buildAnimeListItem(animeList[i]);
+          itemBuilder: (_, i) {
+            final item = animeList[i];
+            return _buildAnimeListItem(item);
+          },
+        );
       },
     );
   }
@@ -222,45 +222,41 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget _buildAnimeListItem(AnimeModel item) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Positioned.fill(
-                      child: ImageView.net(item.cover, fit: BoxFit.cover),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Positioned.fill(
+                    child: ImageView.net(item.cover, fit: BoxFit.cover),
+                  ),
+                  Container(
+                    width: double.maxFinite,
+                    color: Colors.black.withOpacity(0.6),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    child: Text(
+                      item.status,
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, color: Colors.white),
                     ),
-                    Container(
-                      width: double.maxFinite,
-                      color: Colors.black.withOpacity(0.6),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 4, horizontal: 8),
-                      child: Text(
-                        item.status,
-                        textAlign: TextAlign.right,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              item.name,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            item.name,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
       ),
       onTap: () => router.pushNamed(
         RoutePath.animeDetail,
@@ -308,7 +304,7 @@ class _HomeLogic extends BaseLogic {
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
       showAppbar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight - 50,
+        scrollController.offset > expandedHeight - kToolbarHeight,
       );
     });
   }

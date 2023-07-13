@@ -83,8 +83,9 @@ class AnimeTimeTable extends StatelessWidget {
       children: List.generate(data.length, (i) {
         final items = data[i];
         return ListView.builder(
-          padding: EdgeInsets.zero,
+          primary: false,
           itemCount: items.length,
+          padding: EdgeInsets.zero,
           itemBuilder: (_, i) {
             final item = items[i];
             final updateIcon = item.isUpdate
