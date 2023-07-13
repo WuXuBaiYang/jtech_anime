@@ -42,8 +42,12 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     super.initState();
     // 初始加载数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 初始化加载
-      logic.loadAnimeList(context, false);
+      // 加载过滤条件，加载完成后则开始加载首页数据
+      db.getFilterSelectList(parserHandle.currentSource).then((v) {
+        logic.filterConfig.setValue(v.asMap().map(
+              (_, v) => MapEntry(logic.genFilterKey(v), v),
+            ));
+      }).whenComplete(() => logic.loadAnimeList(context, false));
       // 监听容器滚动
       logic.scrollController.addListener(() {
         // 判断是否已滚动到底部
@@ -290,12 +294,6 @@ class _HomeLogic extends BaseLogic {
   @override
   void init() {
     super.init();
-    // 加载过滤条件
-    db.getFilterSelectList(parserHandle.currentSource).then(
-          (result) => filterConfig.setValue(result.asMap().map(
-                (_, v) => MapEntry(_genFilterKey(v), v),
-              )),
-        );
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
@@ -341,15 +339,15 @@ class _HomeLogic extends BaseLogic {
         }
         filterConfig.setValue({
           ...temp,
-          _genFilterKey(result): result,
+          genFilterKey(result): result,
         });
       }
     } else {
       final result = await db.removeFilterSelect(item.id);
-      if (result) filterConfig.removeValue(_genFilterKey(item));
+      if (result) filterConfig.removeValue(genFilterKey(item));
     }
   }
 
   // 生成过滤条件唯一key
-  String _genFilterKey(FilterSelect item) => '${item.key}${item.value}';
+  String genFilterKey(FilterSelect item) => '${item.key}${item.value}';
 }

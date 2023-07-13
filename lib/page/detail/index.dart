@@ -82,8 +82,19 @@ class _AnimeDetailPageState
               padding: const EdgeInsets.only(
                 bottom: kToolbarHeight,
               ),
-              child: AnimeDetailInfo(
-                animeInfo: item,
+              child: ValueListenableBuilder<PlayRecord?>(
+                valueListenable: logic.playRecord,
+                builder: (_, playRecord, __) {
+                  return AnimeDetailInfo(
+                    animeInfo: item,
+                    continueButton: playRecord != null
+                        ? ElevatedButton(
+                            onPressed: logic.playTheRecord,
+                            child: const Text('继续观看'),
+                          )
+                        : null,
+                  );
+                },
               ),
             ),
           ),
@@ -100,11 +111,12 @@ class _AnimeDetailPageState
   Widget _buildAppbarBottom(int length) {
     return Row(
       children: [
-        TabBar(
-          isScrollable: true,
-          onTap: logic.resourceIndex.setValue,
-          tabs: List.generate(length, (i) => Tab(text: '资源${i + 1}')),
-        ),
+        if (length > 0)
+          TabBar(
+            isScrollable: true,
+            onTap: logic.resourceIndex.setValue,
+            tabs: List.generate(length, (i) => Tab(text: '资源${i + 1}')),
+          ),
         const Spacer(),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
@@ -220,22 +232,22 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 播放记录
-  Future<T?>? playTheRecord<T>() {
+  Future<void>? playTheRecord() {
     final record = playRecord.value;
     if (record == null) return null;
     if (animeDetail.value.resources.isEmpty) return null;
-    return play<T>(ResourceItemModel(
+    return play(ResourceItemModel(
       name: record.resName,
       url: record.resUrl,
     ));
   }
 
   // 播放视频
-  Future<T?>? play<T>(ResourceItemModel item) {
-    return router.pushNamed<T>(RoutePath.player, arguments: {
+  Future<void>? play(ResourceItemModel item) {
+    return router.pushNamed<PlayRecord>(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
       'item': item,
-    });
+    })?.then(playRecord.setValue);
   }
 
   // 加载番剧详情

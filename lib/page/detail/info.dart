@@ -2,6 +2,7 @@ import 'package:blur/blur.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 动漫详情信息
@@ -12,7 +13,11 @@ class AnimeDetailInfo extends StatelessWidget {
   // 番剧信息
   final AnimeModel animeInfo;
 
-  const AnimeDetailInfo({super.key, required this.animeInfo});
+  // 继续播放按钮
+  final Widget? continueButton;
+
+  const AnimeDetailInfo(
+      {super.key, required this.animeInfo, this.continueButton});
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +80,19 @@ class AnimeDetailInfo extends StatelessWidget {
             ),
             Padding(
               padding: padding.copyWith(bottom: 0, top: 14),
-              child: Text('简介：${animeInfo.intro}', maxLines: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(child: Text('简介：${animeInfo.intro}', maxLines: 3)),
+                  if (continueButton != null) ...[
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: const Text('继续观看'),
+                    ),
+                  ]
+                ],
+              ),
             ),
           ],
         ),
@@ -98,17 +115,20 @@ class AnimeDetailInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 8),
-        Text(
-          animeInfo.name,
-          style: textStyle.copyWith(
-            color: Colors.black,
-            fontSize: 20,
-          ),
+        TextScroll(
+          '${animeInfo.name}           ',
+          pauseBetween: const Duration(milliseconds: 0),
+          velocity: const Velocity(pixelsPerSecond: Offset(25, 0)),
+          style: textStyle.copyWith(color: Colors.black, fontSize: 20),
         ),
         const SizedBox(height: 14),
-        Text('更新时间：${animeInfo.updateTime}'),
+        TextScroll(
+          '${animeInfo.status}           ',
+          pauseBetween: const Duration(milliseconds: 0),
+          velocity: const Velocity(pixelsPerSecond: Offset(25, 0)),
+        ),
         const SizedBox(height: 4),
-        Text(animeInfo.status),
+        Text('时间：${animeInfo.updateTime}'),
         const SizedBox(height: 4),
         Text('类型：${animeInfo.types.join('/')}'),
         const SizedBox(height: 4),
