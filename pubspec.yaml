@@ -88,6 +88,9 @@ dependencies:
   # 模糊
   blur: ^3.1.0
 
+  # 跑马灯
+  text_scroll: ^0.2.0
+
   # 视频播放器
   lecle_yoyo_player:
     path: ./library/lecle_yoyo_player

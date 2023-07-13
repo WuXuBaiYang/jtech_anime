@@ -216,13 +216,17 @@ class YHDMZParserHandle extends ParserHandle {
     final document = parse(html);
     final info = document
         .querySelector('body > div:nth-child(3) > div.fire.l > div.rate.r');
+    var cover = document
+        .querySelector(
+            'body > div:nth-child(3) > div.fire.l > div.thumb.l > img')
+        ?.attributes['src'];
+    if (cover?.startsWith('//') ?? false) {
+      cover = 'https:$cover';
+    }
     return {
       'url': url,
       'name': info?.querySelector('h1')?.text,
-      'cover': document
-          .querySelector(
-              'body > div:nth-child(3) > div.fire.l > div.thumb.l > img')
-          ?.attributes['src'],
+      'cover': cover,
       'updateTime': info
           ?.querySelector('div.sinfo > span')
           ?.text

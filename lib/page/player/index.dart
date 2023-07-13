@@ -12,6 +12,8 @@ import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:lecle_yoyo_player/lecle_yoyo_player.dart';
 
+import 'change.dart';
+
 /*
 * 播放器页面（全屏播放）
 * @author wuxubaiyang
@@ -65,19 +67,22 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
         final animeInfo = logic.animeInfo.value;
         return CustomVideoPlayer(
           url: videoInfo.playUrl,
-          title: animeInfo.name,
-          resources: animeInfo.resources,
+          title: '${animeInfo.name} · ${videoInfo.item?.name}',
           videoInitCompleted: logic.setVideoController,
-          loadingView: const Center(
-            child: StatusBox(
-              status: StatusBoxStatus.loading,
-              title: Text('正在加载视频~'),
-              animSize: 24,
-            ),
-          ),
-          changeVideoResource: (item) {
-            logic.changeVideo(context, item);
-          },
+          actions: [
+            if (logic.resources.isNotEmpty)
+              OutlinedButton(
+                child: const Text('选集'),
+                onPressed: () => ChangeVideoSheet.show(
+                  context,
+                  resources: logic.resources,
+                  selectItem: videoInfo.item,
+                ).then((v) {
+                  if (v == null) return;
+                  logic.changeVideo(context, v);
+                }),
+              ),
+          ],
         );
       },
     );
@@ -119,6 +124,9 @@ class _PlayerLogic extends BaseLogic {
     });
   }
 
+  // 获取资源列表
+  List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
+
   // 设置视频播放器控制器
   void setVideoController(VideoPlayerController c) => _controller = c;
 
@@ -142,7 +150,7 @@ class _PlayerLogic extends BaseLogic {
       // 根据资源与视频下标切换视频播放地址
       final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
-      videoInfo.setValue(result.first);
+      videoInfo.setValue(result.first..item = item);
     } catch (e) {
       SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
       rethrow;
