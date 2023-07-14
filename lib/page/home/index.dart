@@ -11,9 +11,9 @@ import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
+import 'package:jtech_anime/widget/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -38,28 +38,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   _HomeLogic initLogic() => _HomeLogic();
 
   @override
-  void initState() {
-    super.initState();
-    // 初始加载数据
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 加载过滤条件，加载完成后则开始加载首页数据
-      db.getFilterSelectList(parserHandle.currentSource).then((v) {
-        logic.filterConfig.setValue(v.asMap().map(
-              (_, v) => MapEntry(logic.genFilterKey(v), v),
-            ));
-      }).whenComplete(() => logic.loadAnimeList(context, false));
-      // 监听容器滚动
-      logic.scrollController.addListener(() {
-        // 判断是否已滚动到底部
-        if (logic.scrollController.offset >=
-            logic.scrollController.position.maxScrollExtent) {
-          logic.loadAnimeList(context, true);
-        }
-      });
-    });
-  }
-
-  @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
@@ -67,10 +45,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         headerSliverBuilder: (_, __) {
           return [_buildAppBar(context)];
         },
-        body: RefreshIndicator(
-          onRefresh: () => logic.loadAnimeList(context, false),
-          child: _buildAnimeList(context),
-        ),
+        body: _buildAnimeList(context),
       ),
       floatingActionButton: AnimeFilterConfigFAB(
         complete: () => logic.loadAnimeList(context, false),
@@ -195,27 +170,36 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     return ValueListenableBuilder<List<AnimeModel>>(
       valueListenable: logic.animeList,
       builder: (_, animeList, __) {
-        if (animeList.isEmpty) {
-          return const Center(
-            child: StatusBox(
-              status: StatusBoxStatus.empty,
-              title: Text('下拉试试看~'),
-            ),
-          );
-        }
-        return GridView.builder(
-          itemCount: animeList.length,
-          padding: const EdgeInsets.all(8),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            mainAxisExtent: 190,
-            crossAxisCount: 3,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
+        return CustomRefreshView(
+          enableRefresh: true,
+          enableLoadMore: true,
+          initialRefresh: true,
+          onRefresh: (loadMore) => logic.loadAnimeList(context, loadMore),
+          child: Stack(
+            children: [
+              if (animeList.isEmpty)
+                const Center(
+                  child: StatusBox(
+                    status: StatusBoxStatus.empty,
+                    title: Text('下拉试试看~'),
+                  ),
+                ),
+              GridView.builder(
+                itemCount: animeList.length,
+                padding: const EdgeInsets.all(8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  mainAxisExtent: 190,
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
+                itemBuilder: (_, i) {
+                  final item = animeList[i];
+                  return _buildAnimeListItem(item);
+                },
+              ),
+            ],
           ),
-          itemBuilder: (_, i) {
-            final item = animeList[i];
-            return _buildAnimeListItem(item);
-          },
         );
       },
     );
@@ -283,7 +267,7 @@ class _HomeLogic extends BaseLogic {
 
   // 滚动控制器
   final scrollController = ScrollController(
-    initialScrollOffset: expandedHeight + kToolbarHeight,
+    initialScrollOffset: expandedHeight - kToolbarHeight * 2,
   );
 
   // 番剧列表
@@ -298,11 +282,16 @@ class _HomeLogic extends BaseLogic {
   @override
   void init() {
     super.init();
+    // 获取过滤条件
+    db.getFilterSelectList(parserHandle.currentSource).then(
+          (v) => filterConfig.setValue(v.asMap().map<String, FilterSelect>(
+              (_, v) => MapEntry(_genFilterKey(v), v))),
+        );
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
       showAppbar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight - 50,
+        scrollController.offset > expandedHeight - kToolbarHeight * 2,
       );
     });
   }
@@ -314,21 +303,19 @@ class _HomeLogic extends BaseLogic {
   // 加载番剧列表
   Future<void> loadAnimeList(BuildContext context, bool loadMore) async {
     if (loading.value) return;
-    return Tool.showLoading<void>(context, loadFuture: Future(() async {
-      try {
-        loading.setValue(true);
-        final params =
-            filterConfig.value.map((_, v) => MapEntry(v.key, v.value));
-        final result = await (loadMore
-            ? parserHandle.loadAnimeListNextPage(params: params)
-            : parserHandle.loadAnimeList(params: params));
-        loadMore ? animeList.addValues(result) : animeList.setValue(result);
-      } catch (e) {
-        SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
-      } finally {
-        loading.setValue(false);
-      }
-    }));
+    try {
+      loading.setValue(true);
+      final filters = await db.getFilterSelectList(parserHandle.currentSource);
+      final params = filters.asMap().map((_, v) => MapEntry(v.key, v.value));
+      final result = await (loadMore
+          ? parserHandle.loadAnimeListNextPage(params: params)
+          : parserHandle.loadAnimeList(params: params));
+      loadMore ? animeList.addValues(result) : animeList.setValue(result);
+    } catch (e) {
+      SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
+    } finally {
+      loading.setValue(false);
+    }
   }
 
   // 选择过滤条件
@@ -343,15 +330,15 @@ class _HomeLogic extends BaseLogic {
         }
         filterConfig.setValue({
           ...temp,
-          genFilterKey(result): result,
+          _genFilterKey(result): result,
         });
       }
     } else {
       final result = await db.removeFilterSelect(item.id);
-      if (result) filterConfig.removeValue(genFilterKey(item));
+      if (result) filterConfig.removeValue(_genFilterKey(item));
     }
   }
 
   // 生成过滤条件唯一key
-  String genFilterKey(FilterSelect item) => '${item.key}${item.value}';
+  String _genFilterKey(FilterSelect item) => '${item.key}${item.value}';
 }

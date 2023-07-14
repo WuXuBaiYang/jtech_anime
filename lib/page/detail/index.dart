@@ -211,7 +211,7 @@ class _AnimeDetailLogic extends BaseLogic {
     scrollController.addListener(() {
       // 修改标题栏展示状态
       showAppbar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight - 50,
+        scrollController.offset > expandedHeight - kToolbarHeight * 2,
       );
     });
   }
