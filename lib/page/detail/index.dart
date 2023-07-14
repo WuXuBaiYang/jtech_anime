@@ -6,12 +6,15 @@ import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime/widget/text_scroll.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 动漫详情页
@@ -87,7 +90,7 @@ class _AnimeDetailPageState
                     animeInfo: item,
                     continueButton: playRecord != null
                         ? ElevatedButton(
-                            onPressed: logic.playTheRecord,
+                            onPressed: () => logic.playTheRecord(),
                             child: const Text('继续观看'),
                           )
                         : null,
@@ -170,7 +173,10 @@ class _AnimeDetailPageState
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.black26),
         ),
-        child: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        child: logic.playRecord.value?.resUrl == item.url
+            ? CustomScrollText.slow('上次看到 ${item.name}',
+                style: TextStyle(color: kPrimaryColor))
+            : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
       onTap: () => logic.play(item),
     );
@@ -188,9 +194,6 @@ class _AnimeDetailLogic extends BaseLogic {
 
   // 动漫详情
   late ValueChangeNotifier<AnimeModel> animeDetail;
-
-  // 加载状态
-  final loading = ValueChangeNotifier<bool>(false);
 
   // 滚动控制器
   final scrollController = ScrollController();
@@ -245,15 +248,17 @@ class _AnimeDetailLogic extends BaseLogic {
 
   // 播放视频
   Future<void>? play(ResourceItemModel item) {
-    return router.pushNamed<PlayRecord>(RoutePath.player, arguments: {
+    return router.pushNamed(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
       'item': item,
-    })?.then(playRecord.setValue);
+    })?.then((v) {
+      if (v is PlayRecord) playRecord.setValue;
+    });
   }
 
   // 加载番剧详情
   Future<void> loadAnimeDetail(BuildContext context) async {
-    if (loading.value) return;
+    if (isLoading) return;
     final animeUrl = animeDetail.value.url;
     if (animeUrl.isEmpty) return;
     return Tool.showLoading(context, loadFuture: Future(() async {

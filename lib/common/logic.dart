@@ -1,17 +1,25 @@
 import 'package:flutter/widgets.dart';
 
+import 'notifier.dart';
+
 /*
 * 逻辑处理基类
 * @author wuxubaiyang
 * @Time 2022/10/20 10:03
 */
 abstract class BaseLogic {
+  // 加载状态管理
+  final loading = ValueChangeNotifier<bool>(false);
+
   @mustCallSuper
   void init() {}
 
   void setupArguments(BuildContext context, Map arguments) {}
 
   void dispose() {}
+
+  // 判断是否正在加载
+  bool get isLoading => loading.value;
 }
 
 /*

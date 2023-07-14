@@ -71,6 +71,9 @@ class ThemeManage extends BaseManage {
       ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
+        appBarTheme: const AppBarTheme(
+          titleSpacing: 0,
+        ),
       );
 }
 

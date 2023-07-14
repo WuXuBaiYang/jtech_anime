@@ -3,6 +3,7 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/text_scroll.dart';
 import 'package:text_scroll/text_scroll.dart';
 
 /*
@@ -159,11 +160,9 @@ class _ChangeVideoSheetState extends State<ChangeVideoSheet> {
                   color: Colors.white24,
                 )),
             child: playing
-                ? TextScroll(
-                    '正在播放：${item.name}        ',
-                    pauseBetween: const Duration(milliseconds: 0),
+                ? CustomScrollText.slow(
+                    '正在播放：${item.name}',
                     style: textStyle.copyWith(color: kPrimaryColor),
-                    velocity: const Velocity(pixelsPerSecond: Offset(50, 0)),
                   )
                 : Text(item.name),
           ),

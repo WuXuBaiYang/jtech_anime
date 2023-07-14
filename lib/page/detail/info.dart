@@ -2,6 +2,7 @@ import 'package:blur/blur.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/text_scroll.dart';
 import 'package:text_scroll/text_scroll.dart';
 
 /*
@@ -85,12 +86,9 @@ class AnimeDetailInfo extends StatelessWidget {
                 children: [
                   Expanded(child: Text('简介：${animeInfo.intro}', maxLines: 3)),
                   if (continueButton != null) ...[
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: const Text('继续观看'),
-                    ),
-                  ]
+                    const SizedBox(width: 14),
+                    continueButton!,
+                  ],
                 ],
               ),
             ),
@@ -115,18 +113,12 @@ class AnimeDetailInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 8),
-        TextScroll(
-          '${animeInfo.name}           ',
-          pauseBetween: const Duration(milliseconds: 0),
-          velocity: const Velocity(pixelsPerSecond: Offset(25, 0)),
+        CustomScrollText.slow(
+          animeInfo.name,
           style: textStyle.copyWith(color: Colors.black, fontSize: 20),
         ),
         const SizedBox(height: 14),
-        TextScroll(
-          '${animeInfo.status}           ',
-          pauseBetween: const Duration(milliseconds: 0),
-          velocity: const Velocity(pixelsPerSecond: Offset(25, 0)),
-        ),
+        CustomScrollText.slow(animeInfo.status),
         const SizedBox(height: 4),
         Text('时间：${animeInfo.updateTime}'),
         const SizedBox(height: 4),

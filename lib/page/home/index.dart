@@ -8,6 +8,7 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
+import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
@@ -276,9 +277,6 @@ class _HomeLogic extends BaseLogic {
   // 记录过滤条件
   final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
 
-  // 加载状态管理
-  final loading = ValueChangeNotifier<bool>(false);
-
   @override
   void init() {
     super.init();
@@ -302,7 +300,7 @@ class _HomeLogic extends BaseLogic {
 
   // 加载番剧列表
   Future<void> loadAnimeList(BuildContext context, bool loadMore) async {
-    if (loading.value) return;
+    if (isLoading) return;
     try {
       loading.setValue(true);
       final filters = await db.getFilterSelectList(parserHandle.currentSource);

@@ -101,9 +101,6 @@ class _PlayerLogic extends BaseLogic {
   // 当前视频播放地址
   final videoInfo = ValueChangeNotifier<VideoCache?>(null);
 
-  // 加载状态管理
-  final loading = ValueChangeNotifier<bool>(false);
-
   // 缓存视频播放器控制器
   VideoPlayerController? _controller;
 
@@ -144,7 +141,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 选择资源/视频
   Future<void> changeVideo(BuildContext context, ResourceItemModel item) async {
-    if (loading.value) return;
+    if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
     try {

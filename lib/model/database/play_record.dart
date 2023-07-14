@@ -22,6 +22,9 @@ class PlayRecord {
   // 番剧名称
   String name = '';
 
+  // 播放番剧封面
+  String cover = '';
+
   // 播放资源名称
   String resName = '';
 

@@ -6,6 +6,7 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/cache_future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 // 过滤条件选择回调
@@ -38,7 +39,7 @@ class AnimeFilterConfigFAB extends StatelessWidget {
   final lastConfigHash = ValueChangeNotifier<int?>(null);
 
   // 动画时长
-  final duration = const Duration(milliseconds: 200);
+  final duration = const Duration(milliseconds: 120);
 
   AnimeFilterConfigFAB({
     super.key,
@@ -156,9 +157,11 @@ class AnimeFilterConfigFAB extends StatelessWidget {
 
   // 构建过滤配置列表
   Widget _buildFilterConfigList() {
-    return StatusBoxCacheFuture<List<AnimeFilterModel>>(
+    return CacheFutureBuilder<List<AnimeFilterModel>>(
       future: parserHandle.loadFilterList,
-      builder: (dataList) {
+      builder: (_, snap) {
+        if (!snap.hasData) return const SizedBox();
+        final dataList = snap.data ?? [];
         return ValueListenableBuilder<Map<String, FilterSelect>>(
           valueListenable: filterConfig,
           builder: (_, selectMap, __) {

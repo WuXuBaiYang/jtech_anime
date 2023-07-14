@@ -53,7 +53,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       padding: const EdgeInsets.symmetric(horizontal: 14)
           .copyWith(top: MediaQuery.of(context).padding.top),
       child: SearchBarView(
-        inSearching: logic.inSearching,
+        inSearching: logic.loading,
         searchRecordList: logic.searchRecordList,
         search: (keyword) => logic.search(context, false, keyword: keyword),
         recordDelete: (item) => logic.deleteSearchRecord(context, item),
@@ -155,9 +155,6 @@ class _SearchLogic extends BaseLogic {
   // 缓存搜索记录
   final searchRecordList = ListValueChangeNotifier<SearchRecord>.empty();
 
-  // 是否正在搜索中
-  final inSearching = ValueChangeNotifier<bool>(false);
-
   @override
   void init() {
     super.init();
@@ -174,10 +171,10 @@ class _SearchLogic extends BaseLogic {
   Future<void> search(BuildContext context, bool loadMore,
       {String? keyword}) async {
     keyword ??= _lastKeyword;
-    if (inSearching.value) return;
+    if (isLoading) return;
     if (keyword == null || keyword.isEmpty) return;
     try {
-      inSearching.setValue(true);
+      loading.setValue(true);
       if (!loadMore) {
         // 缓存搜索记录
         final record = await db.addSearchRecord(keyword);
@@ -197,7 +194,7 @@ class _SearchLogic extends BaseLogic {
     } catch (e) {
       SnackTool.showMessage(context, message: '搜索请求失败，请重试~');
     } finally {
-      inSearching.setValue(false);
+      loading.setValue(false);
     }
   }
 

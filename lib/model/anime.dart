@@ -33,6 +33,18 @@ class AnimeModel extends BaseModel {
   // 资源
   final List<List<ResourceItemModel>> resources;
 
+  AnimeModel({
+    required this.url,
+    required this.name,
+    required this.cover,
+    this.status = '',
+    this.types = const [],
+    this.region = '',
+    this.intro = '',
+    this.updateTime = '',
+    this.resources = const [],
+  });
+
   AnimeModel.from(obj)
       : name = obj['name'] ?? '',
         cover = obj['cover'] ?? '',

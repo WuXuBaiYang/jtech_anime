@@ -76,13 +76,14 @@ class DBManage extends BaseManage {
         item ??= SearchRecord();
         return isar.searchRecords
             .put(item
-              ..heat += 1
-              ..keyword = keyword)
+          ..heat += 1
+          ..keyword = keyword)
             .then(isar.searchRecords.get);
       });
 
   // 移除搜索记录
-  Future<bool> removeSearchRecord(int id) => isar.writeTxn<bool>(() {
+  Future<bool> removeSearchRecord(int id) =>
+      isar.writeTxn<bool>(() {
         // 移除搜索记录
         return isar.searchRecords.delete(id);
       });
@@ -93,7 +94,7 @@ class DBManage extends BaseManage {
 
   // 添加过滤条件
   Future<FilterSelect?> addFilterSelect(FilterSelect item,
-          [int maxSelected = 1]) =>
+      [int maxSelected = 1]) =>
       isar.writeTxn<FilterSelect?>(() async {
         if (maxSelected < 1) return null;
         final queryBuilder = isar.filterSelects
@@ -115,7 +116,8 @@ class DBManage extends BaseManage {
       });
 
   // 移除过滤条件
-  Future<bool> removeFilterSelect(int id) => isar.writeTxn<bool>(() {
+  Future<bool> removeFilterSelect(int id) =>
+      isar.writeTxn<bool>(() {
         // 删除过滤条件
         return isar.filterSelects.delete(id);
       });
@@ -131,8 +133,8 @@ class DBManage extends BaseManage {
         // 插入视频缓存并返回
         return isar.videoCaches
             .put(VideoCache()
-              ..url = url
-              ..playUrl = playUrl)
+          ..url = url
+          ..playUrl = playUrl)
             .then(isar.videoCaches.get);
       });
 }
