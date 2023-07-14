@@ -11,6 +11,7 @@ import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/page/search/search.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -35,22 +36,6 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   _SearchLogic initLogic() => _SearchLogic();
 
   @override
-  void initState() {
-    super.initState();
-    // 初始加载数据
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 监听容器滚动
-      logic.scrollController.addListener(() {
-        // 判断是否已滚动到底部
-        if (logic.scrollController.offset >=
-            logic.scrollController.position.maxScrollExtent) {
-          logic.searchLoadMore(context);
-        }
-      });
-    });
-  }
-
-  @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -70,7 +55,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       child: SearchBarView(
         inSearching: logic.inSearching,
         searchRecordList: logic.searchRecordList,
-        search: (keyword) => logic.search(context, keyword, false),
+        search: (keyword) => logic.search(context, false, keyword: keyword),
         recordDelete: (item) => logic.deleteSearchRecord(context, item),
       ),
     );
@@ -78,29 +63,34 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
 
   // 构建搜索列表
   Widget _buildSearchList(BuildContext context) {
-    return SafeArea(
-      child: ValueListenableBuilder<List<AnimeModel>>(
-        valueListenable: logic.searchList,
-        builder: (_, searchList, __) {
-          if (searchList.isEmpty) {
-            return const Center(
-              child: StatusBox(
-                status: StatusBoxStatus.empty,
-                title: Text('搜搜看~'),
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: searchList.length,
-            controller: logic.scrollController,
-            padding: const EdgeInsets.only(top: kToolbarHeight),
-            itemBuilder: (_, i) {
-              final item = searchList[i];
-              return _buildSearchListItem(item);
-            },
-          );
-        },
-      ),
+    final padding = MediaQuery.of(context).padding;
+    return ValueListenableBuilder<List<AnimeModel>>(
+      valueListenable: logic.searchList,
+      builder: (_, searchList, __) {
+        return CustomRefreshView(
+            enableRefresh: true,
+            enableLoadMore: true,
+            onRefresh: (loadMore) => logic.search(context, loadMore),
+            child: Stack(
+              children: [
+                if (searchList.isEmpty)
+                  const Center(
+                    child: StatusBox(
+                      status: StatusBoxStatus.empty,
+                      title: Text('搜搜看~'),
+                    ),
+                  ),
+                ListView.builder(
+                  itemCount: searchList.length,
+                  padding: EdgeInsets.only(top: kToolbarHeight + padding.top),
+                  itemBuilder: (_, i) {
+                    final item = searchList[i];
+                    return _buildSearchListItem(item);
+                  },
+                ),
+              ],
+            ));
+      },
     );
   }
 
@@ -168,9 +158,6 @@ class _SearchLogic extends BaseLogic {
   // 是否正在搜索中
   final inSearching = ValueChangeNotifier<bool>(false);
 
-  // 滚动控制器
-  final scrollController = ScrollController();
-
   @override
   void init() {
     super.init();
@@ -183,17 +170,12 @@ class _SearchLogic extends BaseLogic {
   // 缓存最后一次搜索关键字
   String? _lastKeyword;
 
-  // 执行加载更多搜索
-  Future<void> searchLoadMore(BuildContext context) async {
-    if (_lastKeyword == null) return;
-    return search(context, _lastKeyword!, true);
-  }
-
   // 执行搜索
-  Future<void> search(
-      BuildContext context, String keyword, bool loadMore) async {
+  Future<void> search(BuildContext context, bool loadMore,
+      {String? keyword}) async {
+    keyword ??= _lastKeyword;
     if (inSearching.value) return;
-    if (keyword.isEmpty) return;
+    if (keyword == null || keyword.isEmpty) return;
     try {
       inSearching.setValue(true);
       if (!loadMore) {

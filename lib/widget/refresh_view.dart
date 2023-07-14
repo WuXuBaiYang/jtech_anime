@@ -27,9 +27,6 @@ typedef StarColorGetter = Color Function(int index);
 * @Time 2023/7/14 9:13
 */
 class CustomRefreshView extends StatefulWidget {
-  // key
-  final GlobalKey<CustomRefreshIndicatorState> indicatorKey;
-
   // 子元素
   final Widget child;
 
@@ -51,9 +48,6 @@ class CustomRefreshView extends StatefulWidget {
   // 子元素背景色
   final Color childBackground;
 
-  // 控制器
-  final IndicatorController controller;
-
   // 星星颜色
   final Color skyColor;
 
@@ -63,12 +57,10 @@ class CustomRefreshView extends StatefulWidget {
   // 是否初始化加载更多
   final bool initialRefresh;
 
-  CustomRefreshView({
+  const CustomRefreshView({
     super.key,
-    GlobalKey<CustomRefreshIndicatorState>? indicatorKey,
     required this.onRefresh,
     required this.child,
-    IndicatorController? controller,
     this.starsCount = 30,
     this.enableRefresh = true,
     this.loadMoreHeight = 150,
@@ -77,8 +69,7 @@ class CustomRefreshView extends StatefulWidget {
     this.skyColor = Colors.black,
     this.childBackground = Colors.white,
     this.starColorGetter = _defaultStarColorGetter,
-  })  : controller = controller ?? IndicatorController(),
-        indicatorKey = indicatorKey ?? GlobalKey<CustomRefreshIndicatorState>();
+  });
 
   static Color _defaultStarColorGetter(int index) =>
       HSLColor.fromAHSL(1, Random().nextDouble() * 360, 1, 0.98).toColor();
@@ -94,6 +85,12 @@ class CustomRefreshView extends StatefulWidget {
 */
 class _CustomRefreshViewState extends State<CustomRefreshView>
     with SingleTickerProviderStateMixin {
+  // 指示器key
+  final indicatorKey = GlobalKey<CustomRefreshIndicatorState>();
+
+  // 刷新控制器
+  final controller = IndicatorController();
+
   static const _indicatorSize = 150.0;
   final _random = Random();
   WarpAnimationState _state = WarpAnimationState.stopped;
@@ -124,8 +121,8 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 如果设置了初始化加载，则在第一帧绘制完成之后开始刷新
       if (widget.initialRefresh && widget.enableRefresh) {
-        Future.delayed(const Duration(milliseconds: 800))
-            .then((value) => widget.indicatorKey.currentState?.refresh());
+        Future.delayed(const Duration(milliseconds: 500))
+            .then((value) => indicatorKey.currentState?.refresh());
       }
     });
   }
@@ -175,40 +172,6 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     stars = [];
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (trigger == null) return widget.child;
-    return CustomRefreshIndicator(
-      trigger: trigger!,
-      autoRebuild: true,
-      key: widget.indicatorKey,
-      controller: widget.controller,
-      offsetToArmed: _indicatorSize,
-      leadingScrollIndicatorVisible: true,
-      trailingScrollIndicatorVisible: true,
-      triggerMode: IndicatorTriggerMode.onEdge,
-      onRefresh: () {
-        final loadMore = widget.controller.edge?.isTrailing ?? false;
-        return widget.onRefresh(loadMore);
-      },
-      onStateChanged: (change) {
-        if (change.didChange(to: IndicatorState.loading)) {
-          _startShakeAnimation();
-        } else if (change.didChange(to: IndicatorState.finalizing)) {
-          _stopShakeAnimation();
-        }
-      },
-      child: Container(
-        color: widget.childBackground,
-        child: widget.child,
-      ),
-      builder: (_, child, controller) {
-        // return _buildLoadMoreAnime(child, controller);
-        return _buildRefreshAnime(child, controller);
-      },
-    );
-  }
-
   // 获取触发条件
   IndicatorTrigger? get trigger {
     if (widget.enableRefresh && widget.enableLoadMore) {
@@ -219,8 +182,38 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     return null;
   }
 
+  @override
+  Widget build(BuildContext context) {
+    var child = Container(
+      color: widget.childBackground,
+      child: widget.child,
+    );
+    if (trigger == null) return child;
+    return CustomRefreshIndicator(
+      trigger: trigger!,
+      key: indicatorKey,
+      autoRebuild: false,
+      controller: controller,
+      offsetToArmed: _indicatorSize,
+      leadingScrollIndicatorVisible: false,
+      trailingScrollIndicatorVisible: false,
+      triggerMode: IndicatorTriggerMode.onEdge,
+      onRefresh: () => widget.onRefresh(controller.edge?.isTrailing ?? false),
+      onStateChanged: (change) {
+        if (change.didChange(to: IndicatorState.loading)) {
+          _startShakeAnimation();
+        } else if (change.didChange(to: IndicatorState.finalizing)) {
+          _stopShakeAnimation();
+        }
+      },
+      builder: _buildRefreshAnime,
+      child: child,
+    );
+  }
+
   // 构建刷新动画
-  Widget _buildRefreshAnime(Widget child, IndicatorController controller) {
+  Widget _buildRefreshAnime(
+      BuildContext context, Widget child, IndicatorController controller) {
     final animation = Listenable.merge([controller, shakeController]);
     return Stack(
       children: <Widget>[
@@ -265,7 +258,8 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
   }
 
   // 构建加载更多动画
-  Widget _buildLoadMoreAnime(Widget child, IndicatorController controller) {
+  Widget _buildLoadMoreAnime(
+      BuildContext context, Widget child, IndicatorController controller) {
     final appContentColor = kPrimaryColor;
     final height = widget.loadMoreHeight;
     return AnimatedBuilder(
