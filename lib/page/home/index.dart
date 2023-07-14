@@ -264,7 +264,7 @@ class _HomeLogic extends BaseLogic {
 
   // 滚动控制器
   final scrollController = ScrollController(
-    initialScrollOffset: expandedHeight - kToolbarHeight * 2,
+    initialScrollOffset: expandedHeight - kToolbarHeight,
   );
 
   // 番剧列表
@@ -285,7 +285,7 @@ class _HomeLogic extends BaseLogic {
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
       showAppbar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight * 2,
+        scrollController.offset > expandedHeight - kToolbarHeight,
       );
     });
   }
