@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/model/database/search_record.dart';
@@ -31,9 +32,62 @@ class DBManage extends BaseManage {
         FilterSelectSchema,
         SearchRecordSchema,
         PlayRecordSchema,
+        CollectSchema,
       ],
       directory: dir.path,
     );
+  }
+
+  // 添加或移除收藏
+  Future<Collect?> updateCollect(Collect item) =>
+      isar.writeTxn<Collect?>(() async {
+        // 已存在则移除收藏
+        if (item.id > 0) {
+          return isar.collects.delete(item.id).then((v) => null);
+        }
+        // 不存在则添加(排序增加)
+        final count =
+            await isar.collects.where().sourceEqualTo(item.source).count();
+        return isar.collects
+            .put(item..order = count)
+            .then((id) => isar.collects.get(id));
+      });
+
+  // 更新排序
+  Future<bool> updateCollectOrder(String url,
+          {required AnimeSource source, required int to}) =>
+      isar.writeTxn<bool>(() async {
+        // 查出全部收藏列表倒叙
+        final items = await isar.collects
+            .where()
+            .sourceEqualTo(source.name)
+            .sortByOrderDesc()
+            .findAll();
+        // 对收藏列表重排序并更新收藏列表
+        int i = 0;
+        return isar.collects
+            .putAll(items.map((e) {
+              if (i == to) i++;
+              return e..order = e.url == url ? to : i++;
+            }).toList())
+            .then((v) => v.length == items.length);
+      });
+
+  // 根据播放地址获取收藏
+  Future<Collect?> getCollect(String url) =>
+      isar.collects.where().urlEqualTo(url).findFirst();
+
+  // 获取收藏列表(分页)
+  Future<List<Collect>> getCollectList(AnimeSource source,
+      {int pageIndex = 1, int pageSize = 25}) async {
+    if (pageIndex < 1 || pageSize < 1) return [];
+    return isar.collects
+        .where()
+        .sourceEqualTo(source.name)
+        .sortByOrderDesc()
+        .offset((--pageIndex) * pageSize)
+        .limit(pageSize)
+        .findAll();
   }
 
   // 更新播放记录
@@ -49,7 +103,7 @@ class DBManage extends BaseManage {
 
   // 获取播放记录(分页)
   Future<List<PlayRecord>> getPlayRecordList(AnimeSource source,
-      {int pageIndex = 1, int pageSize = 15}) async {
+      {int pageIndex = 1, int pageSize = 25}) async {
     if (pageIndex < 1 || pageSize < 1) return [];
     return isar.playRecords
         .where()
@@ -76,14 +130,13 @@ class DBManage extends BaseManage {
         item ??= SearchRecord();
         return isar.searchRecords
             .put(item
-          ..heat += 1
-          ..keyword = keyword)
+              ..heat += 1
+              ..keyword = keyword)
             .then(isar.searchRecords.get);
       });
 
   // 移除搜索记录
-  Future<bool> removeSearchRecord(int id) =>
-      isar.writeTxn<bool>(() {
+  Future<bool> removeSearchRecord(int id) => isar.writeTxn<bool>(() {
         // 移除搜索记录
         return isar.searchRecords.delete(id);
       });
@@ -94,7 +147,7 @@ class DBManage extends BaseManage {
 
   // 添加过滤条件
   Future<FilterSelect?> addFilterSelect(FilterSelect item,
-      [int maxSelected = 1]) =>
+          [int maxSelected = 1]) =>
       isar.writeTxn<FilterSelect?>(() async {
         if (maxSelected < 1) return null;
         final queryBuilder = isar.filterSelects
@@ -116,8 +169,7 @@ class DBManage extends BaseManage {
       });
 
   // 移除过滤条件
-  Future<bool> removeFilterSelect(int id) =>
-      isar.writeTxn<bool>(() {
+  Future<bool> removeFilterSelect(int id) => isar.writeTxn<bool>(() {
         // 删除过滤条件
         return isar.filterSelects.delete(id);
       });
@@ -133,8 +185,8 @@ class DBManage extends BaseManage {
         // 插入视频缓存并返回
         return isar.videoCaches
             .put(VideoCache()
-          ..url = url
-          ..playUrl = playUrl)
+              ..url = url
+              ..playUrl = playUrl)
             .then(isar.videoCaches.get);
       });
 }

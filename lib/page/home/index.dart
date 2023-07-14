@@ -8,7 +8,6 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
-import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
@@ -123,10 +122,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   List<Widget> get _actions => [
         IconButton(
           icon: const Icon(FontAwesomeIcons.heart),
-          onPressed: () {
-            SnackTool.showMessage(context, message: '还在施工中~');
-            // router.pushNamed(RoutePath.collect);
-          },
+          onPressed: () => router.pushNamed(RoutePath.collect),
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.clockRotateLeft),
