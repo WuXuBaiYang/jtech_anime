@@ -14,7 +14,6 @@ import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
-import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 动漫详情页
