@@ -38,22 +38,20 @@ class _AnimeDetailPageState
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: PrimaryScrollController(
-        controller: logic.scrollController,
-        child: ValueListenableBuilder<AnimeModel>(
-          valueListenable: logic.animeDetail,
-          builder: (_, animeDetail, __) {
-            return DefaultTabController(
-              length: animeDetail.resources.length,
-              child: NestedScrollView(
-                headerSliverBuilder: (_, __) {
-                  return [_buildAppbar(animeDetail)];
-                },
-                body: _buildAnimeResources(animeDetail.resources),
-              ),
-            );
-          },
-        ),
+      body: ValueListenableBuilder<AnimeModel>(
+        valueListenable: logic.animeDetail,
+        builder: (_, animeDetail, __) {
+          return DefaultTabController(
+            length: animeDetail.resources.length,
+            child: NestedScrollView(
+              controller: logic.scrollController,
+              headerSliverBuilder: (_, __) {
+                return [_buildAppbar(animeDetail)];
+              },
+              body: _buildAnimeResources(animeDetail.resources),
+            ),
+          );
+        },
       ),
     );
   }

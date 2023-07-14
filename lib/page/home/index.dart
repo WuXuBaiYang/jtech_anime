@@ -62,16 +62,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: PrimaryScrollController(
+      body: NestedScrollView(
         controller: logic.scrollController,
-        child: NestedScrollView(
-          headerSliverBuilder: (_, __) {
-            return [_buildAppBar(context)];
-          },
-          body: RefreshIndicator(
-            onRefresh: () => logic.loadAnimeList(context, false),
-            child: _buildAnimeList(context),
-          ),
+        headerSliverBuilder: (_, __) {
+          return [_buildAppBar(context)];
+        },
+        body: RefreshIndicator(
+          onRefresh: () => logic.loadAnimeList(context, false),
+          child: _buildAnimeList(context),
         ),
       ),
       floatingActionButton: AnimeFilterConfigFAB(
@@ -278,13 +276,15 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 */
 class _HomeLogic extends BaseLogic {
   // 折叠高度
-  static const double expandedHeight = 350.0;
+  static const double expandedHeight = 300.0;
 
-  // 标题栏展示状态
-  final showAppbar = ValueChangeNotifier<bool>(false);
+  // 标题栏展示状态¶
+  final showAppbar = ValueChangeNotifier<bool>(true);
 
   // 滚动控制器
-  final scrollController = ScrollController();
+  final scrollController = ScrollController(
+    initialScrollOffset: expandedHeight + kToolbarHeight,
+  );
 
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
