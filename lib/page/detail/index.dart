@@ -111,14 +111,14 @@ class _AnimeDetailPageState
   }
 
   // 构建标题栏底部
-  Widget _buildAppbarBottom(int length) {
+  Widget _buildAppbarBottom(int count) {
     return Row(
       children: [
-        if (length > 0)
+        if (count > 0)
           TabBar(
             isScrollable: true,
             onTap: logic.resourceIndex.setValue,
-            tabs: List.generate(length, (i) => Tab(text: '资源${i + 1}')),
+            tabs: List.generate(count, (i) => Tab(text: '资源${i + 1}')),
           ),
         const Spacer(),
         IconButton(
