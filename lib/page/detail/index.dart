@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
@@ -8,12 +9,12 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
-import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
 
@@ -77,6 +78,20 @@ class _AnimeDetailPageState
             duration: const Duration(milliseconds: 200),
             child: Text(item.name),
           ),
+          actions: [
+            ValueListenableBuilder<Collect?>(
+              valueListenable: logic.collectInfo,
+              builder: (_, collectInfo, __) {
+                return IconButton(
+                  color: kPrimaryColor,
+                  icon: Icon(collectInfo != null
+                      ? FontAwesomeIcons.heartCircleCheck
+                      : FontAwesomeIcons.heart),
+                  onPressed: () => logic.updateCollect(context, collectInfo),
+                );
+              },
+            ),
+          ],
           automaticallyImplyLeading: false,
           expandedHeight: _AnimeDetailLogic.expandedHeight,
           flexibleSpace: FlexibleSpaceBar(
@@ -211,6 +226,9 @@ class _AnimeDetailLogic extends BaseLogic {
   // 刷新控制器
   final controller = CustomRefreshController();
 
+  // 收藏信息
+  final collectInfo = ValueChangeNotifier<Collect?>(null);
+
   @override
   void init() {
     super.init();
@@ -240,6 +258,23 @@ class _AnimeDetailLogic extends BaseLogic {
         if (play) playTheRecord();
       });
     });
+  }
+
+  // 更新收藏状态（收藏/取消收藏）
+  Future<void> updateCollect(BuildContext context, Collect? item) async {
+    if (isLoading) return;
+    try {
+      item ??= Collect()
+        ..url = animeDetail.value.url
+        ..name = animeDetail.value.name
+        ..cover = animeDetail.value.cover
+        ..source = parserHandle.currentSource.name;
+      final result = await db.updateCollect(item);
+      collectInfo.setValue(result);
+    } catch (e) {
+      SnackTool.showMessage(context,
+          message: '${item?.id != Isar.autoIncrement ? '取消收藏' : '收藏'}失败，请重试~');
+    }
   }
 
   // 播放记录
@@ -276,6 +311,9 @@ class _AnimeDetailLogic extends BaseLogic {
       // 获取番剧详细信息
       final result = await parserHandle.getAnimeDetail(animeUrl);
       animeDetail.setValue(result);
+      // 根据番剧信息添加收藏信息
+      final collect = await db.getCollect(animeUrl);
+      collectInfo.setValue(collect);
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
     } finally {

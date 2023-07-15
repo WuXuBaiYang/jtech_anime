@@ -7,6 +7,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
@@ -84,27 +85,28 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
               ),
               child: AnimeTimeTable(
-                onTap: (item) => router.pushNamed(
-                  RoutePath.animeDetail,
-                  arguments: {
-                    'animeDetail': AnimeModel.from({
-                      'name': item.name,
-                      'url': item.url,
-                      'status': item.status,
-                    })
-                  },
-                ),
+                onTap: (item) =>
+                    router.pushNamed(
+                      RoutePath.animeDetail,
+                      arguments: {
+                        'animeDetail': AnimeModel.from({
+                          'name': item.name,
+                          'url': item.url,
+                          'status': item.status,
+                        })
+                      },
+                    ),
               ),
             ),
           ),
           bottom: selectMap.isNotEmpty
               ? PreferredSize(
-                  preferredSize: const Size.fromHeight(kToolbarHeight),
-                  child: Container(
-                    color: !showAppbar ? Colors.white : null,
-                    child: _buildFilterChips(selectMap),
-                  ),
-                )
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: Container(
+              color: !showAppbar ? Colors.white : null,
+              child: _buildFilterChips(selectMap),
+            ),
+          )
               : null,
         );
       },
@@ -132,7 +134,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 标题栏动作按钮集合
-  List<Widget> get _actions => [
+  List<Widget> get _actions =>
+      [
         IconButton(
           icon: const Icon(FontAwesomeIcons.heart),
           onPressed: () => router.pushNamed(RoutePath.collect),
@@ -193,7 +196,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                     status: logic.loading.value
                         ? StatusBoxStatus.loading
                         : StatusBoxStatus.empty,
-                    title: Text(logic.loading.value ? '正在加载中~' : '下拉试试看~'),
+                    title: Text(
+                        logic.loading.value ? '正在加载中~' : '下拉试试看~'),
                   ),
                 ),
               GridView.builder(
@@ -237,7 +241,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                     width: double.maxFinite,
                     color: Colors.black.withOpacity(0.6),
                     padding:
-                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     child: Text(
                       item.status,
                       textAlign: TextAlign.right,
@@ -257,10 +261,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           ),
         ],
       ),
-      onTap: () => router.pushNamed(
-        RoutePath.animeDetail,
-        arguments: {'animeDetail': item},
-      ),
+      onTap: () =>
+          router.pushNamed(
+            RoutePath.animeDetail,
+            arguments: {'animeDetail': item},
+          ),
     );
   }
 }
@@ -293,9 +298,10 @@ class _HomeLogic extends BaseLogic {
     super.init();
     // 获取过滤条件
     db.getFilterSelectList(parserHandle.currentSource).then(
-          (v) => filterConfig.setValue(v.asMap().map<String, FilterSelect>(
-              (_, v) => MapEntry(_genFilterKey(v), v))),
-        );
+          (v) =>
+          filterConfig.setValue(v.asMap().map<String, FilterSelect>(
+                  (_, v) => MapEntry(_genFilterKey(v), v))),
+    );
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
@@ -306,8 +312,9 @@ class _HomeLogic extends BaseLogic {
   }
 
   // 展开番剧时间表
-  void expandedTimeTable() => scrollController.animateTo(0,
-      duration: const Duration(milliseconds: 400), curve: Curves.ease);
+  void expandedTimeTable() =>
+      scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 400), curve: Curves.ease);
 
   // 加载番剧列表
   Future<void> loadAnimeList(BuildContext context, bool loadMore) async {
@@ -320,6 +327,16 @@ class _HomeLogic extends BaseLogic {
           ? parserHandle.loadAnimeListNextPage(params: params)
           : parserHandle.loadAnimeList(params: params));
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
+
+      // var i = 0;
+      // for (var e in result) {
+      //   db.updateCollect(Collect()
+      //     ..url = e.url
+      //     ..name = e.name
+      //     ..cover = e.cover
+      //     ..order = i++
+      //     ..source = AnimeSource.yhdmz.name);
+      // }
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
     } finally {
@@ -328,8 +345,8 @@ class _HomeLogic extends BaseLogic {
   }
 
   // 选择过滤条件
-  Future<void> filterSelect(
-      bool selected, FilterSelect item, int maxSelected) async {
+  Future<void> filterSelect(bool selected, FilterSelect item,
+      int maxSelected) async {
     if (selected) {
       final result = await db.addFilterSelect(item, maxSelected);
       if (result != null) {

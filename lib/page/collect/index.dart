@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/tool/snack.dart';
@@ -66,7 +69,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
                 itemCount: collectList.length,
                 itemBuilder: (_, i) {
                   final item = collectList[i];
-                  return _buildCollectListItem(context, item);
+                  return _buildCollectListItem(context, item, i);
                 },
               ),
             ],
@@ -83,7 +86,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
   final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);
 
   // 构建收藏列表项
-  Widget _buildCollectListItem(BuildContext context, Collect item) {
+  Widget _buildCollectListItem(BuildContext context, Collect item, int i) {
     return InkWell(
       child: DefaultTextStyle(
         maxLines: 2,
@@ -102,14 +105,18 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
                     Text(item.name, style: titleStyle),
-                    // const SizedBox(height: 18),
-                    // Text(item.resName, style: TextStyle(color: kPrimaryColor)),
-                    // const SizedBox(height: 8),
-                    // Text('播放至：${progress.format(DurationPattern.fullTime)}'),
+                    const SizedBox(height: 8),
+                    IconButton(
+                      color: kPrimaryColor,
+                      icon: Icon(item.collected
+                          ? FontAwesomeIcons.heartCircleCheck
+                          : FontAwesomeIcons.heart),
+                      onPressed: () => logic.updateCollect(context, item, i),
+                    ),
                   ],
                 ),
               ),
@@ -124,7 +131,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
           cover: item.cover,
         ),
         'playTheRecord': true,
-      })?.then((_) => logic.loadCollectList(context, false)),
+      })?.then((_) => logic.updateCollectStatus(context, item, i)),
     );
   }
 }
@@ -161,6 +168,52 @@ class _CollectLogic extends BaseLogic {
       SnackTool.showMessage(context, message: '收藏列表加载失败，请重试~');
     } finally {
       loading.setValue(false);
+    }
+  }
+
+  // 更新收藏状态（收藏/取消收藏）
+  Future<void> updateCollect(
+      BuildContext context, Collect item, int index) async {
+    try {
+      final result = await db.updateCollect(item);
+      collectList.putValue(
+          index,
+          item
+            ..collected = result != null
+            ..id = result?.id ?? Isar.autoIncrement);
+    } catch (e) {
+      SnackTool.showMessage(context,
+          message: '${item.id == Isar.autoIncrement ? '收藏' : '取消收藏'}失败，请重试~');
+    }
+  }
+
+  // 更新收藏状态（获取最新的状态进行更新）
+  Future<void> updateCollectStatus(
+      BuildContext context, Collect item, int index) async {
+    try {
+      final result = await db.getCollect(item.url);
+      collectList.putValue(
+          index,
+          item
+            ..collected = result != null
+            ..id = result?.id ?? Isar.autoIncrement);
+    } catch (e) {
+      SnackTool.showMessage(context, message: '收藏状态更新失败，请重试~');
+    }
+  }
+
+  // 更新收藏项排序
+  Future<void> updateCollectOrder(
+      BuildContext context, Collect item, int to) async {
+    try {
+      final result = await db.updateCollectOrder(item.url,
+          source: parserHandle.currentSource, to: to);
+      if (result) {
+        collectList.insertValues(to, [item], notify: false);
+        collectList.removeValue(item);
+      }
+    } catch (e) {
+      SnackTool.showMessage(context, message: '排序更新失败,请重试~');
     }
   }
 }
