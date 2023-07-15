@@ -121,14 +121,7 @@ class _PlayRecordPageState
           ),
         ),
       ),
-      onTap: () => router.pushNamed(RoutePath.animeDetail, arguments: {
-        'animeDetail': AnimeModel(
-          url: item.url,
-          name: item.name,
-          cover: item.cover,
-        ),
-        'playTheRecord': true,
-      })?.then((_) => logic.loadPlayRecords(context, false)),
+      onTap: () => logic.goDetail(context, item),
     );
   }
 }
@@ -165,6 +158,25 @@ class _PlayRecordLogic extends BaseLogic {
       SnackTool.showMessage(context, message: '播放记录加载失败，请重试~');
     } finally {
       loading.setValue(false);
+    }
+  }
+
+  // 跳转到详情页
+  Future<void>? goDetail(BuildContext context, PlayRecord item) async {
+    await router.pushNamed(RoutePath.animeDetail, arguments: {
+      'animeDetail': AnimeModel(
+        url: item.url,
+        name: item.name,
+        cover: item.cover,
+      ),
+      'playTheRecord': true,
+    });
+    final it = await db.getPlayRecord(item.url);
+    if (it == null) return;
+    if (it.updateTime.compareTo(item.updateTime) > 1) {
+      if (playRecords.removeValue(item, notify: false)) {
+        playRecords.insertValues(0, [it]);
+      }
     }
   }
 }

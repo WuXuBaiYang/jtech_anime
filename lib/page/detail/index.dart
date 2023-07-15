@@ -194,7 +194,7 @@ class _AnimeDetailPageState
                 style: TextStyle(color: kPrimaryColor))
             : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
-      onTap: () => logic.play(item),
+      onTap: () => logic.goPlay(item),
     );
   }
 }
@@ -282,14 +282,14 @@ class _AnimeDetailLogic extends BaseLogic {
     final record = playRecord.value;
     if (record == null) return null;
     if (animeDetail.value.resources.isEmpty) return null;
-    return play(ResourceItemModel(
+    return goPlay(ResourceItemModel(
       name: record.resName,
       url: record.resUrl,
     ));
   }
 
   // 播放视频
-  Future<void>? play(ResourceItemModel item) {
+  Future<void>? goPlay(ResourceItemModel item) {
     return router.pushNamed(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
       'item': item,

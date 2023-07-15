@@ -124,14 +124,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
           ),
         ),
       ),
-      onTap: () => router.pushNamed(RoutePath.animeDetail, arguments: {
-        'animeDetail': AnimeModel(
-          url: item.url,
-          name: item.name,
-          cover: item.cover,
-        ),
-        'playTheRecord': true,
-      })?.then((_) => logic.updateCollectStatus(context, item, i)),
+      onTap: () => logic.goDetail(context, item, i),
     );
   }
 }
@@ -215,5 +208,17 @@ class _CollectLogic extends BaseLogic {
     } catch (e) {
       SnackTool.showMessage(context, message: '排序更新失败,请重试~');
     }
+  }
+
+  // 跳转到详情页
+  Future<void>? goDetail(BuildContext context, Collect item, int i) {
+    return router.pushNamed(RoutePath.animeDetail, arguments: {
+      'animeDetail': AnimeModel(
+        url: item.url,
+        name: item.name,
+        cover: item.cover,
+      ),
+      'playTheRecord': true,
+    })?.then((_) => updateCollectStatus(context, item, i));
   }
 }
