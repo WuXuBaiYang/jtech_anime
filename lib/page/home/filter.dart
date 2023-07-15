@@ -6,7 +6,7 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/cache_future_builder.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 // 过滤条件选择回调

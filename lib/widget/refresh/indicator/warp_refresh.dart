@@ -1,73 +1,60 @@
 import 'dart:math';
+
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/widget/status_box.dart';
 
 // 类型转换
 T? _ambiguity<T>(T? value) => value;
-
-// 刷新动画状态
-enum WarpAnimationState {
-  stopped,
-  playing,
-}
-
-// 异步刷新回调
-typedef AsyncRefreshCallback = Future<void> Function(bool loadMore);
 
 // 星星颜色获取回调
 typedef StarColorGetter = Color Function(int index);
 
 /*
-* 自定义刷新组件
+* 动漫效果的下拉刷新指示器
 * @author wuxubaiyang
-* @Time 2023/7/14 9:13
+* @Time 2023/7/15 12:33
 */
-class CustomRefreshView extends StatefulWidget {
+class WarpRefreshIndicator extends StatefulWidget {
+  // key
+  final Key? indicatorKey;
+
   // 子元素
   final Widget child;
 
-  // 是否启用下拉刷新
-  final bool enableRefresh;
-
-  // 是否启用上拉加载
-  final bool enableLoadMore;
-
-  // 异步加载回调
-  final AsyncRefreshCallback onRefresh;
-
-  // 加载更多视图高度
-  final double loadMoreHeight;
+  // 异步回调
+  final AsyncCallback onRefresh;
 
   // 星星数量
   final int starsCount;
 
-  // 子元素背景色
-  final Color childBackground;
+  // 背景色
+  final Color background;
 
   // 星星颜色
   final Color skyColor;
 
+  // 控制器
+  final IndicatorController? controller;
+
   //获取星星颜色回调
   final StarColorGetter starColorGetter;
 
-  // 是否初始化加载更多
-  final bool initialRefresh;
+  // 指示器触发距离
+  final double indicatorSize;
 
-  const CustomRefreshView({
+  const WarpRefreshIndicator({
     super.key,
-    required this.onRefresh,
+    this.indicatorKey,
     required this.child,
+    required this.onRefresh,
+    this.controller,
     this.starsCount = 30,
-    this.enableRefresh = true,
-    this.loadMoreHeight = 150,
-    this.initialRefresh = false,
-    this.enableLoadMore = false,
+    this.indicatorSize = 150,
     this.skyColor = Colors.black,
-    this.childBackground = Colors.white,
+    this.background = Colors.white,
     this.starColorGetter = _defaultStarColorGetter,
   });
 
@@ -75,85 +62,58 @@ class CustomRefreshView extends StatefulWidget {
       HSLColor.fromAHSL(1, Random().nextDouble() * 360, 1, 0.98).toColor();
 
   @override
-  State<StatefulWidget> createState() => _CustomRefreshViewState();
+  State<StatefulWidget> createState() => _WarpRefreshIndicatorState();
 }
 
 /*
-* 自定义刷新组件-状态
+* 动漫效果下拉刷新指示器
 * @author wuxubaiyang
-* @Time 2023/7/14 9:15
+* @Time 2023/7/15 12:34
 */
-class _CustomRefreshViewState extends State<CustomRefreshView>
+class _WarpRefreshIndicatorState extends State<WarpRefreshIndicator>
     with SingleTickerProviderStateMixin {
-  // 指示器key
-  final indicatorKey = GlobalKey<CustomRefreshIndicatorState>();
+  // 指示器状态
+  WarpAnimationState state = WarpAnimationState.stopped;
+  final random = Random();
 
-  // 刷新控制器
-  final controller = IndicatorController();
-
-  static const _indicatorSize = 150.0;
-  final _random = Random();
-  WarpAnimationState _state = WarpAnimationState.stopped;
-
+  // 星星存储集合
   List<Star> stars = [];
-  final _offsetTween = Tween<Offset>(
-    begin: Offset.zero,
-    end: Offset.zero,
-  );
-  final _angleTween = Tween<double>(
-    begin: 0,
-    end: 0,
-  );
-
+  final offsetTween = Tween<Offset>(begin: Offset.zero, end: Offset.zero);
+  final angleTween = Tween<double>(begin: 0, end: 0);
+  final scaleTween = Tween(begin: 1.0, end: 0.75);
+  final radiusTween = Tween(begin: 0.0, end: 16.0);
   late AnimationController shakeController;
-
-  static final _scaleTween = Tween(begin: 1.0, end: 0.75);
-  static final _radiusTween = Tween(begin: 0.0, end: 16.0);
 
   @override
   void initState() {
-    shakeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-    );
     super.initState();
-    // 初始化加载
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 如果设置了初始化加载，则在第一帧绘制完成之后开始刷新
-      if (widget.initialRefresh && widget.enableRefresh) {
-        Future.delayed(const Duration(milliseconds: 500))
-            .then((value) => indicatorKey.currentState?.refresh());
-      }
-    });
+    // 初始化晃动动画控制器
+    shakeController = AnimationController(
+        duration: const Duration(milliseconds: 100), vsync: this);
   }
 
-  Offset _getRandomOffset() => Offset(
-        _random.nextInt(10) - 5,
-        _random.nextInt(10) - 5,
-      );
+  Offset _getRandomOffset() =>
+      Offset(random.nextInt(10) - 5, random.nextInt(10) - 5);
 
   double _getRandomAngle() {
-    final degrees = ((_random.nextDouble() * 2) - 1);
+    final degrees = ((random.nextDouble() * 2) - 1);
     final radians = degrees == 0 ? 0.0 : degrees / 360.0;
     return radians;
   }
 
   void _shiftAndGenerateRandomShakeTransform() {
-    _offsetTween.begin = _offsetTween.end;
-    _offsetTween.end = _getRandomOffset();
-
-    _angleTween.begin = _angleTween.end;
-    _angleTween.end = _getRandomAngle();
+    offsetTween.begin = offsetTween.end;
+    offsetTween.end = _getRandomOffset();
+    angleTween.begin = angleTween.end;
+    angleTween.end = _getRandomAngle();
   }
 
   void _startShakeAnimation() {
     _shiftAndGenerateRandomShakeTransform();
     shakeController.animateTo(1.0);
-    _state = WarpAnimationState.playing;
-    stars = List.generate(
-      widget.starsCount,
-      (index) => Star(initialColor: widget.starColorGetter(index)),
-    );
+    state = WarpAnimationState.playing;
+    stars = List.generate(widget.starsCount,
+        (i) => Star(initialColor: widget.starColorGetter(i)));
   }
 
   void _resetShakeAnimation() {
@@ -163,42 +123,27 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
   }
 
   void _stopShakeAnimation() {
-    _offsetTween.end = Offset.zero;
-    _angleTween.end = 0.0;
-    _state = WarpAnimationState.stopped;
+    offsetTween.end = Offset.zero;
+    angleTween.end = 0.0;
+    state = WarpAnimationState.stopped;
     _shiftAndGenerateRandomShakeTransform();
     shakeController.stop();
     shakeController.value = 0.0;
     stars = [];
   }
 
-  // 获取触发条件
-  IndicatorTrigger? get trigger {
-    if (widget.enableRefresh && widget.enableLoadMore) {
-      return IndicatorTrigger.bothEdges;
-    }
-    if (widget.enableRefresh) return IndicatorTrigger.leadingEdge;
-    if (widget.enableLoadMore) return IndicatorTrigger.trailingEdge;
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
-    var child = Container(
-      color: widget.childBackground,
-      child: widget.child,
-    );
-    if (trigger == null) return child;
     return CustomRefreshIndicator(
-      trigger: trigger!,
-      key: indicatorKey,
       autoRebuild: false,
-      controller: controller,
-      offsetToArmed: _indicatorSize,
-      leadingScrollIndicatorVisible: false,
+      key: widget.indicatorKey,
+      onRefresh: widget.onRefresh,
+      controller: widget.controller,
+      offsetToArmed: widget.indicatorSize,
+      leadingScrollIndicatorVisible: true,
       trailingScrollIndicatorVisible: false,
+      trigger: IndicatorTrigger.leadingEdge,
       triggerMode: IndicatorTriggerMode.onEdge,
-      onRefresh: () => widget.onRefresh(controller.edge?.isTrailing ?? false),
       onStateChanged: (change) {
         if (change.didChange(to: IndicatorState.loading)) {
           _startShakeAnimation();
@@ -207,7 +152,10 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
         }
       },
       builder: _buildRefreshAnime,
-      child: child,
+      child: Container(
+        color: widget.background,
+        child: widget.child,
+      ),
     );
   }
 
@@ -230,20 +178,20 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
           animation: animation,
           builder: (context, _) {
             return Transform.scale(
-              scale: _scaleTween.transform(controller.value),
+              scale: scaleTween.transform(controller.value),
               child: Builder(builder: (context) {
                 if (shakeController.value == 1.0 &&
-                    _state == WarpAnimationState.playing) {
+                    state == WarpAnimationState.playing) {
                   _ambiguity(SchedulerBinding.instance)!
                       .addPostFrameCallback((_) => _resetShakeAnimation());
                 }
                 return Transform.rotate(
-                  angle: _angleTween.transform(shakeController.value),
+                  angle: angleTween.transform(shakeController.value),
                   child: Transform.translate(
-                    offset: _offsetTween.transform(shakeController.value),
+                    offset: offsetTween.transform(shakeController.value),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(
-                        _radiusTween.transform(controller.value),
+                        radiusTween.transform(controller.value),
                       ),
                       child: child,
                     ),
@@ -257,56 +205,6 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     );
   }
 
-  // 构建加载更多动画
-  Widget _buildLoadMoreAnime(
-      BuildContext context, Widget child, IndicatorController controller) {
-    final appContentColor = kPrimaryColor;
-    final height = widget.loadMoreHeight;
-    return AnimatedBuilder(
-        animation: controller,
-        builder: (context, _) {
-          final dy =
-              controller.value.clamp(0.0, 1.25) * -(height - (height * 0.25));
-          return Stack(
-            children: [
-              Transform.translate(
-                offset: Offset(0.0, dy),
-                child: child,
-              ),
-              Positioned(
-                bottom: -height,
-                left: 0,
-                right: 0,
-                height: height,
-                child: Container(
-                  transform: Matrix4.translationValues(0.0, dy, 0.0),
-                  padding: const EdgeInsets.only(top: 30.0),
-                  constraints: const BoxConstraints.expand(),
-                  child: Column(
-                    children: [
-                      if (controller.isLoading)
-                        Container(
-                          width: 16,
-                          height: 16,
-                          margin: const EdgeInsets.only(bottom: 8.0),
-                          child: const StatusBox(
-                              status: StatusBoxStatus.loading, animSize: 14),
-                        )
-                      else
-                        Icon(Icons.keyboard_arrow_up, color: appContentColor),
-                      Text(
-                        controller.isLoading ? "正在加载~~" : "上拉加载更多",
-                        style: TextStyle(color: appContentColor),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        });
-  }
-
   @override
   void dispose() {
     shakeController.dispose();
@@ -314,6 +212,10 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
   }
 }
 
+// 刷新动画状态
+enum WarpAnimationState { stopped, playing }
+
+// 星星对象
 class Star {
   Offset? position;
   Color? color;
@@ -383,6 +285,7 @@ class Star {
   }
 }
 
+// 天空对象
 class Sky extends CustomPainter {
   final List<Star> stars;
   final Color color;

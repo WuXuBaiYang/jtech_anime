@@ -13,7 +13,7 @@ import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
-import 'package:jtech_anime/widget/refresh_view.dart';
+import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -36,6 +36,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   _HomeLogic initLogic() => _HomeLogic();
+
+  @override
+  void initState() {
+    super.initState();
+    // 初始化加载
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 初始化加载首页数据
+      logic.loadAnimeList(context, false);
+    });
+  }
 
   @override
   Widget buildWidget(BuildContext context) {
@@ -106,15 +116,18 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     if (!showAppbar) return const SizedBox();
     const color = Colors.black38;
     const textStyle = TextStyle(color: color, fontSize: 16);
-    return ElevatedButton(
-      child: const Row(
-        children: [
-          Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
-          SizedBox(width: 8),
-          Text('嗖嗖嗖~', style: textStyle),
-        ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: ElevatedButton(
+        child: const Row(
+          children: [
+            Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
+            SizedBox(width: 8),
+            Text('嗖嗖嗖~', style: textStyle),
+          ],
+        ),
+        onPressed: () => router.pushNamed(RoutePath.search),
       ),
-      onPressed: () => router.pushNamed(RoutePath.search),
     );
   }
 
@@ -170,15 +183,17 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         return CustomRefreshView(
           enableRefresh: true,
           enableLoadMore: true,
-          initialRefresh: true,
           onRefresh: (loadMore) => logic.loadAnimeList(context, loadMore),
           child: Stack(
             children: [
               if (animeList.isEmpty)
-                const Center(
+                Center(
                   child: StatusBox(
-                    status: StatusBoxStatus.empty,
-                    title: Text('下拉试试看~'),
+                    animSize: 34,
+                    status: logic.loading.value
+                        ? StatusBoxStatus.loading
+                        : StatusBoxStatus.empty,
+                    title: Text(logic.loading.value ? '正在加载中~' : '下拉试试看~'),
                   ),
                 ),
               GridView.builder(
@@ -264,7 +279,7 @@ class _HomeLogic extends BaseLogic {
 
   // 滚动控制器
   final scrollController = ScrollController(
-    initialScrollOffset: expandedHeight - kToolbarHeight,
+    initialScrollOffset: expandedHeight - kToolbarHeight + 1,
   );
 
   // 番剧列表

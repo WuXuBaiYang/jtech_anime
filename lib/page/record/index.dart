@@ -11,6 +11,7 @@ import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -36,23 +37,6 @@ class _PlayRecordPageState
   _PlayRecordLogic initLogic() => _PlayRecordLogic();
 
   @override
-  void initState() {
-    super.initState();
-    // 初始化设置
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 初始化加载
-      logic.loadPlayRecords(context, false);
-      // 判断是否滚动到底部
-      logic.scrollController.addListener(() {
-        if (logic.scrollController.offset >=
-            logic.scrollController.position.maxScrollExtent) {
-          logic.loadPlayRecords(context, true);
-        }
-      });
-    });
-  }
-
-  @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -64,29 +48,34 @@ class _PlayRecordPageState
 
   // 构建播放记录列表
   Widget _buildPlayRecords(BuildContext context) {
-    return ValueListenableBuilder<List<PlayRecord>>(
-      valueListenable: logic.playRecords,
-      builder: (_, playRecords, __) {
-        return Stack(
-          children: [
-            if (playRecords.isEmpty)
-              const Center(
-                child: StatusBox(
-                  status: StatusBoxStatus.empty,
-                  title: Text('还没有播放记录~'),
+    return CustomRefreshView(
+      enableRefresh: true,
+      enableLoadMore: true,
+      initialRefresh: true,
+      onRefresh: (loadMore) => logic.loadPlayRecords(context, loadMore),
+      child: ValueListenableBuilder<List<PlayRecord>>(
+        valueListenable: logic.playRecords,
+        builder: (_, playRecords, __) {
+          return Stack(
+            children: [
+              if (playRecords.isEmpty)
+                const Center(
+                  child: StatusBox(
+                    status: StatusBoxStatus.empty,
+                    title: Text('还没有播放记录~'),
+                  ),
                 ),
+              ListView.builder(
+                itemCount: playRecords.length,
+                itemBuilder: (_, i) {
+                  final item = playRecords[i];
+                  return _buildPlayRecordsItem(context, item);
+                },
               ),
-            ListView.builder(
-              controller: logic.scrollController,
-              itemCount: playRecords.length,
-              itemBuilder: (_, i) {
-                final item = playRecords[i];
-                return _buildPlayRecordsItem(context, item);
-              },
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -156,12 +145,6 @@ class _PlayRecordLogic extends BaseLogic {
   // 当前页码
   var _pageIndex = 1;
 
-  // 分页数据量
-  final _pageSize = 25;
-
-  // 滚动控制器
-  final scrollController = ScrollController();
-
   // 加载播放记录
   Future<void> loadPlayRecords(BuildContext context, bool loadMore) async {
     if (isLoading) return;
@@ -170,7 +153,6 @@ class _PlayRecordLogic extends BaseLogic {
       final index = loadMore ? _pageIndex + 1 : 1;
       final result = await db.getPlayRecordList(
         parserHandle.currentSource,
-        pageSize: _pageSize,
         pageIndex: index,
       );
       if (result.isNotEmpty) {

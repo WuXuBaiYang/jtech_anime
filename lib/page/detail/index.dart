@@ -12,6 +12,8 @@ import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/refresh/controller.dart';
+import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
 
@@ -206,6 +208,9 @@ class _AnimeDetailLogic extends BaseLogic {
   // 播放记录
   final playRecord = ValueChangeNotifier<PlayRecord?>(null);
 
+  // 刷新控制器
+  final controller = CustomRefreshController();
+
   @override
   void init() {
     super.init();
@@ -227,7 +232,10 @@ class _AnimeDetailLogic extends BaseLogic {
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 初始化加载番剧详情
-      loadAnimeDetail(context).whenComplete(() {
+      Tool.showLoading(
+        context,
+        loadFuture: loadAnimeDetail(context),
+      ).whenComplete(() {
         // 加载完番剧详情后播放记录
         if (play) playTheRecord();
       });
@@ -260,20 +268,18 @@ class _AnimeDetailLogic extends BaseLogic {
     if (isLoading) return;
     final animeUrl = animeDetail.value.url;
     if (animeUrl.isEmpty) return;
-    return Tool.showLoading(context, loadFuture: Future(() async {
-      loading.setValue(true);
-      try {
-        // 获取播放记录
-        final record = await db.getPlayRecord(animeUrl);
-        playRecord.setValue(record);
-        // 获取番剧详细信息
-        final result = await parserHandle.getAnimeDetail(animeUrl);
-        animeDetail.setValue(result);
-      } catch (e) {
-        SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
-      } finally {
-        loading.setValue(false);
-      }
-    }));
+    loading.setValue(true);
+    try {
+      // 获取播放记录
+      final record = await db.getPlayRecord(animeUrl);
+      playRecord.setValue(record);
+      // 获取番剧详细信息
+      final result = await parserHandle.getAnimeDetail(animeUrl);
+      animeDetail.setValue(result);
+    } catch (e) {
+      SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
+    } finally {
+      loading.setValue(false);
+    }
   }
 }

@@ -11,7 +11,8 @@ import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/page/search/search.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/refresh_view.dart';
+import 'package:jtech_anime/widget/refresh/controller.dart';
+import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -55,7 +56,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       child: SearchBarView(
         inSearching: logic.loading,
         searchRecordList: logic.searchRecordList,
-        search: (keyword) => logic.search(context, false, keyword: keyword),
+        search: (keyword) => logic.startSearch(context, keyword),
         recordDelete: (item) => logic.deleteSearchRecord(context, item),
       ),
     );
@@ -68,8 +69,10 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       valueListenable: logic.searchList,
       builder: (_, searchList, __) {
         return CustomRefreshView(
+            displacement: 120,
             enableRefresh: true,
             enableLoadMore: true,
+            controller: logic.controller,
             onRefresh: (loadMore) => logic.search(context, loadMore),
             child: Stack(
               children: [
@@ -155,6 +158,9 @@ class _SearchLogic extends BaseLogic {
   // 缓存搜索记录
   final searchRecordList = ListValueChangeNotifier<SearchRecord>.empty();
 
+  // 刷新控制器
+  final controller = CustomRefreshController();
+
   @override
   void init() {
     super.init();
@@ -166,6 +172,12 @@ class _SearchLogic extends BaseLogic {
 
   // 缓存最后一次搜索关键字
   String? _lastKeyword;
+
+  // 启动刷新
+  startSearch(BuildContext context, String keyword) {
+    _lastKeyword = keyword;
+    controller.startRefresh();
+  }
 
   // 执行搜索
   Future<void> search(BuildContext context, bool loadMore,

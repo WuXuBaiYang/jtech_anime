@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:lottie/lottie.dart';
-import 'cache_future_builder.dart';
+import 'future_builder.dart';
 
 /*
 * 状态盒
