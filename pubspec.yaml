@@ -95,8 +95,7 @@ dependencies:
   custom_refresh_indicator: ^2.2.1
 
   # 视频播放器
-  lecle_yoyo_player:
-    path: ./library/lecle_yoyo_player
+  video_player: ^2.7.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
