@@ -65,13 +65,26 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
                     title: Text('还没有播放记录~'),
                   ),
                 ),
-              ListView.builder(
-                itemCount: collectList.length,
-                itemBuilder: (_, i) {
-                  final item = collectList[i];
-                  return _buildCollectListItem(context, item, i);
-                },
-              ),
+              StatefulBuilder(builder: (_, setState) {
+                return ReorderableListView.builder(
+                  itemCount: collectList.length,
+                  buildDefaultDragHandles: false,
+                  onReorder: (oldIndex, newIndex) => setState(() {
+                    // 更新排序到数据库
+                    if (oldIndex < newIndex) newIndex -= 1;
+                    final oldItem = collectList[oldIndex];
+                    final newItem = collectList[newIndex];
+                    logic.updateCollectOrder(context, oldItem, newItem.order);
+                    // 更新本地列表排序
+                    var child = collectList.removeAt(oldIndex);
+                    collectList.insert(newIndex, child);
+                  }),
+                  itemBuilder: (_, i) {
+                    final item = collectList[i];
+                    return _buildCollectListItem(context, item, i);
+                  },
+                );
+              }),
             ],
           );
         },
@@ -88,6 +101,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
   // 构建收藏列表项
   Widget _buildCollectListItem(BuildContext context, Collect item, int i) {
     return InkWell(
+      key: ValueKey(item),
       child: DefaultTextStyle(
         maxLines: 2,
         style: subTitleStyle,
@@ -95,7 +109,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -120,6 +134,9 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
                   ],
                 ),
               ),
+              ReorderableDragStartListener(
+                  index: i, child: const Icon(FontAwesomeIcons.gripLines)),
+              const SizedBox(width: 8),
             ],
           ),
         ),
@@ -150,6 +167,7 @@ class _CollectLogic extends BaseLogic {
       final result = await db.getCollectList(
         parserHandle.currentSource,
         pageIndex: index,
+        pageSize: 10,
       );
       if (result.isNotEmpty) {
         _pageIndex = index;
@@ -199,12 +217,8 @@ class _CollectLogic extends BaseLogic {
   Future<void> updateCollectOrder(
       BuildContext context, Collect item, int to) async {
     try {
-      final result = await db.updateCollectOrder(item.url,
+      await db.updateCollectOrder(item.url,
           source: parserHandle.currentSource, to: to);
-      if (result) {
-        collectList.insertValues(to, [item], notify: false);
-        collectList.removeValue(item);
-      }
     } catch (e) {
       SnackTool.showMessage(context, message: '排序更新失败,请重试~');
     }

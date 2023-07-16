@@ -27,6 +27,24 @@ class Collect {
   @ignore
   bool collected = true;
 
+  Collect copyWith({
+    Id? id,
+    String? url,
+    String? source,
+    String? name,
+    String? cover,
+    int? order,
+    bool? collected,
+  }) =>
+      Collect()
+        ..id = id ?? this.id
+        ..url = url ?? this.url
+        ..source = source ?? this.source
+        ..name = name ?? this.name
+        ..cover = cover ?? this.cover
+        ..order = order ?? this.order
+        ..collected = collected ?? this.collected;
+
   @override
   bool operator ==(Object other) {
     if (other is! Collect) return false;

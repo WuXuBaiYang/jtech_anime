@@ -65,36 +65,35 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   // 构建搜索列表
   Widget _buildSearchList(BuildContext context) {
     final padding = MediaQuery.of(context).padding;
-    return ValueListenableBuilder<List<AnimeModel>>(
-      valueListenable: logic.searchList,
-      builder: (_, searchList, __) {
-        return CustomRefreshView(
-            displacement: 120,
-            enableRefresh: true,
-            enableLoadMore: true,
-            controller: logic.controller,
-            onRefresh: (loadMore) => logic.search(context, loadMore),
-            child: Stack(
-              children: [
-                if (searchList.isEmpty)
-                  const Center(
-                    child: StatusBox(
-                      status: StatusBoxStatus.empty,
-                      title: Text('搜搜看~'),
+    return CustomRefreshView(
+        displacement: 120,
+        enableRefresh: true,
+        enableLoadMore: true,
+        controller: logic.controller,
+        onRefresh: (loadMore) => logic.search(context, loadMore),
+        child: ValueListenableBuilder<List<AnimeModel>>(
+            valueListenable: logic.searchList,
+            builder: (_, searchList, __) {
+              return Stack(
+                children: [
+                  if (searchList.isEmpty)
+                    const Center(
+                      child: StatusBox(
+                        status: StatusBoxStatus.empty,
+                        title: Text('搜搜看~'),
+                      ),
                     ),
+                  ListView.builder(
+                    itemCount: searchList.length,
+                    padding: EdgeInsets.only(top: kToolbarHeight + padding.top),
+                    itemBuilder: (_, i) {
+                      final item = searchList[i];
+                      return _buildSearchListItem(item);
+                    },
                   ),
-                ListView.builder(
-                  itemCount: searchList.length,
-                  padding: EdgeInsets.only(top: kToolbarHeight + padding.top),
-                  itemBuilder: (_, i) {
-                    final item = searchList[i];
-                    return _buildSearchListItem(item);
-                  },
-                ),
-              ],
-            ));
-      },
-    );
+                ],
+              );
+            }));
   }
 
   // 标题文本样式

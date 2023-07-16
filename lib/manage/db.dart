@@ -57,11 +57,11 @@ class DBManage extends BaseManage {
   Future<bool> updateCollectOrder(String url,
           {required AnimeSource source, required int to}) =>
       isar.writeTxn<bool>(() async {
-        // 查出全部收藏列表倒叙
+        // 查出全部收藏列表
         final items = await isar.collects
             .where()
             .sourceEqualTo(source.name)
-            .sortByOrderDesc()
+            .sortByOrder()
             .findAll();
         // 对收藏列表重排序并更新收藏列表
         int i = 0;

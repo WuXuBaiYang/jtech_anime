@@ -81,13 +81,14 @@ class _AnimeDetailPageState
           actions: [
             ValueListenableBuilder<Collect?>(
               valueListenable: logic.collectInfo,
-              builder: (_, collectInfo, __) {
+              builder: (_, collect, __) {
+                if (collect == null) return const SizedBox();
                 return IconButton(
                   color: kPrimaryColor,
-                  icon: Icon(collectInfo != null
+                  icon: Icon(collect.collected
                       ? FontAwesomeIcons.heartCircleCheck
                       : FontAwesomeIcons.heart),
-                  onPressed: () => logic.updateCollect(context, collectInfo),
+                  onPressed: () => logic.updateCollect(context, collect),
                 );
               },
             ),
@@ -261,19 +262,17 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 更新收藏状态（收藏/取消收藏）
-  Future<void> updateCollect(BuildContext context, Collect? item) async {
+  Future<void> updateCollect(BuildContext context, Collect item) async {
     if (isLoading) return;
     try {
-      item ??= Collect()
-        ..url = animeDetail.value.url
-        ..name = animeDetail.value.name
-        ..cover = animeDetail.value.cover
-        ..source = parserHandle.currentSource.name;
       final result = await db.updateCollect(item);
-      collectInfo.setValue(result);
+      collectInfo.setValue(item.copyWith(
+        id: result?.id ?? Isar.autoIncrement,
+        collected: result != null,
+      ));
     } catch (e) {
       SnackTool.showMessage(context,
-          message: '${item?.id != Isar.autoIncrement ? '取消收藏' : '收藏'}失败，请重试~');
+          message: '${item.id != Isar.autoIncrement ? '取消收藏' : '收藏'}失败，请重试~');
     }
   }
 
@@ -313,7 +312,13 @@ class _AnimeDetailLogic extends BaseLogic {
       animeDetail.setValue(result);
       // 根据番剧信息添加收藏信息
       final collect = await db.getCollect(animeUrl);
-      collectInfo.setValue(collect);
+      collectInfo.setValue(collect ??
+          (Collect()
+            ..url = result.url
+            ..name = result.name
+            ..cover = result.cover
+            ..source = parserHandle.currentSource.name
+            ..collected = false));
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
     } finally {
