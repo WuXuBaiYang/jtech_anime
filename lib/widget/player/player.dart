@@ -49,15 +49,15 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 锁屏状态显示隐藏
   final showLock = ValueChangeNotifier<bool>(false);
 
+  // 控制组件显示隐藏
+  final showControl = ValueChangeNotifier<bool>(false);
+
   // 显示隐藏的动画间隔
-  final animeDuration = const Duration(milliseconds: 100);
+  final animeDuration = const Duration(milliseconds: 150);
 
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
-
-    /// 测试代码
-    controller.setLocked(true);
     return ValueListenableBuilder2<PlayerState, bool>(
       first: controller,
       second: controller.locked,
@@ -67,19 +67,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
           children: [
             _buildPlayerLayer(context, controller),
             _buildStateLayer(controller),
-            if (!locked)
-              Positioned.fill(
-                child: CustomVideoPlayerGestureLayer(
-                  controller: widget.controller,
-                ),
-              ),
-            if (!locked)
-              Positioned.fill(
-                child: CustomVideoPlayerControlLayer(
-                  controller: widget.controller,
-                  onLocked: _showLock,
-                ),
-              ),
+            if (!locked) Positioned.fill(child: _buildGestureLayer()),
+            if (!locked) Positioned.fill(child: _buildControlLayer()),
             Positioned.fill(child: _buildLockLayer(controller, locked)),
           ],
         );
@@ -87,7 +76,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     );
   }
 
-  // 构建播放器(最底层)
+  // 构建播放器层
   Widget _buildPlayerLayer(
       BuildContext context, CustomVideoPlayerController controller) {
     final videoController = controller.videoController;
@@ -130,6 +119,31 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     );
   }
 
+  // 构建手势操作层
+  Widget _buildGestureLayer() {
+    return CustomVideoPlayerGestureLayer(
+      controller: widget.controller,
+      onTap: () => _show(showControl),
+    );
+  }
+
+  // 构建控制组件
+  Widget _buildControlLayer() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: showControl,
+      builder: (_, show, __) {
+        return AnimatedOpacity(
+          opacity: show ? 1 : 0,
+          duration: animeDuration,
+          child: CustomVideoPlayerControlLayer(
+            controller: widget.controller,
+            onLocked: () => _show(showLock),
+          ),
+        );
+      },
+    );
+  }
+
   // 构建锁屏层
   Widget _buildLockLayer(CustomVideoPlayerController controller, bool locked) {
     if (!locked) return const SizedBox();
@@ -137,7 +151,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
       valueListenable: showLock,
       builder: (_, show, __) {
         return GestureDetector(
-          onTap: _showLock,
+          onTap: () => _show(showLock),
           child: Container(
             color: Colors.transparent,
             child: AnimatedOpacity(
@@ -166,9 +180,9 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     );
   }
 
-  // 展示锁屏组件并在一定时间后隐藏
-  void _showLock() {
-    showLock.setValue(true);
-    Tool.debounce(() => showLock.setValue(false))();
+  // 展示组件并在一定时间后隐藏
+  void _show(ValueChangeNotifier<bool> notifier) {
+    notifier.setValue(true);
+    Tool.debounce(() => notifier.setValue(false))();
   }
 }
