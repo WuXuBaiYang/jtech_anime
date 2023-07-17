@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
+import 'layer.dart';
 
 /*
 * 自定义视频播放器，控制层
 * @author wuxubaiyang
 * @Time 2023/7/17 11:00
 */
-class CustomVideoPlayerControlLayer extends StatelessWidget {
+class CustomVideoPlayerControlLayer extends StatelessWidget
+    with CustomVideoPlayerLayer {
   // 控制器
   final CustomVideoPlayerController controller;
 
@@ -16,7 +18,7 @@ class CustomVideoPlayerControlLayer extends StatelessWidget {
   // 弹出层背景色
   final Color overlayColor;
 
-  const CustomVideoPlayerControlLayer({
+  CustomVideoPlayerControlLayer({
     super.key,
     required this.overlayColor,
     required this.controller,

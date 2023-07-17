@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
+import 'layer.dart';
+
 // 手势状态切换
 typedef PlayerGestureCallback = void Function(bool start, double value);
 
@@ -54,7 +56,7 @@ class CustomVideoPlayerGestureLayer extends StatefulWidget {
 * @Time 2023/7/17 12:42
 */
 class _CustomVideoPlayerGestureLayerState
-    extends State<CustomVideoPlayerGestureLayer> {
+    extends State<CustomVideoPlayerGestureLayer> with CustomVideoPlayerLayer {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
