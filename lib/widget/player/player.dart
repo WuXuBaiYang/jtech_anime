@@ -7,7 +7,6 @@ import 'package:jtech_anime/widget/player/control/control.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:video_player/video_player.dart';
-
 import 'control/gesture.dart';
 
 /*
@@ -28,12 +27,20 @@ class CustomVideoPlayer extends StatefulWidget {
   // 状态为空时的占位图
   final Widget? placeholder;
 
+  // 弹出层背景色
+  final Color overlayColor;
+
+  // 主色调
+  final Color? primaryColor;
+
   const CustomVideoPlayer({
     super.key,
     required this.controller,
-    this.actions = const [],
-    this.placeholder,
     this.title,
+    this.placeholder,
+    this.primaryColor,
+    this.actions = const [],
+    this.overlayColor = Colors.black26,
   });
 
   @override
@@ -62,27 +69,36 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   final showSpeed = ValueChangeNotifier<bool>(false);
 
   // 显示隐藏的动画间隔
-  final animeDuration = const Duration(milliseconds: 150);
+  final animeDuration = const Duration(milliseconds: 130);
 
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
-    return ValueListenableBuilder2<PlayerState, bool>(
-      first: controller,
-      second: controller.locked,
-      builder: (_, state, locked, __) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            _buildPlayerLayer(context, controller),
-            _buildStateLayer(controller),
-            if (!locked) Positioned.fill(child: _buildGestureLayer()),
-            if (!locked) Positioned.fill(child: _buildHintLayer()),
-            if (!locked) Positioned.fill(child: _buildControlLayer()),
-            Positioned.fill(child: _buildLockLayer(controller, locked)),
-          ],
-        );
-      },
+    final primaryColor = widget.primaryColor;
+    return Theme(
+      data: ThemeData.dark(useMaterial3: true).copyWith(
+        cardTheme: const CardTheme(elevation: 0),
+        colorScheme: primaryColor != null
+            ? ColorScheme.dark(primary: primaryColor)
+            : null,
+      ),
+      child: ValueListenableBuilder2<PlayerState, bool>(
+        first: controller,
+        second: controller.locked,
+        builder: (_, state, locked, __) {
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              _buildPlayerLayer(context, controller),
+              _buildStateLayer(controller),
+              if (!locked) Positioned.fill(child: _buildGestureLayer()),
+              if (!locked) Positioned.fill(child: _buildHintLayer()),
+              if (!locked) Positioned.fill(child: _buildControlLayer()),
+              Positioned.fill(child: _buildLockLayer(controller, locked)),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -113,7 +129,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     }
     // 如果是暂停/准备播放则展示播放按钮
     if (controller.isPause || controller.isReady2Play) {
-      return const Icon(FontAwesomeIcons.play);
+      return const Icon(FontAwesomeIcons.play, size: 45);
     }
     // 展示其他状态
     final text = {
@@ -142,59 +158,121 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建提示消息层
   Widget _buildHintLayer() {
-    return SizedBox();
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        _buildAnimeShow(
+          showVolume,
+          _buildHintProgress(
+            widget.controller.volume,
+            FontAwesomeIcons.volumeLow,
+          ),
+        ),
+        _buildAnimeShow(
+          showBrightness,
+          _buildHintProgress(
+            widget.controller.brightness,
+            FontAwesomeIcons.sun,
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: _buildAnimeShow(
+            showSpeed,
+            _buildHintSpeed(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 构建显示进度条
+  Widget _buildHintProgress(
+      ValueChangeNotifier<double> notifier, IconData iconData) {
+    return SizedBox(
+      width: 180,
+      height: 55,
+      child: Card(
+        color: widget.overlayColor,
+        clipBehavior: Clip.hardEdge,
+        margin: const EdgeInsets.all(14),
+        child: ValueListenableBuilder<double>(
+          valueListenable: notifier,
+          builder: (_, value, __) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
+                  child: LinearProgressIndicator(
+                    value: value,
+                    backgroundColor: Colors.transparent,
+                  ),
+                ),
+                Icon(iconData, size: 14),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // 构建倍速
+  Widget _buildHintSpeed() {
+    return Card(
+      color: widget.overlayColor,
+      margin: const EdgeInsets.all(14),
+      child: const Padding(
+        padding: EdgeInsets.all(14),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('正在快进'),
+            SizedBox(width: 4),
+            Icon(FontAwesomeIcons.anglesRight),
+          ],
+        ),
+      ),
+    );
   }
 
   // 构建控制组件
   Widget _buildControlLayer() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: showControl,
-      builder: (_, show, __) {
-        return AnimatedOpacity(
-          opacity: show ? 1 : 0,
-          duration: animeDuration,
-          child: CustomVideoPlayerControlLayer(
-            controller: widget.controller,
-            onLocked: () => _show(showLock),
-          ),
-        );
-      },
+    return _buildAnimeShow(
+      showControl,
+      CustomVideoPlayerControlLayer(
+        controller: widget.controller,
+        onLocked: () => _show(showLock),
+        overlayColor: widget.overlayColor,
+      ),
     );
   }
 
   // 构建锁屏层
   Widget _buildLockLayer(CustomVideoPlayerController controller, bool locked) {
     if (!locked) return const SizedBox();
-    return ValueListenableBuilder(
-      valueListenable: showLock,
-      builder: (_, show, __) {
-        return GestureDetector(
-          onTap: () => _show(showLock),
-          child: Container(
-            color: Colors.transparent,
-            child: AnimatedOpacity(
-              opacity: show ? 1 : 0,
-              duration: animeDuration,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    color: Colors.white,
-                    icon: const Icon(FontAwesomeIcons.lock),
-                    onPressed: () => controller.setLocked(false),
-                  ),
-                  IconButton(
-                    color: Colors.white,
-                    icon: const Icon(FontAwesomeIcons.lock),
-                    onPressed: () => controller.setLocked(false),
-                  ),
-                ],
+    return GestureDetector(
+      onTap: () => _show(showLock),
+      child: Container(
+        color: Colors.transparent,
+        child: _buildAnimeShow(
+          showLock,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.lock),
+                onPressed: () => controller.setLocked(false),
               ),
-            ),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.lock),
+                onPressed: () => controller.setLocked(false),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -204,10 +282,24 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     Tool.debounce(() => notifier.setValue(false))();
   }
 
+  // 构建可控显示隐藏组件
+  Widget _buildAnimeShow(ValueChangeNotifier<bool> notifier, Widget child) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: notifier,
+      builder: (_, show, __) {
+        return AnimatedOpacity(
+          opacity: show ? 1 : 0,
+          duration: animeDuration,
+          child: child,
+        );
+      },
+    );
+  }
+
   // 展示突出组件（展示突出组件并隐藏其他组件）
-  void _showProtrudeView(ValueChangeNotifier<bool> point, bool show) {
+  void _showProtrudeView(ValueChangeNotifier<bool> notifier, bool show) {
     // 展示重点组件
-    _show(point);
+    notifier.setValue(show);
     // 如果控制组件本身是隐藏的则不做处理
     if (showControl.value) {
       if (show) {

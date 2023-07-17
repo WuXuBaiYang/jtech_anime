@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/video_cache.dart';
+import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/player.dart';
 import 'package:jtech_anime/widget/status_box.dart';
@@ -42,15 +45,16 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
   Widget _buildVideoPlayer(BuildContext context) {
     return SizedBox.expand(
       child: CustomVideoPlayer(
+        primaryColor: kPrimaryColor,
         controller: logic.controller,
         title: Text(logic.animeInfo.value.name),
-        placeholder: const StatusBox(
-          status: StatusBoxStatus.loading,
-          title: Text('正在解析视频~'),
-          color: Colors.white54,
-          animSize: 35,
-          space: 14,
-        ),
+        // placeholder: const StatusBox(
+        //   status: StatusBoxStatus.loading,
+        //   title: Text('正在解析视频~'),
+        //   color: Colors.white54,
+        //   animSize: 35,
+        //   space: 14,
+        // ),
         actions: [
           TextButton(
             child: const Text('选集'),
@@ -75,9 +79,6 @@ class _PlayerLogic extends BaseLogic {
 
   // 播放器控制器
   final controller = CustomVideoPlayerController();
-
-  // 当前视频播放地址
-  final videoInfo = ValueChangeNotifier<VideoCache?>(null);
 
   @override
   void init() {
@@ -115,21 +116,22 @@ class _PlayerLogic extends BaseLogic {
 
   // 选择资源/视频
   Future<void> changeVideo(BuildContext context, ResourceItemModel item) async {
-    // if (isLoading) return;
-    // final resources = animeInfo.value.resources;
-    // if (resources.isEmpty) return;
-    // try {
-    //   loading.setValue(true);
-    //   // 根据资源与视频下标切换视频播放地址
-    //   final result = await parserHandle.getAnimeVideoCache([item]);
-    //   if (result.isEmpty) throw Exception('视频地址解析失败');
-    //   videoInfo.setValue(result.first..item = item);
-    // } catch (e) {
-    //   SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
-    //   rethrow;
-    // } finally {
-    //   loading.setValue(false);
-    // }
+    if (isLoading) return;
+    final resources = animeInfo.value.resources;
+    if (resources.isEmpty) return;
+    try {
+      loading.setValue(true);
+      // 根据资源与视频下标切换视频播放地址
+      final result = await parserHandle.getAnimeVideoCache([item]);
+      if (result.isEmpty) throw Exception('视频地址解析失败');
+      // 解析完成之后实现视频播放
+      // controller.playNet(result.first.playUrl);
+    } catch (e) {
+      SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
+      rethrow;
+    } finally {
+      loading.setValue(false);
+    }
   }
 
   @override

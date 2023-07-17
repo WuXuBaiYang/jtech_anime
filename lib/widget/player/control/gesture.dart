@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
 // 手势状态切换
@@ -82,6 +83,7 @@ class _CustomVideoPlayerGestureLayerState
 
   // 设置播放速度
   void _setPlaySpeed(bool start) {
+    if (start) HapticFeedback.vibrate();
     final value = start ? widget.speed : widget.initialSpeed;
     widget.controller.setPlaybackSpeed(value);
     widget.onSpeed?.call(start, value);

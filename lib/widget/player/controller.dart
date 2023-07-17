@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -84,8 +85,6 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
     if (!controller.value.isInitialized) {
       return setValue(PlayerState.none);
     }
-    // 当初始化完成之后，设置之前存储的音量
-    controller.setVolume(volume.value);
     // 设置状态并判断是否开启自动播放
     setValue(PlayerState.ready2Play);
     _controller = controller;
@@ -100,11 +99,14 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
     // 设置当前屏幕亮度
     final screen = ScreenBrightness();
     brightness.setValue(await screen.current);
+    // 设置当前音量
+    FlutterVolumeController.showSystemUI = false;
+    final value = await FlutterVolumeController.getVolume();
+    volume.setValue(value ?? 0.0);
     // 监听播放
     controller.addListener(() {
       final v = controller.value;
       // 监听回调参数
-      volume.setValue(v.volume);
       progress.setValue(v.position);
       playbackSpeed.setValue(v.playbackSpeed);
       // 设置状态
@@ -150,8 +152,8 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
 
   // 更新音量
   Future<void> setVolume(double value) async {
-    if (_controller == null) return;
-    await _controller!.setVolume(value);
+    FlutterVolumeController.setVolume(value.clamp(0, 1));
+    volume.setValue(value);
   }
 
   // 设置亮度

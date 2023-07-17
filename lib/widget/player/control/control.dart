@@ -13,8 +13,12 @@ class CustomVideoPlayerControlLayer extends StatelessWidget {
   // 触发锁屏事件
   final VoidCallback? onLocked;
 
+  // 弹出层背景色
+  final Color overlayColor;
+
   const CustomVideoPlayerControlLayer({
     super.key,
+    required this.overlayColor,
     required this.controller,
     this.onLocked,
   });
