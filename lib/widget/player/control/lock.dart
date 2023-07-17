@@ -44,6 +44,7 @@ class _CustomVideoPlayerLockLayerState extends State<CustomVideoPlayerLockLayer>
           onDoubleTap: () {},
           onTap: () => show(widget.showLock),
           child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             color: Colors.transparent,
             child: buildAnimeShow(
               widget.showLock,

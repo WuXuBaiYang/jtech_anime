@@ -59,7 +59,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   final showLock = ValueChangeNotifier<bool>(false);
 
   // 控制组件显示隐藏
-  final showControl = ValueChangeNotifier<bool>(false);
+  final showControl = ValueChangeNotifier<bool>(true);
 
   // 亮度组件显示隐藏
   final showBrightness = ValueChangeNotifier<bool>(false);
@@ -148,12 +148,15 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
     return buildAnimeShow(
       showControl,
       CustomVideoPlayerControlLayer(
+        title: widget.title,
+        actions: widget.actions,
         controller: widget.controller,
+        primaryColor: widget.primaryColor,
+        overlayColor: widget.overlayColor,
         onLocked: () {
           showControl.setValue(false);
           show(showLock);
         },
-        overlayColor: widget.overlayColor,
       ),
     );
   }

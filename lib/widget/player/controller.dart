@@ -33,6 +33,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 锁屏状态
   final locked = ValueChangeNotifier<bool>(false);
 
+  // 下一条视频
+  final nextVideo = ValueChangeNotifier<VideoPlayerController?>(null);
+
   CustomVideoPlayerController() : super(PlayerState.none);
 
   // 获取播放器控制器
@@ -55,11 +58,30 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 获取当前视频的尺寸
   Size get size => _controller?.value.size ?? Size.zero;
 
+  // 设置下一条视频为网络视频
+  void setNextVideoNet(String url,
+      {Map<String, String> headers = const {}, bool autoPlay = true}) {
+    final controller =
+        VideoPlayerController.networkUrl(Uri.parse(url), httpHeaders: headers);
+    nextVideo.setValue(controller);
+  }
+
+  // 设置下一条视频为本地文件视频
+  void setNextVideoFile(File file,
+      {Map<String, String> headers = const {}, bool autoPlay = true}) {
+    final controller = VideoPlayerController.file(file, httpHeaders: headers);
+    nextVideo.setValue(controller);
+  }
+
+  // 播放下一条视频
+  Future<void> playNextVideo({bool autoPlay = true}) async {
+    if (nextVideo.value == null) return;
+    return _play(nextVideo.value!, autoPlay: autoPlay);
+  }
+
   // 播放网络视频
   Future<void> playNet(String url,
       {Map<String, String> headers = const {}, bool autoPlay = true}) {
-    _controller?.value.volume;
-    _controller?.value.buffered;
     final controller =
         VideoPlayerController.networkUrl(Uri.parse(url), httpHeaders: headers);
     return _play(controller, autoPlay: autoPlay);
@@ -198,6 +220,12 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
 
   // 判断比例是否为满屏
   bool get isRatioFill => ratio.value == PlayerRatio.fill;
+
+  // 判断是否为本地视频
+  bool get isLocalFile => _controller?.dataSourceType == DataSourceType.file;
+
+  // 判断是否为网络视频
+  bool get isNetwork => _controller?.dataSourceType == DataSourceType.network;
 
   @override
   void dispose() {

@@ -47,14 +47,17 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       child: CustomVideoPlayer(
         primaryColor: kPrimaryColor,
         controller: logic.controller,
-        title: Text(logic.animeInfo.value.name),
-        // placeholder: const StatusBox(
-        //   status: StatusBoxStatus.loading,
-        //   title: Text('正在解析视频~'),
-        //   color: Colors.white54,
-        //   animSize: 35,
-        //   space: 14,
-        // ),
+        title: ValueListenableBuilder(
+          valueListenable: logic.controller,
+          builder: (_, s, __) => Text(logic.title),
+        ),
+        placeholder: const StatusBox(
+          status: StatusBoxStatus.loading,
+          title: Text('正在解析视频~'),
+          color: Colors.white54,
+          animSize: 35,
+          space: 14,
+        ),
         actions: [
           TextButton(
             child: const Text('选集'),
@@ -80,6 +83,9 @@ class _PlayerLogic extends BaseLogic {
   // 播放器控制器
   final controller = CustomVideoPlayerController();
 
+  // 当前播放的资源信息
+  final resourceInfo = ValueChangeNotifier<ResourceItemModel?>(null);
+
   @override
   void init() {
     super.init();
@@ -96,6 +102,9 @@ class _PlayerLogic extends BaseLogic {
 
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
+
+  // 获取番剧标题
+  String get title => '${animeInfo.value.name}  ·  ${resourceInfo.value?.name}';
 
   // 进入播放页面设置(横向布局且不显示状态栏)
   void entryPlayer() {
@@ -121,11 +130,12 @@ class _PlayerLogic extends BaseLogic {
     if (resources.isEmpty) return;
     try {
       loading.setValue(true);
+      resourceInfo.setValue(item);
       // 根据资源与视频下标切换视频播放地址
       final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
       // 解析完成之后实现视频播放
-      // controller.playNet(result.first.playUrl);
+      controller.playNet(result.first.playUrl);
     } catch (e) {
       SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
       rethrow;
