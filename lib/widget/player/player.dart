@@ -73,14 +73,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
-    final primaryColor = widget.primaryColor;
     return Theme(
-      data: ThemeData.dark(useMaterial3: true).copyWith(
-        cardTheme: const CardTheme(elevation: 0),
-        colorScheme: primaryColor != null
-            ? ColorScheme.dark(primary: primaryColor)
-            : null,
-      ),
+      data: _themeData,
       child: ValueListenableBuilder2<PlayerState, bool>(
         first: controller,
         second: controller.locked,
@@ -100,6 +94,14 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
       ),
     );
   }
+
+  // 样式配置
+  ThemeData get _themeData => ThemeData.dark(useMaterial3: true).copyWith(
+        cardTheme: const CardTheme(elevation: 0),
+        colorScheme: widget.primaryColor != null
+            ? ColorScheme.dark(primary: widget.primaryColor!)
+            : null,
+      );
 
   // 构建播放器层
   Widget _buildPlayerLayer(BuildContext context) {

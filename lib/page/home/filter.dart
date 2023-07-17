@@ -52,7 +52,7 @@ class AnimeFilterConfigFAB extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = Tool.getScreenWidth(context);
     return Theme(
-      data: _theme,
+      data: _themeData,
       child: ValueListenableBuilder<FilterStatus>(
         valueListenable: filterStatus,
         builder: (_, status, __) {
@@ -76,8 +76,8 @@ class AnimeFilterConfigFAB extends StatelessWidget {
     );
   }
 
-  // 样式管理
-  ThemeData get _theme => ThemeData(
+  // 样式配置
+  ThemeData get _themeData => ThemeData(
         useMaterial3: true,
         colorScheme: const ColorScheme.dark(),
         canvasColor: Colors.transparent,
