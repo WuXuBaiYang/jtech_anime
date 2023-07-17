@@ -31,6 +31,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
 
   CustomVideoPlayerController() : super(PlayerState.none);
 
+  // 获取播放器控制器
+  VideoPlayerController? get videoController => _controller;
+
   // 获取总时长
   Duration get total => _controller?.value.duration ?? Duration.zero;
 
@@ -178,6 +181,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 判断是否正在播放
   bool get isPlaying => value == PlayerState.playing;
 
+  // 判断是否准备播放
+  bool get isReady2Play => value == PlayerState.ready2Play;
+
   // 判断是否暂停
   bool get isPause => value == PlayerState.paused;
 
@@ -189,9 +195,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
 
   @override
   void dispose() {
-    super.dispose();
     // 销毁播放控制器
     stop();
+    super.dispose();
   }
 }
 

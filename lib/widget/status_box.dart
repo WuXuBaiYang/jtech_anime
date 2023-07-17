@@ -21,19 +21,23 @@ class StatusBox extends StatelessWidget {
   // 状态图大小
   final double animSize;
 
+  // 标题颜色
+  final Color? color;
+
   const StatusBox({
     super.key,
     required this.status,
     this.title,
     this.subTitle,
     this.animSize = 55,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final ratio = MediaQuery.of(context).devicePixelRatio;
     return DefaultTextStyle(
-      style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+      style: TextStyle(color: color ?? Colors.grey.shade400, fontSize: 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
