@@ -137,10 +137,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
           ),
         ),
       ),
-      onTap: () => router.pushNamed(
-        RoutePath.animeDetail,
-        arguments: {'animeDetail': item},
-      ),
+      onTap: () => logic.goDetail(item),
     );
   }
 }
@@ -220,5 +217,13 @@ class _SearchLogic extends BaseLogic {
       SnackTool.showMessage(context, message: '搜索记录删除失败，请重试~');
     }
     return result;
+  }
+
+  // 跳转到详情
+  Future<void>? goDetail(AnimeModel item) {
+    return router.pushNamed(
+      RoutePath.animeDetail,
+      arguments: {'animeDetail': item},
+    );
   }
 }

@@ -7,7 +7,6 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
@@ -85,16 +84,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
               ),
               child: AnimeTimeTable(
-                onTap: (item) => router.pushNamed(
-                  RoutePath.animeDetail,
-                  arguments: {
-                    'animeDetail': AnimeModel.from({
-                      'name': item.name,
-                      'url': item.url,
-                      'status': item.status,
-                    })
-                  },
-                ),
+                onTap: (item) => logic.goDetail(AnimeModel.from({
+                  'name': item.name,
+                  'url': item.url,
+                  'status': item.status,
+                })),
               ),
             ),
           ),
@@ -263,10 +257,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           ),
         ],
       ),
-      onTap: () => router.pushNamed(
-        RoutePath.animeDetail,
-        arguments: {'animeDetail': item},
-      ),
+      onTap: () => logic.goDetail(item),
     );
   }
 }
@@ -366,4 +357,12 @@ class _HomeLogic extends BaseLogic {
 
   // 生成过滤条件唯一key
   String _genFilterKey(FilterSelect item) => '${item.key}${item.value}';
+
+  // 跳转到详情页
+  Future<void>? goDetail(AnimeModel item) {
+    return router.pushNamed(
+      RoutePath.animeDetail,
+      arguments: {'animeDetail': item},
+    );
+  }
 }
