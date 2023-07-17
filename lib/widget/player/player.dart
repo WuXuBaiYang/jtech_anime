@@ -52,6 +52,15 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 控制组件显示隐藏
   final showControl = ValueChangeNotifier<bool>(false);
 
+  // 亮度组件显示隐藏
+  final showBrightness = ValueChangeNotifier<bool>(false);
+
+  // 音量组件显示隐藏
+  final showVolume = ValueChangeNotifier<bool>(false);
+
+  // 倍速组件显示隐藏
+  final showSpeed = ValueChangeNotifier<bool>(false);
+
   // 显示隐藏的动画间隔
   final animeDuration = const Duration(milliseconds: 150);
 
@@ -68,6 +77,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
             _buildPlayerLayer(context, controller),
             _buildStateLayer(controller),
             if (!locked) Positioned.fill(child: _buildGestureLayer()),
+            if (!locked) Positioned.fill(child: _buildHintLayer()),
             if (!locked) Positioned.fill(child: _buildControlLayer()),
             Positioned.fill(child: _buildLockLayer(controller, locked)),
           ],
@@ -124,7 +134,15 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     return CustomVideoPlayerGestureLayer(
       controller: widget.controller,
       onTap: () => _show(showControl),
+      onSpeed: (show, _) => _showProtrudeView(showSpeed, show),
+      onVolume: (show, _) => _showProtrudeView(showVolume, show),
+      onBrightness: (show, _) => _showProtrudeView(showBrightness, show),
     );
+  }
+
+  // 构建提示消息层
+  Widget _buildHintLayer() {
+    return SizedBox();
   }
 
   // 构建控制组件
@@ -184,5 +202,19 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   void _show(ValueChangeNotifier<bool> notifier) {
     notifier.setValue(true);
     Tool.debounce(() => notifier.setValue(false))();
+  }
+
+  // 展示突出组件（展示突出组件并隐藏其他组件）
+  void _showProtrudeView(ValueChangeNotifier<bool> point, bool show) {
+    // 展示重点组件
+    _show(point);
+    // 如果控制组件本身是隐藏的则不做处理
+    if (showControl.value) {
+      if (show) {
+        showControl.setValue(false);
+      } else {
+        _show(showControl);
+      }
+    }
   }
 }

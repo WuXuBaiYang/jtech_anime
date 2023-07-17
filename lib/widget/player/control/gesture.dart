@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
+// 手势状态切换
+typedef PlayerGestureCallback = void Function(bool start, double value);
+
 /*
 * 自定义视频播放器，手势交互层
 * @author wuxubaiyang
@@ -19,12 +22,24 @@ class CustomVideoPlayerGestureLayer extends StatefulWidget {
   // 初始化播放速度
   final double initialSpeed;
 
+  // 音量控制
+  final PlayerGestureCallback? onVolume;
+
+  // 亮度控制
+  final PlayerGestureCallback? onBrightness;
+
+  // 倍数控制
+  final PlayerGestureCallback? onSpeed;
+
   const CustomVideoPlayerGestureLayer({
     super.key,
     required this.controller,
-    this.initialSpeed = 1,
-    this.speed = 3,
     this.onTap,
+    this.onSpeed,
+    this.onVolume,
+    this.speed = 3,
+    this.onBrightness,
+    this.initialSpeed = 1,
   });
 
   @override
@@ -50,8 +65,9 @@ class _CustomVideoPlayerGestureLayerState
       onLongPressEnd: (_) => _setPlaySpeed(false),
       onLongPressStart: (_) => _setPlaySpeed(true),
       // 屏幕垂直滑动事件
-      onVerticalDragEnd: (_) => _lastSeekDy = null,
-      onVerticalDragUpdate: (d) => _seekControl(d, size.width / 2, size.height),
+      onVerticalDragEnd: (_) => _endSeekControl(),
+      onVerticalDragUpdate: (d) =>
+          _startSeekControl(d, size.width / 2, size.height),
     );
   }
 
@@ -65,14 +81,18 @@ class _CustomVideoPlayerGestureLayerState
   }
 
   // 设置播放速度
-  void _setPlaySpeed(bool start) => widget.controller
-      .setPlaybackSpeed(start ? widget.speed : widget.initialSpeed);
+  void _setPlaySpeed(bool start) {
+    final value = start ? widget.speed : widget.initialSpeed;
+    widget.controller.setPlaybackSpeed(value);
+    widget.onSpeed?.call(start, value);
+  }
 
   // 记录上次滑动位置
   double? _lastSeekDy;
 
   // 滑动控制音量/亮度
-  void _seekControl(DragUpdateDetails details, double halfWide, double height) {
+  void _startSeekControl(
+      DragUpdateDetails details, double halfWide, double height) {
     final p = details.globalPosition;
     if (_lastSeekDy == null) {
       _lastSeekDy = p.dy;
@@ -86,12 +106,21 @@ class _CustomVideoPlayerGestureLayerState
       var v = widget.controller.brightness.value;
       v = direction > 0 ? v + ratio : v - ratio;
       widget.controller.setBrightness(v);
+      widget.onBrightness?.call(true, v);
     } else {
       // 右侧屏幕垂直滑动调整音量
       var v = widget.controller.volume.value;
       v = direction > 0 ? v + ratio : v - ratio;
       widget.controller.setVolume(v);
+      widget.onVolume?.call(true, v);
     }
     _lastSeekDy = p.dy;
+  }
+
+  // 结束滑动控制
+  void _endSeekControl() {
+    _lastSeekDy = null;
+    widget.onVolume?.call(false, widget.controller.volume.value);
+    widget.onBrightness?.call(false, widget.controller.brightness.value);
   }
 }

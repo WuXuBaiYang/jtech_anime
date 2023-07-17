@@ -34,7 +34,7 @@ class StatusBox extends StatelessWidget {
     this.subTitle,
     this.space = 24,
     this.animSize = 55,
-    this.color = Colors.white54,
+    this.color = Colors.black38,
   });
 
   @override
