@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/tool/tool.dart';
 
 /*
 * 自定义视频播放器，分层基类
@@ -9,12 +10,16 @@ import 'package:jtech_anime/tool/tool.dart';
 */
 mixin class CustomVideoPlayerLayer {
   // 显示隐藏的动画间隔
-  final animeDuration = const Duration(milliseconds: 130);
+  final animeDuration = const Duration(milliseconds: 90);
 
   // 展示组件并在一定时间后隐藏
   void show(ValueChangeNotifier<bool> notifier) {
-    notifier.setValue(true);
-    Tool.debounce(() => notifier.setValue(false))();
+    if (notifier.value) {
+      notifier.setValue(false);
+    } else {
+      notifier.setValue(true);
+      _debounce(() => notifier.setValue(false));
+    }
   }
 
   // 构建可控显示隐藏组件
@@ -40,5 +45,17 @@ mixin class CustomVideoPlayerLayer {
     for (var e in hides) {
       e.setValue(false);
     }
+  }
+
+  // 防抖时间
+  Timer? _timer;
+
+  // 函数防抖
+  void _debounce(Function func,
+      [Duration delay = const Duration(milliseconds: 2000)]) {
+    if (_timer?.isActive ?? false) {
+      _timer?.cancel();
+    }
+    _timer = Timer(delay, () => func.call());
   }
 }

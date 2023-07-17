@@ -9,8 +9,7 @@ import 'layer.dart';
 * @author wuxubaiyang
 * @Time 2023/7/17 15:52
 */
-class CustomVideoPlayerHintLayer extends StatelessWidget
-    with CustomVideoPlayerLayer {
+class CustomVideoPlayerHintLayer extends StatefulWidget {
   // 控制器
   final CustomVideoPlayerController controller;
 
@@ -36,28 +35,35 @@ class CustomVideoPlayerHintLayer extends StatelessWidget
   });
 
   @override
+  State<CustomVideoPlayerHintLayer> createState() =>
+      _CustomVideoPlayerHintLayerState();
+}
+
+class _CustomVideoPlayerHintLayerState extends State<CustomVideoPlayerHintLayer>
+    with CustomVideoPlayerLayer {
+  @override
   Widget build(BuildContext context) {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
         buildAnimeShow(
-          showVolume,
+          widget.showVolume,
           _buildHintProgress(
-            controller.volume,
+            widget.controller.volume,
             FontAwesomeIcons.volumeLow,
           ),
         ),
         buildAnimeShow(
-          showBrightness,
+          widget.showBrightness,
           _buildHintProgress(
-            controller.brightness,
+            widget.controller.brightness,
             FontAwesomeIcons.sun,
           ),
         ),
         Align(
           alignment: Alignment.bottomRight,
           child: buildAnimeShow(
-            showSpeed,
+            widget.showSpeed,
             _buildHintSpeed(),
           ),
         ),
@@ -71,7 +77,7 @@ class CustomVideoPlayerHintLayer extends StatelessWidget
     return SizedBox.fromSize(
       size: const Size(180, 60),
       child: Card(
-        color: overlayColor,
+        color: widget.overlayColor,
         clipBehavior: Clip.hardEdge,
         margin: const EdgeInsets.all(14),
         child: ValueListenableBuilder<double>(
@@ -98,7 +104,7 @@ class CustomVideoPlayerHintLayer extends StatelessWidget
   // 构建倍速
   Widget _buildHintSpeed() {
     return Card(
-      color: overlayColor,
+      color: widget.overlayColor,
       margin: const EdgeInsets.all(14),
       child: const Padding(
         padding: EdgeInsets.all(14),

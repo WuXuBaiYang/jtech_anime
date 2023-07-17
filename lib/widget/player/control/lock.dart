@@ -10,44 +10,69 @@ import 'layer.dart';
 * @author wuxubaiyang
 * @Time 2023/7/17 16:16
 */
-class CustomVideoPlayerLockLayer extends StatelessWidget
-    with CustomVideoPlayerLayer {
+class CustomVideoPlayerLockLayer extends StatefulWidget {
   // 控制器
   final CustomVideoPlayerController controller;
 
   // 锁定屏幕展示
   final ValueChangeNotifier<bool> showLock;
 
-  CustomVideoPlayerLockLayer({
+  // 已解锁回调
+  final VoidCallback? onUnlock;
+
+  const CustomVideoPlayerLockLayer({
     super.key,
     required this.controller,
     required this.showLock,
+    this.onUnlock,
   });
 
   @override
+  State<CustomVideoPlayerLockLayer> createState() =>
+      _CustomVideoPlayerLockLayerState();
+}
+
+class _CustomVideoPlayerLockLayerState extends State<CustomVideoPlayerLockLayer>
+    with CustomVideoPlayerLayer {
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => show(showLock),
-      child: Container(
-        color: Colors.transparent,
-        child: buildAnimeShow(
-          showLock,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.lock),
-                onPressed: () => controller.setLocked(false),
+    return ValueListenableBuilder(
+      valueListenable: widget.controller.locked,
+      builder: (_, locked, __) {
+        if (!locked) return const SizedBox();
+        return GestureDetector(
+          onDoubleTap: () {},
+          onTap: () => show(widget.showLock),
+          child: Container(
+            color: Colors.transparent,
+            child: buildAnimeShow(
+              widget.showLock,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(FontAwesomeIcons.lock),
+                    onPressed: () {
+                      widget.controller.setLocked(false);
+                      widget.showLock.setValue(false);
+                      widget.onUnlock?.call();
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(FontAwesomeIcons.lock),
+                    onPressed: () {
+                      widget.controller.setLocked(false);
+                      widget.showLock.setValue(false);
+                      widget.onUnlock?.call();
+                    },
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.lock),
-                onPressed: () => controller.setLocked(false),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

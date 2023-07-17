@@ -72,25 +72,18 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
 
   @override
   Widget build(BuildContext context) {
-    final controller = widget.controller;
     return Theme(
       data: _themeData,
-      child: ValueListenableBuilder2<PlayerState, bool>(
-        first: controller,
-        second: controller.locked,
-        builder: (_, state, locked, __) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              _buildPlayerLayer(context),
-              _buildStateLayer(),
-              if (!locked) Positioned.fill(child: _buildGestureLayer()),
-              if (!locked) Positioned.fill(child: _buildHintLayer()),
-              if (!locked) Positioned.fill(child: _buildControlLayer()),
-              if (locked) Positioned.fill(child: _buildLockLayer()),
-            ],
-          );
-        },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          _buildPlayerLayer(context),
+          _buildStateLayer(),
+          Positioned.fill(child: _buildGestureLayer()),
+          Positioned.fill(child: _buildHintLayer()),
+          Positioned.fill(child: _buildControlLayer()),
+          Positioned.fill(child: _buildLockLayer()),
+        ],
       ),
     );
   }
@@ -105,14 +98,14 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
 
   // 构建播放器层
   Widget _buildPlayerLayer(BuildContext context) {
-    final videoController = widget.controller.videoController;
-    if (videoController == null) return const SizedBox();
-    return ValueListenableBuilder(
-      valueListenable: widget.controller.ratio,
-      builder: (_, videoRatio, __) {
-        final ratio = widget.controller.getAspectRatio(context);
+    return ValueListenableBuilder2<PlayerState, PlayerRatio>(
+      first: widget.controller,
+      second: widget.controller.ratio,
+      builder: (_, state, ratio, __) {
+        final videoController = widget.controller.videoController;
+        if (videoController == null) return const SizedBox();
         return AspectRatio(
-          aspectRatio: ratio,
+          aspectRatio: widget.controller.getAspectRatio(context),
           child: VideoPlayer(videoController),
         );
       },
@@ -156,7 +149,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
       showControl,
       CustomVideoPlayerControlLayer(
         controller: widget.controller,
-        onLocked: () => show(showLock),
+        onLocked: () {
+          showControl.setValue(false);
+          show(showLock);
+        },
         overlayColor: widget.overlayColor,
       ),
     );
@@ -165,6 +161,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   // 构建锁屏层
   Widget _buildLockLayer() {
     return CustomVideoPlayerLockLayer(
+      onUnlock: () => show(showControl),
       controller: widget.controller,
       showLock: showLock,
     );
