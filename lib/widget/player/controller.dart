@@ -29,6 +29,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 播放器视频比例
   final ratio = ValueChangeNotifier<PlayerRatio>(PlayerRatio.normal);
 
+  // 锁屏状态
+  final locked = ValueChangeNotifier<bool>(false);
+
   CustomVideoPlayerController() : super(PlayerState.none);
 
   // 获取播放器控制器
@@ -161,13 +164,14 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 设置播放进度
   Future<void> setPlaybackSpeed(double speed) async {
     if (_controller == null) return;
-    _controller!.setPlaybackSpeed(speed);
+    await _controller!.setPlaybackSpeed(speed);
   }
 
   // 设置视频比例
-  Future<void> setVideoRatio(PlayerRatio value) async {
-    ratio.setValue(value);
-  }
+  void setVideoRatio(PlayerRatio value) => ratio.setValue(value);
+
+  // 设置锁屏状态
+  void setLocked(bool value) => locked.setValue(value);
 
   // 判断是否正在加载
   bool get isLoading => value == PlayerState.loading;

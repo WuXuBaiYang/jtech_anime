@@ -40,23 +40,26 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   // 构建视频播放器
   Widget _buildVideoPlayer(BuildContext context) {
-    return CustomVideoPlayer(
-      controller: logic.controller,
-      title: Text(logic.animeInfo.value.name),
-      placeholder: const StatusBox(
-        status: StatusBoxStatus.loading,
-        title: Text('正在解析视频~'),
-        color: Colors.white38,
-        animSize: 45,
-      ),
-      actions: [
-        TextButton(
-          child: const Text('选集'),
-          onPressed: () {
-            /// 展示选集弹窗
-          },
+    return SizedBox.expand(
+      child: CustomVideoPlayer(
+        controller: logic.controller,
+        title: Text(logic.animeInfo.value.name),
+        placeholder: const StatusBox(
+          status: StatusBoxStatus.loading,
+          title: Text('正在解析视频~'),
+          color: Colors.white54,
+          animSize: 35,
+          space: 14,
         ),
-      ],
+        actions: [
+          TextButton(
+            child: const Text('选集'),
+            onPressed: () {
+              /// 展示选集弹窗
+            },
+          ),
+        ],
+      ),
     );
   }
 }

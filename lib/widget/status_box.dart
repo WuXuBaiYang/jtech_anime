@@ -24,20 +24,24 @@ class StatusBox extends StatelessWidget {
   // 标题颜色
   final Color? color;
 
+  // 标题与图标的间隔
+  final double? space;
+
   const StatusBox({
     super.key,
     required this.status,
     this.title,
     this.subTitle,
+    this.space = 24,
     this.animSize = 55,
-    this.color,
+    this.color = Colors.white54,
   });
 
   @override
   Widget build(BuildContext context) {
     final ratio = MediaQuery.of(context).devicePixelRatio;
     return DefaultTextStyle(
-      style: TextStyle(color: color ?? Colors.grey.shade400, fontSize: 14),
+      style: TextStyle(color: color, fontSize: 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -46,11 +50,11 @@ class StatusBox extends StatelessWidget {
             width: animSize * ratio,
           ),
           if (title != null) ...[
-            const SizedBox(height: 24),
+            SizedBox(height: space),
             title ?? const SizedBox(),
           ],
           if (subTitle != null) ...[
-            if (title == null) const SizedBox(height: 24),
+            if (title == null) SizedBox(height: space),
             if (title != null) const SizedBox(height: 6),
             DefaultTextStyle(
               style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
