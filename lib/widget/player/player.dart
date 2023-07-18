@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock/wakelock.dart';
 import 'control/control.dart';
 import 'control/gesture.dart';
 import 'control/hint.dart';
@@ -58,7 +59,7 @@ class CustomVideoPlayer extends StatefulWidget {
 * @Time 2023/7/12 13:55
 */
 class _CustomVideoPlayerState extends State<CustomVideoPlayer>
-    with CustomVideoPlayerLayer {
+    with CustomVideoPlayerLayer, WidgetsBindingObserver {
   // 锁屏状态显示隐藏
   final showLock = ValueChangeNotifier<bool>(false);
 
@@ -73,6 +74,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
 
   // 倍速组件显示隐藏
   final showSpeed = ValueChangeNotifier<bool>(false);
+
+  @override
+  void initState() {
+    super.initState();
+    // 监听生命周期
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +98,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
         ],
       ),
     );
+  }
+
+  // 监听生命周期
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 切换锁屏状态
+    Wakelock.toggle(enable: AppLifecycleState.resumed == state);
   }
 
   // 样式配置
@@ -188,5 +203,12 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // 取消监听生命周期
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 }
