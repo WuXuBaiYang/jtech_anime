@@ -93,7 +93,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
   }
 
   // 标题文本样式
-  final titleStyle = const TextStyle(fontSize: 14, color: Colors.black87);
+  final titleStyle = const TextStyle(fontSize: 16, color: Colors.black87);
 
   // 内容文本样式
   final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);

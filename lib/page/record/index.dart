@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
@@ -80,14 +81,14 @@ class _PlayRecordPageState
   }
 
   // 标题文本样式
-  final titleStyle = const TextStyle(fontSize: 14, color: Colors.black87);
+  final titleStyle = const TextStyle(fontSize: 16, color: Colors.black87);
 
   // 内容文本样式
   final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);
 
   // 构建播放记录项
   Widget _buildPlayRecordsItem(BuildContext context, PlayRecord item) {
-    final progress = Duration(seconds: item.progress);
+    final progress = Duration(milliseconds: item.progress);
     return InkWell(
       child: DefaultTextStyle(
         maxLines: 2,
@@ -96,7 +97,7 @@ class _PlayRecordPageState
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -108,15 +109,22 @@ class _PlayRecordPageState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 8),
                     Text(item.name, style: titleStyle),
                     const SizedBox(height: 18),
+                    Text.rich(TextSpan(text: '播放至：', children: [
+                      TextSpan(
+                        text: progress.format(DurationPattern.fullTime),
+                        style: TextStyle(color: kPrimaryColor),
+                      )
+                    ])),
+                    const SizedBox(height: 4),
                     Text(item.resName, style: TextStyle(color: kPrimaryColor)),
                     const SizedBox(height: 8),
-                    Text('播放至：${progress.format(DurationPattern.fullTime)}'),
                   ],
                 ),
               ),
+              Icon(FontAwesomeIcons.play, color: kPrimaryColor),
+              const SizedBox(width: 14),
             ],
           ),
         ),
