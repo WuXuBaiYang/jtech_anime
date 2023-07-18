@@ -11,6 +11,7 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
+import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
@@ -139,6 +140,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       second: logic.controller,
       builder: (_, playRecord, state, __) {
         if (!logic.controller.isPlaying) return const SizedBox();
+        logic.time2CloseRecord();
         final milliseconds = playRecord?.progress ?? 0;
         final progress = Duration(milliseconds: milliseconds);
         final fullTime = progress.format(DurationPattern.fullTime);
@@ -146,6 +148,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
           opacity: playRecord != null ? 1 : 0,
           duration: const Duration(milliseconds: 80),
           child: Card(
+            elevation: 0,
             color: Colors.black26,
             margin: const EdgeInsets.only(bottom: 110, left: 8),
             child: Padding(
@@ -198,6 +201,9 @@ class _PlayerLogic extends BaseLogic {
   // 节流
   final _throttle = Throttle();
 
+  // 防抖
+  final _debounce = Debounce();
+
   @override
   void init() {
     super.init();
@@ -216,10 +222,8 @@ class _PlayerLogic extends BaseLogic {
     resourceInfo = ValueChangeNotifier(arguments['item']);
     final play = arguments['playTheRecord'] ?? false;
     // 选择当前视频
-    changeVideo(context, resourceInfo.value).then((_) {
-      if (play) seekVideo2Record();
-      return _;
-    }).catchError((_) => router.pop());
+    changeVideo(context, resourceInfo.value, playTheRecord: play)
+        .catchError((_) => router.pop());
   }
 
   // 获取资源列表
@@ -241,6 +245,12 @@ class _PlayerLogic extends BaseLogic {
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
+
+  // 一定时间后关闭播放记录弹窗
+  void time2CloseRecord() => _debounce.call(
+        () => playRecord.setValue(null),
+        const Duration(milliseconds: 5000),
+      );
 
   // 更新视频进度
   void _updateVideoProgress() {
@@ -269,7 +279,8 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 选择资源/视频
-  Future<void> changeVideo(BuildContext context, ResourceItemModel item) async {
+  Future<void> changeVideo(BuildContext context, ResourceItemModel item,
+      {bool playTheRecord = false}) async {
     if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
@@ -279,13 +290,19 @@ class _PlayerLogic extends BaseLogic {
       nextResourceInfo.setValue(_findNextResourceItem(item));
       // 根据当前资源获取播放记录
       final record = await db.getPlayRecord(animeInfo.value.url);
-      playRecord.setValue(record);
+      if (!playTheRecord) playRecord.setValue(record);
       // 根据资源与视频下标切换视频播放地址
       await controller.stop();
       final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
       // 解析完成之后实现视频播放
       await controller.playNet(result.first.playUrl);
+      // 立即跳转到历史记录
+      if (playTheRecord && record != null) {
+        await controller.setProgress(Duration(
+          milliseconds: record.progress,
+        ));
+      }
     } catch (e) {
       SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
       rethrow;
