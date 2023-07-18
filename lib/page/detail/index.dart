@@ -157,29 +157,34 @@ class _AnimeDetailPageState
         child: StatusBox(status: StatusBoxStatus.empty),
       );
     }
-    return TabBarView(
-      children: List.generate(resources.length, (i) {
-        final items = resources[i];
-        return GridView.builder(
-          itemCount: items.length,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            mainAxisExtent: 40,
-            crossAxisCount: 4,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-          ),
-          itemBuilder: (_, i) {
-            final item = items[i];
-            return _buildAnimeResourcesItem(item);
-          },
+    return ValueListenableBuilder<PlayRecord?>(
+      valueListenable: logic.playRecord,
+      builder: (_, playRecord, __) {
+        return TabBarView(
+          children: List.generate(resources.length, (i) {
+            final items = resources[i];
+            return GridView.builder(
+              itemCount: items.length,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                mainAxisExtent: 40,
+                crossAxisCount: 4,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemBuilder: (_, i) {
+                final item = items[i];
+                return _buildAnimeResourcesItem(item, playRecord?.resUrl);
+              },
+            );
+          }),
         );
-      }),
+      },
     );
   }
 
   // 构建番剧资源子项
-  Widget _buildAnimeResourcesItem(ResourceItemModel item) {
+  Widget _buildAnimeResourcesItem(ResourceItemModel item, String? playResUrl) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       child: Container(
@@ -191,7 +196,7 @@ class _AnimeDetailPageState
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.black26),
         ),
-        child: logic.playRecord.value?.resUrl == item.url
+        child: playResUrl == item.url
             ? CustomScrollText.slow('上次看到 ${item.name}',
                 style: TextStyle(color: kPrimaryColor))
             : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -297,8 +302,10 @@ class _AnimeDetailLogic extends BaseLogic {
       'animeDetail': animeDetail.value,
       'playTheRecord': playTheRecord,
       'item': item,
-    })?.then((v) {
-      if (v is PlayRecord) playRecord.setValue;
+    })?.then((_) async {
+      final url = animeDetail.value.url;
+      final record = await db.getPlayRecord(url);
+      playRecord.setValue(record);
     });
   }
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
-import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 动漫详情信息
