@@ -99,7 +99,7 @@ class Tool {
                     status: StatusBoxStatus.loading,
                     animSize: 28,
                   ),
-                  SizedBox(height: 14),
+                  SizedBox(height: 8),
                   Text('加载中~', style: TextStyle(color: Colors.black26)),
                 ],
               ),
