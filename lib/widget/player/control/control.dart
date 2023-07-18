@@ -78,11 +78,11 @@ class _CustomVideoPlayerControlLayerState
     currentDateTime.setValue(DateTime.now());
   });
 
-  // 电量
-  final battery = Battery();
-
   // 连接状态
   final connectivity = Connectivity();
+
+  // 电量
+  final battery = Battery();
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +236,7 @@ class _CustomVideoPlayerControlLayerState
   // 构建进度条
   Widget _buildBottomSeekbar() {
     final controller = widget.controller;
-    const pattern = DurationPattern.fullTime;
+    String? pattern;
     return ValueListenableBuilder2<Duration, Duration?>(
       first: controller.progress,
       second: seekProgress,
@@ -245,10 +245,13 @@ class _CustomVideoPlayerControlLayerState
         final total = controller.total.inMilliseconds.toDouble();
         final value = seekProgress.inMilliseconds.toDouble();
         final initialized = controller.isInitialized;
+        pattern ??= total > 1000 * 60 * 60
+            ? DurationPattern.fullTime
+            : DurationPattern.minuteSecond;
         return Row(
           children: [
             const SizedBox(width: 14),
-            Text(seekProgress.format(pattern)),
+            Text(seekProgress.format(pattern!)),
             Expanded(
               child: Slider(
                 max: initialized ? total : 0,
@@ -265,7 +268,7 @@ class _CustomVideoPlayerControlLayerState
                 },
               ),
             ),
-            Text(controller.total.format(pattern)),
+            Text(controller.total.format(pattern!)),
             const SizedBox(width: 14),
           ],
         );

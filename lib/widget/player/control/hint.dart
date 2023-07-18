@@ -129,7 +129,7 @@ class _CustomVideoPlayerHintLayerState extends State<CustomVideoPlayerHintLayer>
       builder: (_, state, __) {
         if (controller.isPause) {
           return IconButton(
-            iconSize: 35,
+            iconSize: 55,
             onPressed: () => controller.resume(),
             icon: const Icon(FontAwesomeIcons.play),
           );
