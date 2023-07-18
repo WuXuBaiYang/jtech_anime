@@ -109,6 +109,9 @@ dependencies:
   # 连接状态
   connectivity_plus: ^4.0.1
 
+  # 锁屏控制
+  wakelock: ^0.6.2
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5

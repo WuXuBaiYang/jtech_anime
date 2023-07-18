@@ -5,6 +5,7 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock/wakelock.dart';
 
 /*
 * 播放器控制器
@@ -103,6 +104,8 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
 
   // 设置监听播放状态
   Future<void> _setInitVideo(VideoPlayerController controller) async {
+    // 启用锁屏
+    await Wakelock.enable();
     // 设置当前屏幕亮度
     final screen = ScreenBrightness();
     brightness.setValue(await screen.current);
@@ -141,6 +144,8 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
 
   // 停止播放
   Future<void> stop() async {
+    // 关闭锁屏
+    await Wakelock.disable();
     // 释放视频资源并清空
     await _controller?.dispose();
     setValue(PlayerState.none);
