@@ -9,6 +9,7 @@ import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
+import 'package:video_player/video_player.dart';
 
 /*
 * 自定义视频播放器，控制层
@@ -305,17 +306,11 @@ class _CustomVideoPlayerControlLayerState
   Widget _buildBottomBarNext() {
     final controller = widget.controller;
     return ValueListenableBuilder(
-      valueListenable: controller.nextVideo,
-      builder: (_, video, __) {
-        final hasNext = video != null;
+      valueListenable: controller,
+      builder: (_, state, __) {
         return IconButton(
           icon: const Icon(FontAwesomeIcons.forwardStep),
-          onPressed: hasNext
-              ? () {
-                  widget.onNext?.call();
-                  controller.playNextVideo();
-                }
-              : null,
+          onPressed: controller.isInitialized ? widget.onNext : null,
         );
       },
     );
@@ -330,9 +325,10 @@ class _CustomVideoPlayerControlLayerState
   // 构建视频比例切换
   Widget _buildBottomBarRatio() {
     final controller = widget.controller;
-    return ValueListenableBuilder<PlayerRatio>(
-      valueListenable: controller.ratio,
-      builder: (_, ratio, __) {
+    return ValueListenableBuilder2<PlayerRatio, dynamic>(
+      first: controller.ratio,
+      second: controller,
+      builder: (_, ratio, state, __) {
         return IconButton(
           icon: Icon(ratioIcons[ratio]),
           onPressed: controller.isInitialized

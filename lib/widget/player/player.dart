@@ -34,10 +34,14 @@ class CustomVideoPlayer extends StatefulWidget {
   // 主色调
   final Color? primaryColor;
 
+  // 播放下一个视频回调
+  final VoidCallback? onNext;
+
   const CustomVideoPlayer({
     super.key,
     required this.controller,
     this.title,
+    this.onNext,
     this.placeholder,
     this.primaryColor,
     this.actions = const [],
@@ -154,7 +158,12 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
         primaryColor: widget.primaryColor,
         overlayColor: widget.overlayColor,
         onPlay: () => show(showControl),
-        onNext: () => show(showControl),
+        onNext: widget.onNext != null
+            ? () {
+                widget.onNext?.call();
+                show(showControl);
+              }
+            : null,
         onRatio: () => show(showControl),
         onSeek: () => show(showControl,
             throttleDelay: const Duration(milliseconds: 2000)),

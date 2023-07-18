@@ -43,28 +43,42 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
   // 构建视频播放器
   Widget _buildVideoPlayer(BuildContext context) {
     return SizedBox.expand(
-      child: CustomVideoPlayer(
-        primaryColor: kPrimaryColor,
-        controller: logic.controller,
-        title: ValueListenableBuilder(
-          valueListenable: logic.controller,
-          builder: (_, s, __) => Text(logic.title),
-        ),
-        placeholder: const StatusBox(
-          status: StatusBoxStatus.loading,
-          title: Text('正在解析视频~'),
-          color: Colors.white54,
-          animSize: 35,
-          space: 14,
-        ),
-        actions: [
-          TextButton(
-            child: const Text('选集'),
-            onPressed: () {
-              /// 展示选集弹窗
-            },
-          ),
-        ],
+      child: ValueListenableBuilder<ResourceItemModel?>(
+        valueListenable: logic.nextResourceInfo,
+        builder: (_, nextResource, __) {
+          return CustomVideoPlayer(
+            primaryColor: kPrimaryColor,
+            controller: logic.controller,
+            title: ValueListenableBuilder<ResourceItemModel?>(
+              valueListenable: logic.resourceInfo,
+              builder: (_, item, __) {
+                final title = logic.animeInfo.value.name;
+                final subTitle = item != null ? '  ·  ${item.name}' : '';
+                return Text('$title$subTitle');
+              },
+            ),
+            onNext: nextResource != null
+                ? () {
+                    logic.changeVideo(context, nextResource);
+                  }
+                : null,
+            placeholder: const StatusBox(
+              status: StatusBoxStatus.loading,
+              title: Text('正在解析视频~'),
+              color: Colors.white54,
+              animSize: 35,
+              space: 14,
+            ),
+            actions: [
+              TextButton(
+                child: const Text('选集'),
+                onPressed: () {
+                  /// 展示选集弹窗
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -85,6 +99,9 @@ class _PlayerLogic extends BaseLogic {
   // 当前播放的资源信息
   final resourceInfo = ValueChangeNotifier<ResourceItemModel?>(null);
 
+  // 存储下一条视频信息
+  final nextResourceInfo = ValueChangeNotifier<ResourceItemModel?>(null);
+
   @override
   void init() {
     super.init();
@@ -101,9 +118,6 @@ class _PlayerLogic extends BaseLogic {
 
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
-
-  // 获取番剧标题
-  String get title => '${animeInfo.value.name}  ·  ${resourceInfo.value?.name}';
 
   // 进入播放页面设置(横向布局且不显示状态栏)
   void entryPlayer() {
@@ -130,6 +144,7 @@ class _PlayerLogic extends BaseLogic {
     try {
       loading.setValue(true);
       resourceInfo.setValue(item);
+      nextResourceInfo.setValue(_findNextResourceItem(item));
       // 根据资源与视频下标切换视频播放地址
       final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
@@ -141,6 +156,20 @@ class _PlayerLogic extends BaseLogic {
     } finally {
       loading.setValue(false);
     }
+  }
+
+  // 获取列表中的下一个资源
+  ResourceItemModel? _findNextResourceItem(ResourceItemModel item) {
+    for (final it in animeInfo.value.resources) {
+      final iter = it.iterator;
+      while (iter.moveNext()) {
+        if (item.url == iter.current.url) {
+          if (iter.moveNext()) return iter.current;
+          return null;
+        }
+      }
+    }
+    return null;
   }
 
   @override
