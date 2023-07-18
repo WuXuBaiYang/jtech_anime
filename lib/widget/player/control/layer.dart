@@ -1,7 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/tool/debounce.dart';
+import 'package:jtech_anime/tool/throttle.dart';
 
 /*
 * 自定义视频播放器，分层基类
@@ -12,16 +12,25 @@ mixin class CustomVideoPlayerLayer {
   // 显示隐藏的动画间隔
   final animeDuration = const Duration(milliseconds: 100);
 
+  // 防抖
+  final debounce = Debounce();
+
+  // 节流
+  final throttle = Throttle();
+
   // 切换显示状态
   void toggleShow(ValueChangeNotifier<bool> notifier) =>
       notifier.value ? notifier.setValue(false) : show(notifier);
 
   // 展示组件并在一定时间后隐藏
   void show(ValueChangeNotifier<bool> notifier,
-      {Duration throttleDelay = const Duration(milliseconds: 100)}) {
-    _throttle(() {
+      {Duration throttleDelay = Duration.zero}) {
+    throttle.call(() {
       notifier.setValue(true);
-      _debounce(() => notifier.setValue(false));
+      debounce.call(
+        () => notifier.setValue(false),
+        const Duration(milliseconds: 3000),
+      );
     }, throttleDelay);
   }
 
@@ -55,31 +64,5 @@ mixin class CustomVideoPlayerLayer {
       _reappearList?.forEach(this.show);
       _reappearList = null;
     }
-  }
-
-  // 防抖
-  Timer? _debounceTimer;
-
-  // 防抖
-  void _debounce(Function func,
-      [Duration delay = const Duration(milliseconds: 3000)]) {
-    if (_debounceTimer?.isActive ?? false) {
-      _debounceTimer?.cancel();
-    }
-    _debounceTimer = Timer(delay, () => func.call());
-  }
-
-  // 节流
-  Timer? _throttleTimer;
-
-  // 节流
-  void _throttle(Function func,
-      [Duration delay = const Duration(milliseconds: 2000)]) {
-    if (_throttleTimer != null) return;
-    _throttleTimer = Timer(delay, () {
-      _throttleTimer?.cancel();
-      _throttleTimer = null;
-    });
-    func.call();
   }
 }

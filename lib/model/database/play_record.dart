@@ -12,7 +12,7 @@ class PlayRecord {
   Id id = Isar.autoIncrement;
 
   // 番剧url
-  @Index(type: IndexType.hash, unique: true)
+  @Index(type: IndexType.hash, unique: true, replace: true)
   String url = '';
 
   // 数据源

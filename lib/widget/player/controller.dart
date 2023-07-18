@@ -55,6 +55,15 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 获取当前视频的尺寸
   Size get size => _controller?.value.size ?? Size.zero;
 
+  // 监听播放进度
+  void addProgressListener(VoidCallback listener) {
+    VideoPlayerController? c;
+    addListener(() {
+      c ??= _controller?..addListener(listener);
+      if (_controller == null) c = null;
+    });
+  }
+
   // 播放网络视频
   Future<void> playNet(String url,
       {Map<String, String> headers = const {}, bool autoPlay = true}) {
