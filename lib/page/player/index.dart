@@ -240,7 +240,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 更新视频进度
   void _updateVideoProgress() {
-    final source = parserHandle.currentSource.name;
+    final source = parserHandle.currentSource;
     final item = animeInfo.value;
     final resItem = resourceInfo.value;
     final progress = controller.progress.value.inMilliseconds;

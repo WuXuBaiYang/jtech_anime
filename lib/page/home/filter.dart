@@ -7,7 +7,6 @@ import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/status_box.dart';
 
 // 过滤条件选择回调
 typedef FilterSelectCallback = void Function(
@@ -216,7 +215,7 @@ class AnimeFilterConfigFAB extends StatelessWidget {
               ..value = sub.value
               ..parentName = item.name
               ..name = sub.name
-              ..source = parserHandle.currentSource.name;
+              ..source = parserHandle.currentSource;
             filterSelect(v, selectItem!, item.maxSelected);
           },
         );

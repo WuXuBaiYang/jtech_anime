@@ -1,6 +1,5 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/manage.dart';
-import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
@@ -55,12 +54,12 @@ class DBManage extends BaseManage {
 
   // 更新排序
   Future<bool> updateCollectOrder(String url,
-          {required AnimeSource source, required int to}) =>
+          {required String source, required int to}) =>
       isar.writeTxn<bool>(() async {
         // 查出全部收藏列表
         final items = await isar.collects
             .where()
-            .sourceEqualTo(source.name)
+            .sourceEqualTo(source)
             .sortByOrder()
             .findAll();
         // 对收藏列表重排序并更新收藏列表
@@ -78,12 +77,12 @@ class DBManage extends BaseManage {
       isar.collects.where().urlEqualTo(url).findFirst();
 
   // 获取收藏列表(分页)
-  Future<List<Collect>> getCollectList(AnimeSource source,
+  Future<List<Collect>> getCollectList(String source,
       {int pageIndex = 1, int pageSize = 25}) async {
     if (pageIndex < 1 || pageSize < 1) return [];
     return isar.collects
         .where()
-        .sourceEqualTo(source.name)
+        .sourceEqualTo(source)
         .sortByOrderDesc()
         .offset((--pageIndex) * pageSize)
         .limit(pageSize)
@@ -102,12 +101,12 @@ class DBManage extends BaseManage {
       isar.playRecords.where().urlEqualTo(url).findFirst();
 
   // 获取播放记录(分页)
-  Future<List<PlayRecord>> getPlayRecordList(AnimeSource source,
+  Future<List<PlayRecord>> getPlayRecordList(String source,
       {int pageIndex = 1, int pageSize = 25}) async {
     if (pageIndex < 1 || pageSize < 1) return [];
     return isar.playRecords
         .where()
-        .sourceEqualTo(source.name)
+        .sourceEqualTo(source)
         .sortByUpdateTimeDesc()
         .offset((--pageIndex) * pageSize)
         .limit(pageSize)
@@ -142,8 +141,8 @@ class DBManage extends BaseManage {
       });
 
   // 获取已选过滤条件
-  Future<List<FilterSelect>> getFilterSelectList(AnimeSource source) =>
-      isar.filterSelects.where().sourceEqualTo(source.name).findAll();
+  Future<List<FilterSelect>> getFilterSelectList(String source) =>
+      isar.filterSelects.where().sourceEqualTo(source).findAll();
 
   // 添加过滤条件
   Future<FilterSelect?> addFilterSelect(FilterSelect item,

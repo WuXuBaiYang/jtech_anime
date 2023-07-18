@@ -21,6 +21,31 @@ class ParserHandleManage extends BaseManage with ParserHandle {
 
   ParserHandleManage._internal();
 
+  // 解析器对照表(新增解析器请放到这里)
+  final _handlerMap = {
+    // 樱花动漫
+    'yhdmz': YHDMZParserHandle(),
+  };
+
+  // 解析源
+  String? _source;
+
+  // 获取当前解析源(默认使用樱花动漫)
+  String get currentSource => _source ??= 'yhdmz';
+
+  // 解析器
+  ParserHandle? _handler;
+
+  // 获取当前解析器
+  ParserHandle get _currentHandler => _handler ??= _handlerMap[_source]!;
+
+  // 切换解析源
+  void switchSource(String source) {
+    event.send(AnimeSourceEvent(source));
+    _source = source;
+    _handler = null;
+  }
+
   @override
   Future<AnimeModel> getAnimeDetail(String url) =>
       _currentHandler.getAnimeDetail(url);
@@ -56,53 +81,15 @@ class ParserHandleManage extends BaseManage with ParserHandle {
   @override
   Future<List<AnimeModel>> searchAnimeListNextPage(String keyword) =>
       _currentHandler.searchAnimeListNextPage(keyword);
-
-  // 解析源
-  AnimeSource? _source;
-
-  // 获取当前解析源
-  AnimeSource get currentSource => _source ??= AnimeSource.yhdmz;
-
-  // 解析器
-  ParserHandle? _handler;
-
-  // 获取当前解析器
-  ParserHandle get _currentHandler => _handler ??= currentSource.handle;
-
-  // 切换解析源
-  void switchSource(AnimeSource source) {
-    event.send(AnimeSourceEvent(source));
-    _handler = source.handle;
-    _source = source;
-  }
 }
 
 // 单例调用
 final parserHandle = ParserHandleManage();
 
-// 解析源枚举
-enum AnimeSource {
-  // 樱花动漫z
-  yhdmz,
-}
-
-// 解析源扩展
-extension AnimeSourceExtension on AnimeSource {
-  // 获取中文名
-  String get nameCN => {
-        AnimeSource.yhdmz: '樱花动漫z',
-      }[this]!;
-
-  // 获取解析源
-  ParserHandle get handle => {
-        AnimeSource.yhdmz: YHDMZParserHandle(),
-      }[this]!;
-}
-
 // 解析源事件
 class AnimeSourceEvent extends EventModel {
   // 解析源
-  final AnimeSource source;
+  final String source;
 
   AnimeSourceEvent(this.source);
 }

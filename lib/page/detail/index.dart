@@ -318,7 +318,7 @@ class _AnimeDetailLogic extends BaseLogic {
             ..url = result.url
             ..name = result.name
             ..cover = result.cover
-            ..source = parserHandle.currentSource.name
+            ..source = parserHandle.currentSource
             ..collected = false));
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
