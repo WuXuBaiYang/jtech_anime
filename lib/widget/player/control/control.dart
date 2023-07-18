@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:battery_plus/battery_plus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
-import 'layer.dart';
 
 /*
 * 自定义视频播放器，控制层
@@ -19,7 +19,16 @@ class CustomVideoPlayerControlLayer extends StatefulWidget {
   final CustomVideoPlayerController controller;
 
   // 锁定回调
-  final VoidCallback? onLocked;
+  final VoidCallback? onLock;
+
+  // 播放/暂停回调
+  final VoidCallback? onPlay;
+
+  // 播放下一集回调
+  final VoidCallback? onNext;
+
+  // 视频比例调整回调
+  final VoidCallback? onRatio;
 
   // 弹出层背景色
   final Color overlayColor;
@@ -39,7 +48,10 @@ class CustomVideoPlayerControlLayer extends StatefulWidget {
     required this.controller,
     this.actions = const [],
     this.primaryColor,
-    this.onLocked,
+    this.onRatio,
+    this.onLock,
+    this.onPlay,
+    this.onNext,
     this.title,
   });
 
@@ -49,7 +61,7 @@ class CustomVideoPlayerControlLayer extends StatefulWidget {
 }
 
 class _CustomVideoPlayerControlLayerState
-    extends State<CustomVideoPlayerControlLayer> with CustomVideoPlayerLayer {
+    extends State<CustomVideoPlayerControlLayer> {
   // 记录当前时间
   final currentDateTime = ValueChangeNotifier<DateTime>(DateTime.now());
 
@@ -60,6 +72,9 @@ class _CustomVideoPlayerControlLayerState
 
   // 电量
   final battery = Battery();
+
+  // 连接状态
+  final connectivity = Connectivity();
 
   @override
   Widget build(BuildContext context) {
@@ -114,27 +129,39 @@ class _CustomVideoPlayerControlLayerState
             child: widget.title ?? const SizedBox(),
           ),
           const Spacer(),
-          DefaultTextStyle(
-            style: TextStyle(color: widget.primaryColor),
-            child: _buildTopBarSource(),
-          ),
-          const SizedBox(width: 14),
           _buildTopBarTime(),
           const SizedBox(width: 8),
           _buildTopBarBattery(),
+          const SizedBox(width: 14),
+          _buildTopBarSource(),
           const SizedBox(width: 14),
         ],
       ),
     );
   }
 
-  // 构建资源状态(网络[wifi、手机卡]，本地)
+  // 构建资源状态(网络[wifi、手机]，本地)
   Widget _buildTopBarSource() {
+    // 如果是本地资源则直接返回
     if (widget.controller.isLocalFile) {
       return const Text('[已下载]');
     }
+    // 如果是网络资源则需要检查状态
     if (widget.controller.isNetwork) {
-      return const Text('[在线]');
+      return CacheFutureBuilder<ConnectivityResult>(
+        future: connectivity.checkConnectivity,
+        builder: (_, snap) {
+          if (snap.hasData) {
+            final iconData = {
+              ConnectivityResult.mobile: FontAwesomeIcons.signal,
+              ConnectivityResult.wifi: FontAwesomeIcons.wifi,
+              ConnectivityResult.ethernet: FontAwesomeIcons.ethernet,
+            }[snap.data!];
+            if (iconData != null) return Icon(iconData, size: 14);
+          }
+          return const SizedBox();
+        },
+      );
     }
     return const SizedBox();
   }
@@ -205,12 +232,15 @@ class _CustomVideoPlayerControlLayerState
         ].contains(state);
         return IconButton(
           icon: Icon(controller.isPause
-              ? FontAwesomeIcons.pause
-              : FontAwesomeIcons.play),
+              ? FontAwesomeIcons.play
+              : FontAwesomeIcons.pause),
           onPressed: canPressed
-              ? () => controller.isPlaying
-                  ? controller.pause()
-                  : controller.resume()
+              ? () {
+                  widget.onPlay?.call();
+                  controller.isPlaying
+                      ? controller.pause()
+                      : controller.resume();
+                }
               : null,
         );
       },
@@ -226,7 +256,12 @@ class _CustomVideoPlayerControlLayerState
         final hasNext = video != null;
         return IconButton(
           icon: const Icon(FontAwesomeIcons.forwardStep),
-          onPressed: hasNext ? () => controller.playNextVideo() : null,
+          onPressed: hasNext
+              ? () {
+                  widget.onNext?.call();
+                  controller.playNextVideo();
+                }
+              : null,
         );
       },
     );
@@ -234,8 +269,8 @@ class _CustomVideoPlayerControlLayerState
 
   // 视频比例图标集合
   final ratioIcons = {
-    PlayerRatio.normal: FontAwesomeIcons.leftRight,
-    PlayerRatio.fill: FontAwesomeIcons.maximize,
+    PlayerRatio.normal: Icons.aspect_ratio,
+    PlayerRatio.fill: Icons.fullscreen,
   };
 
   // 构建视频比例切换
@@ -248,6 +283,7 @@ class _CustomVideoPlayerControlLayerState
           icon: Icon(ratioIcons[ratio]),
           onPressed: controller.isInitialized
               ? () {
+                  widget.onRatio?.call();
                   var index = ratio.index + 1;
                   if (index >= PlayerRatio.values.length) index = 0;
                   final value = PlayerRatio.values[index];
@@ -266,12 +302,18 @@ class _CustomVideoPlayerControlLayerState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            onPressed: () {
-              widget.controller.setLocked(true);
-              widget.onLocked?.call();
+          ValueListenableBuilder(
+            valueListenable: widget.controller,
+            builder: (_, state, __) {
+              if (widget.controller.isPause) return const SizedBox();
+              return IconButton(
+                onPressed: () {
+                  widget.controller.setLocked(true);
+                  widget.onLock?.call();
+                },
+                icon: const Icon(FontAwesomeIcons.lockOpen),
+              );
             },
-            icon: const Icon(FontAwesomeIcons.lockOpen),
           ),
         ],
       ),

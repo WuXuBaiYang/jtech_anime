@@ -3,22 +3,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
-import 'layer.dart';
-
 /*
 * 自定义视频播放器，状态层
 * @author wuxubaiyang
 * @Time 2023/7/17 15:52
 */
-class CustomVideoPlayerStateLayer extends StatefulWidget
-    with CustomVideoPlayerLayer {
+class CustomVideoPlayerStateLayer extends StatefulWidget {
   // 控制器
   final CustomVideoPlayerController controller;
 
   // 占位组件
   final Widget? placeholder;
 
-  CustomVideoPlayerStateLayer({
+  const CustomVideoPlayerStateLayer({
     super.key,
     required this.controller,
     this.placeholder,
@@ -30,7 +27,7 @@ class CustomVideoPlayerStateLayer extends StatefulWidget
 }
 
 class _CustomVideoPlayerStateLayerState
-    extends State<CustomVideoPlayerStateLayer> with CustomVideoPlayerLayer {
+    extends State<CustomVideoPlayerStateLayer> {
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;

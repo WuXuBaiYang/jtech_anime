@@ -56,7 +56,7 @@ dependencies:
   logger: ^1.4.0
 
   # 权限管理
-  permission_handler: ^10.4.2
+  permission_handler: ^10.4.3
 
   # 网络请求框架
   dio: ^5.2.1+1
@@ -83,7 +83,7 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
 
   # 动画
-  lottie: ^2.4.0
+  lottie: ^2.5.0
 
   # 模糊
   blur: ^3.1.0
@@ -105,6 +105,9 @@ dependencies:
 
   # 电量显示
   battery_plus: ^4.0.1
+
+  # 连接状态
+  connectivity_plus: ^4.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

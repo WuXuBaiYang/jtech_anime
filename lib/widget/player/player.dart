@@ -59,7 +59,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   final showLock = ValueChangeNotifier<bool>(false);
 
   // 控制组件显示隐藏
-  final showControl = ValueChangeNotifier<bool>(true);
+  final showControl = ValueChangeNotifier<bool>(false);
 
   // 亮度组件显示隐藏
   final showBrightness = ValueChangeNotifier<bool>(false);
@@ -124,7 +124,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   Widget _buildGestureLayer() {
     return CustomVideoPlayerGestureLayer(
       controller: widget.controller,
-      onTap: () => show(showControl),
+      onTap: () => toggleShow(showControl),
       onSpeed: (v, _) => showProtrudeView(showSpeed, [showControl], v),
       onVolume: (v, _) => showProtrudeView(showVolume, [showControl], v),
       onBrightness: (v, _) =>
@@ -153,7 +153,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
         controller: widget.controller,
         primaryColor: widget.primaryColor,
         overlayColor: widget.overlayColor,
-        onLocked: () {
+        onPlay: () => show(showControl),
+        onNext: () => show(showControl),
+        onRatio: () => show(showControl),
+        onLock: () {
           showControl.setValue(false);
           show(showLock);
         },
@@ -163,10 +166,16 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
 
   // 构建锁屏层
   Widget _buildLockLayer() {
-    return CustomVideoPlayerLockLayer(
-      onUnlock: () => show(showControl),
-      controller: widget.controller,
-      showLock: showLock,
+    return buildAnimeShow(
+      showLock,
+      CustomVideoPlayerLockLayer(
+        controller: widget.controller,
+        onTap: () => toggleShow(showLock),
+        onUnlock: () {
+          showLock.setValue(false);
+          show(showControl);
+        },
+      ),
     );
   }
 }

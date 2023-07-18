@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
-import 'layer.dart';
-
 // 手势状态切换
 typedef PlayerGestureCallback = void Function(bool start, double value);
 
@@ -56,7 +54,7 @@ class CustomVideoPlayerGestureLayer extends StatefulWidget {
 * @Time 2023/7/17 12:42
 */
 class _CustomVideoPlayerGestureLayerState
-    extends State<CustomVideoPlayerGestureLayer> with CustomVideoPlayerLayer {
+    extends State<CustomVideoPlayerGestureLayer> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -85,6 +83,7 @@ class _CustomVideoPlayerGestureLayerState
 
   // 设置播放速度
   void _setPlaySpeed(bool start) {
+    if (!widget.controller.isPlaying) return;
     if (start) HapticFeedback.vibrate();
     final value = start ? widget.speed : widget.initialSpeed;
     widget.controller.setPlaybackSpeed(value);

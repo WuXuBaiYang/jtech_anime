@@ -25,7 +25,7 @@ class CustomVideoPlayerHintLayer extends StatefulWidget {
   // 倍速显示隐藏
   final ValueChangeNotifier<bool> showSpeed;
 
-  CustomVideoPlayerHintLayer({
+  const CustomVideoPlayerHintLayer({
     super.key,
     required this.controller,
     required this.overlayColor,

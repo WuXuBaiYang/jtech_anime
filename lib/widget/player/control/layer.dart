@@ -10,16 +10,16 @@ import 'package:jtech_anime/common/notifier.dart';
 */
 mixin class CustomVideoPlayerLayer {
   // 显示隐藏的动画间隔
-  final animeDuration = const Duration(milliseconds: 90);
+  final animeDuration = const Duration(milliseconds: 100);
+
+  // 切换显示状态
+  void toggleShow(ValueChangeNotifier<bool> notifier) =>
+      notifier.value ? notifier.setValue(false) : show(notifier);
 
   // 展示组件并在一定时间后隐藏
   void show(ValueChangeNotifier<bool> notifier) {
-    if (notifier.value) {
-      notifier.setValue(false);
-    } else {
-      notifier.setValue(true);
-      _debounce(() => notifier.setValue(false));
-    }
+    notifier.setValue(true);
+    _debounce(() => notifier.setValue(false));
   }
 
   // 构建可控显示隐藏组件
@@ -36,14 +36,21 @@ mixin class CustomVideoPlayerLayer {
     );
   }
 
+  // 记录需要复现的事件
+  List<ValueChangeNotifier<bool>>? _reappearList;
+
   // 展示突出组件（展示突出组件并隐藏其他组件）
   void showProtrudeView(ValueChangeNotifier<bool> notifier,
       List<ValueChangeNotifier<bool>> hides, bool show) {
     // 展示重点组件
     notifier.setValue(show);
-    // 遍历要隐藏的其他组件
-    for (var e in hides) {
-      e.setValue(false);
+    // 当隐藏重点组件的时候，则显示需要复现的组件
+    if (show && _reappearList == null) {
+      _reappearList =
+          hides.where((e) => e.value).map((e) => e..setValue(false)).toList();
+    } else if (!show && _reappearList != null) {
+      _reappearList?.forEach(this.show);
+      _reappearList = null;
     }
   }
 
@@ -52,7 +59,7 @@ mixin class CustomVideoPlayerLayer {
 
   // 函数防抖
   void _debounce(Function func,
-      [Duration delay = const Duration(milliseconds: 2000)]) {
+      [Duration delay = const Duration(milliseconds: 3000)]) {
     if (_timer?.isActive ?? false) {
       _timer?.cancel();
     }
