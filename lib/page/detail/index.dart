@@ -186,6 +186,7 @@ class _AnimeDetailPageState
         width: double.maxFinite,
         height: double.maxFinite,
         alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.black26),

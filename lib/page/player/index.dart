@@ -6,6 +6,7 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/player.dart';
@@ -29,14 +30,32 @@ class PlayerPage extends StatefulWidget {
 * @Time 2023/7/12 9:10
 */
 class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
+  // 页面key
+  final pageKey = GlobalKey<ScaffoldState>();
+
   @override
   _PlayerLogic initLogic() => _PlayerLogic();
 
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
+      key: pageKey,
       backgroundColor: Colors.black,
       body: _buildVideoPlayer(context),
+      endDrawerEnableOpenDragGesture: false,
+      endDrawer: ValueListenableBuilder<ResourceItemModel?>(
+        valueListenable: logic.resourceInfo,
+        builder: (_, item, __) {
+          return PlayerResourceDrawer(
+            currentItem: item,
+            resources: logic.resources,
+            onResourceSelect: (item) {
+              logic.changeVideo(context, item);
+              pageKey.currentState?.closeEndDrawer();
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -49,39 +68,50 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
           return CustomVideoPlayer(
             primaryColor: kPrimaryColor,
             controller: logic.controller,
-            title: ValueListenableBuilder<ResourceItemModel?>(
-              valueListenable: logic.resourceInfo,
-              builder: (_, item, __) {
-                final title = logic.animeInfo.value.name;
-                final subTitle = item != null ? '  ·  ${item.name}' : '';
-                return Text('$title$subTitle');
-              },
-            ),
+            title: _buildVideoPlayerTitle(),
             onNext: nextResource != null
                 ? () {
                     logic.changeVideo(context, nextResource);
                   }
                 : null,
-            placeholder: const StatusBox(
-              status: StatusBoxStatus.loading,
-              title: Text('正在解析视频~'),
-              color: Colors.white54,
-              animSize: 35,
-              space: 14,
-            ),
-            actions: [
-              TextButton(
-                child: const Text('选集'),
-                onPressed: () {
-                  /// 展示选集弹窗
-                },
-              ),
-            ],
+            placeholder: _buildVideoPlayerPlaceholder(),
+            actions: actions,
           );
         },
       ),
     );
   }
+
+  // 构建视频播放器标题
+  Widget _buildVideoPlayerTitle() {
+    return ValueListenableBuilder<ResourceItemModel?>(
+      valueListenable: logic.resourceInfo,
+      builder: (_, item, __) {
+        final title = logic.animeInfo.value.name;
+        final subTitle = item != null ? '  ·  ${item.name}' : '';
+        return Text('$title$subTitle');
+      },
+    );
+  }
+
+  // 构建视频播放器占位组件
+  Widget _buildVideoPlayerPlaceholder() {
+    return const StatusBox(
+      status: StatusBoxStatus.loading,
+      title: Text('正在解析视频~'),
+      color: Colors.white54,
+      animSize: 35,
+      space: 14,
+    );
+  }
+
+  // 视频播放器的动作按钮集合
+  List<Widget> get actions => [
+        TextButton(
+          child: const Text('选集'),
+          onPressed: () => pageKey.currentState?.openEndDrawer(),
+        ),
+      ];
 }
 
 /*
@@ -146,10 +176,11 @@ class _PlayerLogic extends BaseLogic {
       resourceInfo.setValue(item);
       nextResourceInfo.setValue(_findNextResourceItem(item));
       // 根据资源与视频下标切换视频播放地址
+      await controller.stop();
       final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
       // 解析完成之后实现视频播放
-      controller.playNet(result.first.playUrl);
+      await controller.playNet(result.first.playUrl);
     } catch (e) {
       SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
       rethrow;
