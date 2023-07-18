@@ -90,8 +90,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
         alignment: Alignment.center,
         children: [
           _buildPlayerLayer(context),
-          _buildStateLayer(),
           Positioned.fill(child: _buildGestureLayer()),
+          _buildStateLayer(),
           Positioned.fill(child: _buildHintLayer()),
           Positioned.fill(child: _buildControlLayer()),
           Positioned.fill(child: _buildLockLayer()),

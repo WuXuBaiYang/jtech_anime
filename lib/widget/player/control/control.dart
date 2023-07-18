@@ -9,7 +9,6 @@ import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
-import 'package:video_player/video_player.dart';
 
 /*
 * 自定义视频播放器，控制层
