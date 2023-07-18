@@ -307,6 +307,8 @@ class _PlayerLogic extends BaseLogic {
   void dispose() {
     // 退出播放器状态
     quitPlayer();
+    // 销毁控制器
+    controller.dispose();
     super.dispose();
   }
 }
