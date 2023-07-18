@@ -138,7 +138,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       first: logic.playRecord,
       second: logic.controller,
       builder: (_, playRecord, state, __) {
-        if (!logic.controller.isInitialized) return const SizedBox();
+        if (!logic.controller.isPlaying) return const SizedBox();
         final milliseconds = playRecord?.progress ?? 0;
         final progress = Duration(milliseconds: milliseconds);
         final fullTime = progress.format(DurationPattern.fullTime);
@@ -216,8 +216,10 @@ class _PlayerLogic extends BaseLogic {
     resourceInfo = ValueChangeNotifier(arguments['item']);
     final play = arguments['playTheRecord'] ?? false;
     // 选择当前视频
-    changeVideo(context, resourceInfo.value, playTheRecord: play)
-        .catchError((_) => router.pop());
+    changeVideo(context, resourceInfo.value).then((_) {
+      if (play) seekVideo2Record();
+      return _;
+    }).catchError((_) => router.pop());
   }
 
   // 获取资源列表
@@ -257,17 +259,17 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 跳转到视频的指定位置
-  void seekVideo2Record() {
-    if (playRecord.value == null) return;
+  Future<void> seekVideo2Record() async {
+    final record = playRecord.value;
+    if (record == null) return;
     playRecord.setValue(null);
-    final milliseconds = playRecord.value?.progress ?? 0;
-    final progress = Duration(milliseconds: milliseconds);
-    controller.setProgress(progress);
+    await controller.setProgress(Duration(
+      milliseconds: record.progress,
+    ));
   }
 
   // 选择资源/视频
-  Future<void> changeVideo(BuildContext context, ResourceItemModel item,
-      {bool playTheRecord = false}) async {
+  Future<void> changeVideo(BuildContext context, ResourceItemModel item) async {
     if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
@@ -277,15 +279,13 @@ class _PlayerLogic extends BaseLogic {
       nextResourceInfo.setValue(_findNextResourceItem(item));
       // 根据当前资源获取播放记录
       final record = await db.getPlayRecord(animeInfo.value.url);
-      if (!playTheRecord) playRecord.setValue(record);
+      playRecord.setValue(record);
       // 根据资源与视频下标切换视频播放地址
       await controller.stop();
       final result = await parserHandle.getAnimeVideoCache([item]);
       if (result.isEmpty) throw Exception('视频地址解析失败');
       // 解析完成之后实现视频播放
       await controller.playNet(result.first.playUrl);
-      // 如果需要直接播放记录，则跳转到记录的位置
-      if (playTheRecord) seekVideo2Record();
     } catch (e) {
       SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
       rethrow;

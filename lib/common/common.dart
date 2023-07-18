@@ -1,6 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
-
 /*
 * 静态资源/通用静态变量
 * @author wuxubaiyang
@@ -8,7 +5,7 @@ import 'package:flutter/widgets.dart';
 */
 class Common {
   // app名称
-  static const String appName = 'JTechAnime';
+  static const String appName = '看番咩?';
 
   // 动画-加载动
   static const String statusLoadingAsset = 'assets/anime/status_loading.json';
