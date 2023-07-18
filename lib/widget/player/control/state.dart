@@ -39,7 +39,11 @@ class _CustomVideoPlayerStateLayerState
             return widget.placeholder ?? const SizedBox();
           case PlayerState.paused: // 暂停
           case PlayerState.ready2Play: // 准备播放
-            return const Icon(FontAwesomeIcons.play, size: 45);
+            return IconButton(
+              iconSize: 45,
+              icon: const Icon(FontAwesomeIcons.play),
+              onPressed: () => widget.controller.resume(),
+            );
           case PlayerState.loading: // 正在加载视频
           case PlayerState.buffering: // 正在缓冲视频
             final text = {
