@@ -44,13 +44,13 @@ class _CustomVideoPlayerStateLayerState
           case PlayerState.buffering: // 正在缓冲视频
             final text = {
               PlayerState.loading: '正在加载视频~',
-              PlayerState.buffering: '正在缓冲视频~',
+              PlayerState.buffering: '',
             }[controller.value];
             return StatusBox(
               status: StatusBoxStatus.loading,
               title: Text(text ?? ''),
               color: Colors.white54,
-              animSize: 35,
+              animSize: 30,
               space: 14,
             );
           default: // 其他则不显示

@@ -156,6 +156,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
         onPlay: () => show(showControl),
         onNext: () => show(showControl),
         onRatio: () => show(showControl),
+        onSeek: () => show(showControl,
+            throttleDelay: const Duration(milliseconds: 2000)),
         onLock: () {
           showControl.setValue(false);
           show(showLock);

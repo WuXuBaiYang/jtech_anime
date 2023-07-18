@@ -17,9 +17,12 @@ mixin class CustomVideoPlayerLayer {
       notifier.value ? notifier.setValue(false) : show(notifier);
 
   // 展示组件并在一定时间后隐藏
-  void show(ValueChangeNotifier<bool> notifier) {
-    notifier.setValue(true);
-    _debounce(() => notifier.setValue(false));
+  void show(ValueChangeNotifier<bool> notifier,
+      {Duration throttleDelay = const Duration(milliseconds: 100)}) {
+    _throttle(() {
+      notifier.setValue(true);
+      _debounce(() => notifier.setValue(false));
+    }, throttleDelay);
   }
 
   // 构建可控显示隐藏组件
@@ -54,15 +57,29 @@ mixin class CustomVideoPlayerLayer {
     }
   }
 
-  // 防抖时间
-  Timer? _timer;
+  // 防抖
+  Timer? _debounceTimer;
 
-  // 函数防抖
+  // 防抖
   void _debounce(Function func,
       [Duration delay = const Duration(milliseconds: 3000)]) {
-    if (_timer?.isActive ?? false) {
-      _timer?.cancel();
+    if (_debounceTimer?.isActive ?? false) {
+      _debounceTimer?.cancel();
     }
-    _timer = Timer(delay, () => func.call());
+    _debounceTimer = Timer(delay, () => func.call());
+  }
+
+  // 节流
+  Timer? _throttleTimer;
+
+  // 节流
+  void _throttle(Function func,
+      [Duration delay = const Duration(milliseconds: 2000)]) {
+    if (_throttleTimer != null) return;
+    _throttleTimer = Timer(delay, () {
+      _throttleTimer?.cancel();
+      _throttleTimer = null;
+    });
+    func.call();
   }
 }

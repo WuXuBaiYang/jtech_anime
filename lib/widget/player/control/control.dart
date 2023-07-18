@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
 /*
@@ -30,6 +31,9 @@ class CustomVideoPlayerControlLayer extends StatefulWidget {
   // 视频比例调整回调
   final VoidCallback? onRatio;
 
+  // 视频跳动进度
+  final VoidCallback? onSeek;
+
   // 弹出层背景色
   final Color overlayColor;
 
@@ -52,6 +56,7 @@ class CustomVideoPlayerControlLayer extends StatefulWidget {
     this.onLock,
     this.onPlay,
     this.onNext,
+    this.onSeek,
     this.title,
   });
 
@@ -64,6 +69,9 @@ class _CustomVideoPlayerControlLayerState
     extends State<CustomVideoPlayerControlLayer> {
   // 记录当前时间
   final currentDateTime = ValueChangeNotifier<DateTime>(DateTime.now());
+
+  // 拖拽时进度
+  final seekProgress = ValueChangeNotifier<Duration?>(null);
 
   // 计时器
   late Timer timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -204,18 +212,64 @@ class _CustomVideoPlayerControlLayerState
       padding: padding,
       width: double.maxFinite,
       decoration: _getBarDecoration(false),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(width: 14),
-          _buildBottomBarPlay(),
-          _buildBottomBarNext(),
-          const Spacer(),
-          ...widget.actions,
-          const SizedBox(width: 8),
-          _buildBottomBarRatio(),
-          const SizedBox(width: 14),
+          _buildBottomSeekbar(),
+          Row(
+            children: [
+              const SizedBox(width: 14),
+              _buildBottomBarPlay(),
+              _buildBottomBarNext(),
+              const Spacer(),
+              ...widget.actions,
+              const SizedBox(width: 8),
+              _buildBottomBarRatio(),
+              const SizedBox(width: 14),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  // 构建进度条
+  Widget _buildBottomSeekbar() {
+    final controller = widget.controller;
+    const pattern = DurationPattern.fullTime;
+    return ValueListenableBuilder2<Duration, Duration?>(
+      first: controller.progress,
+      second: seekProgress,
+      builder: (_, progress, seekProgress, __) {
+        seekProgress ??= progress;
+        final total = controller.total.inMilliseconds.toDouble();
+        final value = seekProgress.inMilliseconds.toDouble();
+        final initialized = controller.isInitialized;
+        return Row(
+          children: [
+            const SizedBox(width: 14),
+            Text(seekProgress.format(pattern)),
+            Expanded(
+              child: Slider(
+                max: initialized ? total : 0,
+                value: initialized ? value : 0,
+                onChanged: (v) {
+                  final value = Duration(milliseconds: v.toInt());
+                  this.seekProgress.setValue(value);
+                  widget.onSeek?.call();
+                },
+                onChangeEnd: (v) async {
+                  final value = Duration(milliseconds: v.toInt());
+                  await controller.setProgress(value);
+                  this.seekProgress.setValue(null);
+                },
+              ),
+            ),
+            Text(controller.total.format(pattern)),
+            const SizedBox(width: 14),
+          ],
+        );
+      },
     );
   }
 
