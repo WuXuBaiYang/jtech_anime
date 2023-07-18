@@ -257,10 +257,10 @@ class _PlayerLogic extends BaseLogic {
   // 跳转到视频的指定位置
   void seekVideo2Record() {
     if (playRecord.value == null) return;
+    playRecord.setValue(null);
     final milliseconds = playRecord.value?.progress ?? 0;
     final progress = Duration(milliseconds: milliseconds);
     controller.setProgress(progress);
-    playRecord.setValue(null);
   }
 
   // 选择资源/视频
