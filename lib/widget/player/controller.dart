@@ -142,8 +142,8 @@ class CustomVideoPlayerController extends ValueChangeNotifier<PlayerState> {
   // 停止播放
   Future<void> stop() async {
     // 释放视频资源并清空
-    await _controller?.dispose();
     setValue(PlayerState.none);
+    _controller?.dispose();
     _controller = null;
     // 重置所有参数
     progress.setValue(Duration.zero);

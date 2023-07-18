@@ -275,9 +275,7 @@ class _HomeLogic extends BaseLogic {
   final showAppbar = ValueChangeNotifier<bool>(true);
 
   // 滚动控制器
-  final scrollController = ScrollController(
-    initialScrollOffset: expandedHeight - kToolbarHeight + 1,
-  );
+  final scrollController = ScrollController();
 
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
@@ -289,18 +287,24 @@ class _HomeLogic extends BaseLogic {
   void init() {
     super.init();
     // 获取过滤条件
-    db.getFilterSelectList(parserHandle.currentSource).then(
-          (v) => filterConfig.setValue(v.asMap().map<String, FilterSelect>(
-              (_, v) => MapEntry(_genFilterKey(v), v))),
-        );
+    db.getFilterSelectList(parserHandle.currentSource).then((v) {
+      final result = v.asMap().map<String, FilterSelect>((_, v) {
+        return MapEntry(_genFilterKey(v), v);
+      });
+      filterConfig.setValue(result);
+      scrollController.jumpTo(_scrollOffset + 1);
+    });
     // 监听容器滚动
     scrollController.addListener(() {
       // 判断是否需要展示标题栏
-      showAppbar.setValue(
-        scrollController.offset > expandedHeight - kToolbarHeight,
-      );
+      showAppbar.setValue(scrollController.offset > _scrollOffset);
     });
   }
+
+  // 获取滚动偏移量
+  double get _scrollOffset =>
+      expandedHeight -
+      (filterConfig.isEmpty ? kToolbarHeight : kToolbarHeight * 2);
 
   // 展开番剧时间表
   void expandedTimeTable() => scrollController.animateTo(0,

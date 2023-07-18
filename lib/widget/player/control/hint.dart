@@ -67,6 +67,7 @@ class _CustomVideoPlayerHintLayerState extends State<CustomVideoPlayerHintLayer>
             _buildHintSpeed(),
           ),
         ),
+        Center(child: _buildPlayButton()),
       ],
     );
   }
@@ -117,6 +118,24 @@ class _CustomVideoPlayerHintLayerState extends State<CustomVideoPlayerHintLayer>
           ],
         ),
       ),
+    );
+  }
+
+  // 构建播放按钮
+  Widget _buildPlayButton() {
+    final controller = widget.controller;
+    return ValueListenableBuilder(
+      valueListenable: controller,
+      builder: (_, state, __) {
+        if (controller.isPause) {
+          return IconButton(
+            iconSize: 35,
+            onPressed: () => controller.resume(),
+            icon: const Icon(FontAwesomeIcons.play),
+          );
+        }
+        return const SizedBox();
+      },
     );
   }
 }
