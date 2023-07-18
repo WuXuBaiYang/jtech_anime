@@ -214,9 +214,9 @@ class _PlayerLogic extends BaseLogic {
   void setupArguments(BuildContext context, Map arguments) {
     animeInfo = ValueChangeNotifier(arguments['animeDetail']);
     resourceInfo = ValueChangeNotifier(arguments['item']);
-    final playTheRecord = arguments['playTheRecord'] ?? false;
+    final play = arguments['playTheRecord'] ?? false;
     // 选择当前视频
-    changeVideo(context, resourceInfo.value, playTheRecord: playTheRecord)
+    changeVideo(context, resourceInfo.value, playTheRecord: play)
         .catchError((_) => router.pop());
   }
 

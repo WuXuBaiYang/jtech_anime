@@ -282,10 +282,13 @@ class _AnimeDetailLogic extends BaseLogic {
     final record = playRecord.value;
     if (record == null) return null;
     if (animeDetail.value.resources.isEmpty) return null;
-    return goPlay(ResourceItemModel(
-      name: record.resName,
-      url: record.resUrl,
-    ));
+    return goPlay(
+      ResourceItemModel(
+        name: record.resName,
+        url: record.resUrl,
+      ),
+      playTheRecord: true,
+    );
   }
 
   // 播放视频
