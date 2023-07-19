@@ -115,8 +115,8 @@ dependencies:
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
 
-  # android版本更新
-  ota_update: ^5.1.0
+  # 文件下载器
+  flutter_file_downloader: ^1.1.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
