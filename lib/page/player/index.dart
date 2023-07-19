@@ -66,7 +66,10 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   // 播放器页面样式
   ThemeData get _themeData => ThemeData.dark(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.dark(primary: kPrimaryColor),
+        colorScheme: ColorScheme.dark(
+          primary: kPrimaryColor,
+          secondary: kSecondaryColor,
+        ),
       );
 
   // 构建资源侧栏弹窗
