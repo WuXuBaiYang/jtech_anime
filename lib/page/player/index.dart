@@ -16,7 +16,6 @@ import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -122,7 +121,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       builder: (_, playRecord, __) {
         if (playRecord == null) return const SizedBox();
         logic.time2CloseRecord();
-        final milliseconds = playRecord.progress ?? 0;
+        final milliseconds = playRecord.progress;
         final progress = Duration(milliseconds: milliseconds);
         final fullTime = progress.format(DurationPattern.fullTime);
         return Card(
@@ -217,7 +216,7 @@ class _PlayerLogic extends BaseLogic {
       ),
       loadingWidget: const StatusBox(
         status: StatusBoxStatus.loading,
-        animSize: 25,
+        animSize: 30,
       ),
       screenManager: const ScreenManager(
         orientations: [
