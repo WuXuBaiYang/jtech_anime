@@ -289,16 +289,16 @@ class _AnimeDetailLogic extends BaseLogic {
         name: record.resName,
         url: record.resUrl,
       ),
-      record: record,
+      playTheRecord: true,
     );
   }
 
   // 播放视频
-  Future<void>? goPlay(ResourceItemModel item, {PlayRecord? record}) {
+  Future<void>? goPlay(ResourceItemModel item, {bool playTheRecord = false}) {
     if (animeDetail.value.resources.isEmpty) return null;
     return router.pushNamed(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
-      'playRecord': record,
+      'playTheRecord': playTheRecord,
       'item': item,
     })?.then((_) async {
       final url = animeDetail.value.url;

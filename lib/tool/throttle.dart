@@ -10,12 +10,12 @@ class Throttle {
   static final _throttleMap = {};
 
   // 节流
-  static void c(Function func,
-      {String? key, Duration delay = const Duration(seconds: 2)}) {
+  static void c(void Function() func,
+      {String? key, Duration delay = const Duration(milliseconds: 2000)}) {
     key ??= '${func.hashCode}';
     Timer? timer = _throttleMap[key];
     if (timer != null) return;
-    timer = Timer(delay, () {
+    _throttleMap[key] = Timer(delay, () {
       _throttleMap.remove(key);
       timer?.cancel();
     });

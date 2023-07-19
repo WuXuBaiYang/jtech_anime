@@ -10,14 +10,14 @@ class Debounce {
   static final _debounceMap = {};
 
   // 防抖
-  static void c(Function func,
-      {String? key, Duration delay = const Duration(seconds: 2)}) {
+  static void c(void Function() func,
+      {String? key, Duration delay = const Duration(milliseconds: 2000)}) {
     key ??= '${func.hashCode}';
     Timer? timer = _debounceMap[key];
     if (timer?.isActive ?? false) {
       _debounceMap.remove(key);
       timer?.cancel();
     }
-    _debounceMap[key] = Timer(delay, () => func.call());
+    _debounceMap[key] = Timer(delay, func);
   }
 }

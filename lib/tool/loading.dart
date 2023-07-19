@@ -45,6 +45,7 @@ class Loading {
         child: Padding(
           padding: EdgeInsets.all(14),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               StatusBox(
                 status: StatusBoxStatus.loading,
