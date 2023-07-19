@@ -138,10 +138,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () {
-            SnackTool.showMessage(context, message: '还在施工中~');
-            // router.pushNamed(RoutePath.download);
-          },
+          onPressed: () => router.pushNamed(RoutePath.download),
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.handPointDown),

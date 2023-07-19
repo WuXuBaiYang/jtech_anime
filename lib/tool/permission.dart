@@ -168,7 +168,7 @@ class PermissionTool {
           PermissionRequest.storage(
             requestMessage: requestMessage,
             requestFail: requestFail,
-          )
+          ),
         ],
         onCheckFail: onCheckFail,
       );
@@ -484,7 +484,7 @@ class PermissionRequest {
   const PermissionRequest.androidManageExternalStorage({
     String? requestMessage,
     String? requestFail,
-  })  : _permission = Permission.bluetooth,
+  })  : _permission = Permission.manageExternalStorage,
         requestMessage = requestMessage ?? '请求外部存储权限',
         requestFail = requestFail ?? '外部存储权限请求失败';
 
