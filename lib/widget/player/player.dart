@@ -107,6 +107,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 根据生命周期切换锁屏状态
     Wakelock.toggle(enable: state == AppLifecycleState.resumed);
+    // 当app退出到桌面的时候暂停视频播放
+    if (state == AppLifecycleState.paused) {
+      widget.controller.pause();
+    }
   }
 
   // 样式配置
