@@ -50,17 +50,17 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: NestedScrollView(
-        controller: logic.scrollController,
-        headerSliverBuilder: (_, __) {
-          return [_buildAppBar(context)];
-        },
-        body: _buildAnimeList(context),
-      ),
-      floatingActionButton: AnimeFilterConfigFAB(
+      body: AnimeFilterConfigMenu(
         complete: () => logic.loadAnimeList(context, false),
         filterConfig: logic.filterConfig,
         filterSelect: logic.filterSelect,
+        body: NestedScrollView(
+          controller: logic.scrollController,
+          headerSliverBuilder: (_, __) {
+            return [_buildAppBar(context)];
+          },
+          body: _buildAnimeList(context),
+        ),
       ),
     );
   }

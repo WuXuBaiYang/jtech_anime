@@ -17,7 +17,7 @@ typedef FilterSelectCallback = void Function(
 * @author wuxubaiyang
 * @Time 2023/7/7 15:27
 */
-class AnimeFilterConfigFAB extends StatelessWidget {
+class AnimeFilterConfigMenu extends StatelessWidget {
   // 过滤条件配置
   final MapValueChangeNotifier<String, FilterSelect> filterConfig;
 
@@ -26,6 +26,9 @@ class AnimeFilterConfigFAB extends StatelessWidget {
 
   // 过滤配置条件回调
   final VoidCallback complete;
+
+  // 内容体
+  final Widget body;
 
   // fab状态管理
   final filterStatus = ValueChangeNotifier<FilterStatus>(FilterStatus.fold);
@@ -40,38 +43,46 @@ class AnimeFilterConfigFAB extends StatelessWidget {
   // 动画时长
   final duration = const Duration(milliseconds: 120);
 
-  AnimeFilterConfigFAB({
+  AnimeFilterConfigMenu({
     super.key,
     required this.filterConfig,
     required this.filterSelect,
     required this.complete,
+    required this.body,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = Tool.getScreenWidth(context);
-    return Theme(
-      data: _themeData,
-      child: ValueListenableBuilder<FilterStatus>(
-        valueListenable: filterStatus,
-        builder: (_, status, __) {
-          final folded = status == FilterStatus.fold;
-          final expanded = status == FilterStatus.expanded;
-          return AnimatedContainer(
-            duration: duration,
-            curve: Curves.fastOutSlowIn,
-            height: folded ? 55.0 : 350.0,
-            decoration: _createDecoration(folded),
-            width: folded ? 55.0 : screenWidth - 14.0 * 2,
-            onEnd: () {
-              if (!folded) filterStatus.setValue(FilterStatus.expanded);
-            },
-            child: !folded
-                ? (expanded ? _buildFilterConfig() : const SizedBox())
-                : _buildFAButton(),
-          );
-        },
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(child: body),
+        Positioned.fill(child: _buildBackground()),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: _buildFAB(context),
+        ),
+      ],
+    );
+  }
+
+  // 构建背景
+  Widget _buildBackground() {
+    return ValueListenableBuilder<FilterStatus>(
+      valueListenable: filterStatus,
+      builder: (_, status, __) {
+        final folded = status == FilterStatus.fold;
+        return AnimatedOpacity(
+          duration: duration,
+          opacity: folded ? 0 : 1,
+          child: folded
+              ? const SizedBox()
+              : GestureDetector(
+                  child: Container(color: Colors.black12),
+                  onTapDown: (_) => filterStatus.setValue(FilterStatus.fold),
+                ),
+        );
+      },
     );
   }
 
@@ -103,10 +114,39 @@ class AnimeFilterConfigFAB extends StatelessWidget {
             offset: Offset.fromDirection(90, 1),
             color: Colors.black26,
             spreadRadius: 1,
-            blurRadius: 4,
+            blurRadius: 1,
           ),
         ],
       );
+
+  // 构建fab
+  Widget _buildFAB(BuildContext context) {
+    final screenWidth = Tool.getScreenWidth(context);
+    return Theme(
+      data: _themeData,
+      child: ValueListenableBuilder<FilterStatus>(
+        valueListenable: filterStatus,
+        builder: (_, status, __) {
+          final folded = status == FilterStatus.fold;
+          final expanded = status == FilterStatus.expanded;
+          return AnimatedContainer(
+            duration: duration,
+            curve: Curves.fastOutSlowIn,
+            height: folded ? 55.0 : 350.0,
+            margin: const EdgeInsets.all(14),
+            decoration: _createDecoration(folded),
+            width: folded ? 55.0 : screenWidth - 14.0 * 2,
+            onEnd: () {
+              if (!folded) filterStatus.setValue(FilterStatus.expanded);
+            },
+            child: !folded
+                ? (expanded ? _buildFilterConfig() : const SizedBox())
+                : _buildFAButton(),
+          );
+        },
+      ),
+    );
+  }
 
   // 构建按钮
   Widget _buildFAButton() {
