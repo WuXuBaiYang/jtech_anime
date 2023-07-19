@@ -80,6 +80,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
     super.initState();
     // 监听生命周期
     WidgetsBinding.instance.addObserver(this);
+    // 常量屏幕
+    Wakelock.enable();
   }
 
   @override
@@ -103,8 +105,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   // 监听生命周期
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // 切换锁屏状态
-    Wakelock.toggle(enable: AppLifecycleState.resumed == state);
+    // 根据生命周期切换锁屏状态
+    Wakelock.toggle(enable: state == AppLifecycleState.resumed);
   }
 
   // 样式配置
@@ -209,6 +211,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer>
   void dispose() {
     // 取消监听生命周期
     WidgetsBinding.instance.removeObserver(this);
+    // 取消屏幕常亮
+    Wakelock.disable();
     super.dispose();
   }
 }
