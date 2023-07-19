@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_meedu_videoplayer/init_meedu_player.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.dart';
 import 'package:jtech_anime/common/route.dart';
@@ -17,6 +18,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 初始化各种manage
+  await initMeeduPlayer(
+    androidUseMediaKit: true,
+  ); // 视频播放器
   await router.init(); // 路由服务
   await notice.init(); // 通知服务
   await cache.init(); // 缓存服务

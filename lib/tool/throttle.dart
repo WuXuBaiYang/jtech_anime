@@ -6,16 +6,18 @@ import 'dart:async';
 * @Time 2023/7/18 13:29
 */
 class Throttle {
-  // 节流
-  Timer? _throttleTimer;
+  // 节流方法表
+  static final _throttleMap = {};
 
   // 节流
-  void call(Function func,
-      [Duration delay = const Duration(milliseconds: 2000)]) {
-    if (_throttleTimer != null) return;
-    _throttleTimer = Timer(delay, () {
-      _throttleTimer?.cancel();
-      _throttleTimer = null;
+  static void c(Function func,
+      {String? key, Duration delay = const Duration(seconds: 2)}) {
+    key ??= '${func.hashCode}';
+    Timer? timer = _throttleMap[key];
+    if (timer != null) return;
+    timer = Timer(delay, () {
+      _throttleMap.remove(key);
+      timer?.cancel();
     });
     func.call();
   }

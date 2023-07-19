@@ -12,8 +12,8 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/info.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
@@ -257,10 +257,8 @@ class _AnimeDetailLogic extends BaseLogic {
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 初始化加载番剧详情
-      Tool.showLoading(
-        context,
-        loadFuture: loadAnimeDetail(context),
-      ).whenComplete(() {
+      Loading.show(context, loadFuture: loadAnimeDetail(context))
+          .whenComplete(() {
         // 加载完番剧详情后播放记录
         if (play) playTheRecord();
       });
@@ -286,21 +284,21 @@ class _AnimeDetailLogic extends BaseLogic {
   Future<void>? playTheRecord() {
     final record = playRecord.value;
     if (record == null) return null;
-    if (animeDetail.value.resources.isEmpty) return null;
     return goPlay(
       ResourceItemModel(
         name: record.resName,
         url: record.resUrl,
       ),
-      playTheRecord: true,
+      record: record,
     );
   }
 
   // 播放视频
-  Future<void>? goPlay(ResourceItemModel item, {bool playTheRecord = false}) {
+  Future<void>? goPlay(ResourceItemModel item, {PlayRecord? record}) {
+    if (animeDetail.value.resources.isEmpty) return null;
     return router.pushNamed(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
-      'playTheRecord': playTheRecord,
+      'playRecord': record,
       'item': item,
     })?.then((_) async {
       final url = animeDetail.value.url;

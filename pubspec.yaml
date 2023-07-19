@@ -55,11 +55,8 @@ dependencies:
   # 日志
   logger: ^1.4.0
 
-  # 权限管理
-  permission_handler: ^10.4.3
-
   # 网络请求框架
-  dio: ^5.2.1+1
+  dio: ^5.3.0
 
   # 图片框架
   extended_image: ^8.0.2
@@ -76,11 +73,11 @@ dependencies:
   # 数据库框架
   isar: ^3.1.0+1
 
-  # 包信息
-  package_info_plus: any
-
   # 数据库框架核心
   isar_flutter_libs: ^3.1.0+1
+
+  # 包信息
+  package_info_plus: any
 
   # 动画
   lottie: ^2.5.0
@@ -94,29 +91,20 @@ dependencies:
   # 自定义刷新组件
   custom_refresh_indicator: ^2.2.1
 
-  # 视频播放器
-  video_player: ^2.7.0
-
-  # 屏幕亮度调节
-  screen_brightness: ^0.2.2
-
-  # 音量调节
-  flutter_volume_controller: ^1.2.7
-
-  # 电量显示
-  battery_plus: ^4.0.1
-
-  # 连接状态
-  connectivity_plus: ^4.0.1
-
-  # 锁屏控制
-  wakelock: ^0.6.2
-
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
 
+  # ffmpeg
+  ffmpeg_kit_flutter: ^5.1.0
+
   # 文件下载器
   flutter_file_downloader: ^1.1.2
+
+  # 视频播放器
+  flutter_meedu_videoplayer: ^4.2.15
+  media_kit_libs_android_video: ^1.1.1
+  media_kit_libs_macos_video: ^1.0.5
+  media_kit_libs_windows_video: ^1.0.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
