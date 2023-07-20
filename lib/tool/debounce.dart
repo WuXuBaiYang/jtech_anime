@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/animation.dart';
 
 /*
@@ -9,23 +8,22 @@ import 'package:flutter/animation.dart';
 */
 class Debounce {
   // 防抖方法表
-  static final _debounceMap = {};
+  static final _debounce = {};
 
   // 防抖
-  static void c(void Function() func,
-      {String? key, Duration delay = const Duration(milliseconds: 2000)}) {
-    key ??= '${func.hashCode}';
-    Timer? timer = _debounceMap[key];
+  static void c(Function() func, String key,
+      {Duration delay = const Duration(milliseconds: 2000)}) {
+    Timer? timer = _debounce[key];
     if (timer?.isActive ?? false) {
-      _debounceMap.remove(key);
+      _debounce.remove(key);
       timer?.cancel();
     }
-    _debounceMap[key] = Timer(delay, func);
+    _debounce[key] = Timer(delay, func);
   }
 
   // 防抖方法
-  static VoidCallback? f(void Function() func,
-      {String? key, Duration delay = const Duration(milliseconds: 2000)}) {
-    return () => c(func, key: key, delay: delay);
+  static VoidCallback? click(Function() func, String key,
+      {Duration delay = const Duration(milliseconds: 2000)}) {
+    return () => c(func, key, delay: delay);
   }
 }

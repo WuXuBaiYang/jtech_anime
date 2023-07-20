@@ -151,9 +151,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
           builder: (_, resource, __) {
             if (resource == null) return const SizedBox();
             return TextButton(
-              onPressed: Throttle.f(
+              onPressed: Throttle.click(
                 () => logic.changeVideo(context, resource),
-                key: 'playNextResource',
+                'playNextResource',
               ),
               child: const Text('下一集'),
             );
@@ -255,7 +255,7 @@ class _PlayerLogic extends BaseLogic {
       // 更新当前播放进度
       Throttle.c(
         () => _updateVideoProgress(e),
-        key: 'updateVideoProgress',
+        'updateVideoProgress',
       );
     });
   }
@@ -321,6 +321,7 @@ class _PlayerLogic extends BaseLogic {
   // 一定时间后关闭播放记录弹窗
   void time2CloseRecord() => Debounce.c(
         () => playRecord.setValue(null),
+        'time2CloseRecord',
         delay: const Duration(milliseconds: 5000),
       );
 
