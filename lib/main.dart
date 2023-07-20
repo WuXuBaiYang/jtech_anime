@@ -8,6 +8,7 @@ import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
+import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/notification/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
@@ -26,6 +27,7 @@ void main() async {
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务
   await db.init(); // 数据库
+  await download.init(); // 下载管理
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
     await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
