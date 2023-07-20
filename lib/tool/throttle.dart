@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 /*
 * 节流
@@ -20,5 +21,11 @@ class Throttle {
       timer?.cancel();
     });
     func.call();
+  }
+
+  // 节流方法
+  static VoidCallback? f(void Function() func,
+      {String? key, Duration delay = const Duration(milliseconds: 2000)}) {
+    return () => c(func, key: key, delay: delay);
   }
 }

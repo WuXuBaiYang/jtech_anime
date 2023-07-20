@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/animation.dart';
+
 /*
 * 防抖
 * @author wuxubaiyang
@@ -19,5 +21,11 @@ class Debounce {
       timer?.cancel();
     }
     _debounceMap[key] = Timer(delay, func);
+  }
+
+  // 防抖方法
+  static VoidCallback? f(void Function() func,
+      {String? key, Duration delay = const Duration(milliseconds: 2000)}) {
+    return () => c(func, key: key, delay: delay);
   }
 }

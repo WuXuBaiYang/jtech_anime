@@ -35,12 +35,35 @@ class PlayerPage extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/7/12 9:10
 */
-class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
+class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
+    with WidgetsBindingObserver {
   // 页面key
   final pageKey = GlobalKey<ScaffoldState>();
 
   @override
   _PlayerLogic initLogic() => _PlayerLogic();
+
+  @override
+  void initState() {
+    super.initState();
+    // 监听生命周期
+    WidgetsBinding.instance.addObserver(this);
+    // 初始化监听
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 监听播放进度
+      Duration? total;
+      logic.controller.onPositionChanged.listen((e) {
+        // 监听播放进度，当播放完成之后则自动播放下一集
+        if (total != null && e >= total!) {
+          final item = logic.nextResourceInfo.value;
+          if (item != null) {
+            logic.changeVideo(context, item);
+            total = null;
+          }
+        }
+      });
+    });
+  }
 
   @override
   Widget buildWidget(BuildContext context) {
@@ -93,26 +116,54 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
   Widget _buildVideoPlayer(BuildContext context) {
     return MeeduVideoPlayer(
       controller: logic.controller,
-      header: (_, controller, responsive) =>
-          ValueListenableBuilder<ResourceItemModel>(
-        valueListenable: logic.resourceInfo,
-        builder: (_, resource, __) {
-          final name = logic.animeInfo.value.name;
-          final subTitle = logic.resourceInfo.value.name;
-          const textStyle = TextStyle(fontSize: 18);
-          final title = '$name  ·  $subTitle';
-          return Row(children: [
-            const BackButton(),
-            Text(title, style: textStyle),
-          ]);
-        },
-      ),
+      header: (_, controller, responsive) {
+        return _buildVideoPlayerHeader(context);
+      },
       bottomRight: (_, controller, responsive) {
-        return TextButton(
+        return _buildVideoPlayerBottomRight(context);
+      },
+    );
+  }
+
+  // 构建视频播放器头部
+  Widget _buildVideoPlayerHeader(BuildContext context) {
+    return ValueListenableBuilder<ResourceItemModel>(
+      valueListenable: logic.resourceInfo,
+      builder: (_, resource, __) {
+        final name = logic.animeInfo.value.name;
+        final subTitle = logic.resourceInfo.value.name;
+        const textStyle = TextStyle(fontSize: 18);
+        final title = '$name  ·  $subTitle';
+        return Row(children: [
+          const BackButton(),
+          Text(title, style: textStyle),
+        ]);
+      },
+    );
+  }
+
+  // 构建视频播放器底部右侧
+  Widget _buildVideoPlayerBottomRight(BuildContext context) {
+    return Row(
+      children: [
+        ValueListenableBuilder<ResourceItemModel?>(
+          valueListenable: logic.nextResourceInfo,
+          builder: (_, resource, __) {
+            if (resource == null) return const SizedBox();
+            return TextButton(
+              onPressed: Throttle.f(
+                () => logic.changeVideo(context, resource),
+                key: 'playNextResource',
+              ),
+              child: const Text('下一集'),
+            );
+          },
+        ),
+        TextButton(
           child: const Text('选集'),
           onPressed: () => pageKey.currentState?.openEndDrawer(),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -151,6 +202,21 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       },
     );
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 当页面退出时暂停视频播放
+    if (state == AppLifecycleState.paused) {
+      logic.controller.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    // 取消监听生命周期
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 }
 
 /*
@@ -183,7 +249,9 @@ class _PlayerLogic extends BaseLogic {
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
+    Duration? total;
     controller.onPositionChanged.listen((e) {
+      total ??= controller.duration.value;
       // 更新当前播放进度
       Throttle.c(
         () => _updateVideoProgress(e),
@@ -244,11 +312,9 @@ class _PlayerLogic extends BaseLogic {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
-  // 退出播放页面设置(纵向布局显示状态栏)
+  // 退出播放页面设置(恢复布局并显示状态栏)
   void quitPlayer() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
