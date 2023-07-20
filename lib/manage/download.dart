@@ -12,8 +12,6 @@ class DownloadManage extends BaseManage {
 
   DownloadManage._internal();
 
-  // 队列表
-
   @override
   Future<void> init() async {}
 }
