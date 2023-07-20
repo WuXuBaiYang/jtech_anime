@@ -140,7 +140,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
             const titleStyle = TextStyle(fontSize: 18);
             final subTitle = logic.resourceInfo.value.name;
             const subTitleStyle =
-                TextStyle(fontSize: 12, color: Colors.white54);
+                TextStyle(fontSize: 12, color: Colors.white70);
             return Row(children: [
               const BackButton(),
               Text.rich(TextSpan(
