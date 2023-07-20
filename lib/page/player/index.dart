@@ -21,6 +21,8 @@ import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime/widget/text_scroll.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 播放器页面（全屏播放）
@@ -131,27 +133,19 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器头部
   Widget _buildVideoPlayerHeader(BuildContext context) {
+    const titleStyle = TextStyle(fontSize: 18);
     return Row(
       children: [
-        ValueListenableBuilder<ResourceItemModel>(
-          valueListenable: logic.resourceInfo,
-          builder: (_, resource, __) {
-            final title = logic.animeInfo.value.name;
-            const titleStyle = TextStyle(fontSize: 18);
-            final subTitle = logic.resourceInfo.value.name;
-            const subTitleStyle =
-                TextStyle(fontSize: 12, color: Colors.white70);
-            return Row(children: [
-              const BackButton(),
-              Text.rich(TextSpan(
-                text: title,
-                children: [
-                  TextSpan(text: '\n$subTitle', style: subTitleStyle),
-                ],
-                style: titleStyle,
-              )),
-            ]);
-          },
+        const BackButton(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomScrollText.slow(
+              logic.animeInfo.value.name,
+              style: titleStyle,
+            ),
+            _buildVideoPlayerHeaderSubTitle(),
+          ],
         ),
         const Spacer(),
         _buildVideoPlayerHeaderTime(),
@@ -159,6 +153,18 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         _buildVideoPlayerHeaderBattery(),
         const SizedBox(width: 8),
       ],
+    );
+  }
+
+  // 构建视频播放器头部子标题
+  Widget _buildVideoPlayerHeaderSubTitle() {
+    return ValueListenableBuilder<ResourceItemModel>(
+      valueListenable: logic.resourceInfo,
+      builder: (_, resource, __) {
+        final subTitle = logic.resourceInfo.value.name;
+        const subTitleStyle = TextStyle(fontSize: 12, color: Colors.white70);
+        return Text(subTitle, style: subTitleStyle);
+      },
     );
   }
 
@@ -310,9 +316,7 @@ class _PlayerLogic extends BaseLogic {
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
-    Duration? total;
     controller.onPositionChanged.listen((e) {
-      total ??= controller.duration.value;
       // 更新当前播放进度
       Throttle.c(
         () => _updateVideoProgress(e),
