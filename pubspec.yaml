@@ -43,7 +43,7 @@ dependencies:
   # 路径管理
   path_provider: ^2.0.15
 
-  # 通知栏消息
+  # 通知栏消息(android/macos)
   flutter_local_notifications: ^15.1.0+1
 
   # sp缓存
@@ -67,7 +67,7 @@ dependencies:
   # 网页解析框架
   html: ^0.15.4
 
-  # 浏览器框架
+  # 浏览器框架(android)
   flutter_inappwebview: ^5.7.2+3
 
   # 数据库框架
