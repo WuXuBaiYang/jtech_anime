@@ -22,7 +22,6 @@ import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
-import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 播放器页面（全屏播放）
