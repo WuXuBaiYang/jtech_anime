@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +19,7 @@ import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 /*
@@ -127,17 +131,67 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器头部
   Widget _buildVideoPlayerHeader(BuildContext context) {
-    return ValueListenableBuilder<ResourceItemModel>(
-      valueListenable: logic.resourceInfo,
-      builder: (_, resource, __) {
-        final name = logic.animeInfo.value.name;
-        final subTitle = logic.resourceInfo.value.name;
-        const textStyle = TextStyle(fontSize: 18);
-        final title = '$name  ·  $subTitle';
-        return Row(children: [
-          const BackButton(),
-          Text(title, style: textStyle),
-        ]);
+    return Row(
+      children: [
+        ValueListenableBuilder<ResourceItemModel>(
+          valueListenable: logic.resourceInfo,
+          builder: (_, resource, __) {
+            final title = logic.animeInfo.value.name;
+            const titleStyle = TextStyle(fontSize: 18);
+            final subTitle = logic.resourceInfo.value.name;
+            const subTitleStyle =
+                TextStyle(fontSize: 12, color: Colors.white54);
+            return Row(children: [
+              const BackButton(),
+              Text.rich(TextSpan(
+                text: title,
+                children: [
+                  TextSpan(text: '\n$subTitle', style: subTitleStyle),
+                ],
+                style: titleStyle,
+              )),
+            ]);
+          },
+        ),
+        const Spacer(),
+        _buildVideoPlayerHeaderTime(),
+        const SizedBox(width: 8),
+        _buildVideoPlayerHeaderBattery(),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  // 构建视频播放器头部时间
+  Widget _buildVideoPlayerHeaderTime() {
+    return ValueListenableBuilder<DateTime>(
+      valueListenable: logic.currentTime,
+      builder: (_, time, __) {
+        return Text(time.format(DatePattern.time));
+      },
+    );
+  }
+
+  // 电池容量图标集合
+  final _batteryIcons = [
+    FontAwesomeIcons.batteryEmpty,
+    FontAwesomeIcons.batteryQuarter,
+    FontAwesomeIcons.batteryHalf,
+    FontAwesomeIcons.batteryThreeQuarters,
+    FontAwesomeIcons.batteryFull,
+  ];
+
+  // 构建视频播放器头部电池
+  Widget _buildVideoPlayerHeaderBattery() {
+    return CacheFutureBuilder<int>(
+      future: () => Battery().batteryLevel,
+      builder: (_, snap) {
+        if (snap.hasData) {
+          final value = snap.data! - 1;
+          final per = 100 / _batteryIcons.length;
+          return Icon(_batteryIcons[value ~/ per]);
+        }
+        return const SizedBox();
       },
     );
   }
@@ -243,6 +297,13 @@ class _PlayerLogic extends BaseLogic {
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
+  // 当前时间
+  final currentTime = ValueChangeNotifier<DateTime>(DateTime.now());
+
+  // 计时器
+  late final Timer _timer = Timer.periodic(
+      const Duration(seconds: 1), (t) => currentTime.setValue(DateTime.now()));
+
   @override
   void init() {
     super.init();
@@ -292,7 +353,7 @@ class _PlayerLogic extends BaseLogic {
       screenManager: const ScreenManager(
         orientations: [
           DeviceOrientation.landscapeRight,
-          DeviceOrientation.landscapeRight
+          DeviceOrientation.landscapeLeft,
         ],
         systemUiMode: SystemUiMode.immersiveSticky,
       ),
@@ -399,6 +460,8 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
+    // 关闭计时器
+    _timer.cancel();
     // 退出播放器状态
     quitPlayer();
     // 销毁控制器
