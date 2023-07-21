@@ -10,7 +10,6 @@ import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/manage/event.dart';
-import 'package:jtech_anime/manage/notification/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/page/home/index.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
@@ -23,7 +22,6 @@ void main() async {
     androidUseMediaKit: true,
   ); // 视频播放器
   await router.init(); // 路由服务
-  await notice.init(); // 通知服务
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务
   await db.init(); // 数据库

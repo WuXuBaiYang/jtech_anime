@@ -43,9 +43,6 @@ dependencies:
   # 路径管理
   path_provider: ^2.0.15
 
-  # 通知栏消息(android/macos)
-  flutter_local_notifications: ^15.1.0+1
-
   # sp缓存
   shared_preferences: ^2.2.0
 
@@ -97,8 +94,8 @@ dependencies:
   # 视频播放器
   flutter_meedu_videoplayer: ^4.2.15
   media_kit_libs_android_video: ^1.1.1
-  media_kit_libs_macos_video: ^1.0.5
-  media_kit_libs_windows_video: ^1.0.2
+#  media_kit_libs_macos_video: ^1.0.5
+#  media_kit_libs_windows_video: ^1.0.2
 
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
