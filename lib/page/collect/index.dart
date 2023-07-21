@@ -232,7 +232,6 @@ class _CollectLogic extends BaseLogic {
         name: item.name,
         cover: item.cover,
       ),
-      'playTheRecord': true,
     })?.then((_) => updateCollectStatus(context, item, i));
   }
 }

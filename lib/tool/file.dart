@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'log.dart';
 
 /*
@@ -55,14 +54,10 @@ class FileTool {
   };
 
   // 文件大小格式转换
-  static String formatSize(
-    int size, {
-    bool lowerCase = false,
-    int fixed = 1,
-  }) {
+  static String formatSize(int size, {bool lowerCase = true, int fixed = 1}) {
     for (final item in _fileSizeMap.keys) {
       if (size >= item) {
-        final result = (size / item).toStringAsFixed(fixed);
+        final result = item > 0 ? (size / item).toStringAsFixed(fixed) : 0;
         var unit = _fileSizeMap[item];
         if (lowerCase) unit = unit!.toLowerCase();
         return '$result$unit';

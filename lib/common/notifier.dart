@@ -158,7 +158,7 @@ class MapValueChangeNotifier<K, V> extends ValueChangeNotifier<Map<K, V>> {
 
   // 获取子项
   V? getItem(K k) {
-    if (values.contains(k)) return value[k];
+    if (contains(k)) return value[k];
     return null;
   }
 

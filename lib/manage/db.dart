@@ -47,7 +47,7 @@ class DBManage extends BaseManage {
 
   // 添加或更新下载记录
   Future<DownloadRecord?> updateDownload(DownloadRecord item) =>
-      isar.writeTxn<DownloadRecord?>(() async {
+      isar.writeTxn<DownloadRecord?>(() {
         // 更新或添加下载记录
         return isar.downloadRecords
             .put(item)

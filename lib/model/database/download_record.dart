@@ -32,7 +32,7 @@ class DownloadRecord {
   String resName = '';
 
   // 下载地址
-  @Index(type: IndexType.value)
+  @Index(type: IndexType.value, unique: true, replace: true)
   String downloadUrl = '';
 
   // 名称

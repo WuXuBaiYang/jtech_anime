@@ -51,48 +51,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    // m3u8文件测试
-    const downUrl = 'https://s9.fsvod1.com/20230721/m2j2LxNl/index.m3u8';
-    // mp4文件测试
-    // const downUrl = 'https://s9.fsvod1.com/20230721/m2j2LxNl/index.m3u8';
-    final record = DownloadRecord()
-      ..title = '下载测试'
-      ..cover = '下载测试'
-      ..url = 'https://www.yhdmz.org/showp/23143.html'
-      ..source = parserHandle.currentSource
-      ..resName = '资源1'
-      ..downloadUrl = downUrl
-      ..name = '第一集';
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              child: const Text('开始/恢复下载'),
-              onPressed: () async {
-                final result = await download.startTask(record);
-                print(result);
-              },
-            ),
-            ElevatedButton(
-              child: const Text('停止下载'),
-              onPressed: () async {
-                final result = await download.stopTask(record);
-                print(result);
-              },
-            ),
-            ElevatedButton(
-              child: const Text('移除下载'),
-              onPressed: () async {
-                final result = await download.removeTask(record);
-                print(result);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
     return Scaffold(
       body: AnimeFilterConfigMenu(
         complete: () => logic.loadAnimeList(context, false),

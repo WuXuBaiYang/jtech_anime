@@ -17,6 +17,7 @@ import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
@@ -420,31 +421,33 @@ class _PlayerLogic extends BaseLogic {
     if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
-    try {
-      loading.setValue(true);
-      resourceInfo.setValue(item);
-      nextResourceInfo.setValue(_findNextResourceItem(item));
-      // 暂停现有播放器
-      await controller.pause();
-      // 根据当前资源获取播放记录
-      final record = await db.getPlayRecord(animeInfo.value.url);
-      // 根据资源与视频下标切换视频播放地址
-      final result = await parserHandle.getAnimeVideoCache([item]);
-      if (result.isEmpty) throw Exception('视频地址解析失败');
-      // 解析完成之后实现视频播放
-      final dataSource = DataSource(
-          type: DataSourceType.network, source: result.first.playUrl);
-      final seekTo = playTheRecord && record != null
-          ? Duration(milliseconds: record.progress)
-          : Duration.zero;
-      await controller.setDataSource(dataSource, seekTo: seekTo);
-      if (!playTheRecord) playRecord.setValue(record);
-    } catch (e) {
-      SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
-      rethrow;
-    } finally {
-      loading.setValue(false);
-    }
+    return Loading.show(context, loadFuture: Future(() async {
+      try {
+        loading.setValue(true);
+        resourceInfo.setValue(item);
+        nextResourceInfo.setValue(_findNextResourceItem(item));
+        // 暂停现有播放器
+        await controller.pause();
+        // 根据当前资源获取播放记录
+        final record = await db.getPlayRecord(animeInfo.value.url);
+        // 根据资源与视频下标切换视频播放地址
+        final result = await parserHandle.getAnimeVideoCache([item]);
+        if (result.isEmpty) throw Exception('视频地址解析失败');
+        // 解析完成之后实现视频播放
+        final dataSource = DataSource(
+            type: DataSourceType.network, source: result.first.playUrl);
+        final seekTo = playTheRecord && record != null
+            ? Duration(milliseconds: record.progress)
+            : Duration.zero;
+        await controller.setDataSource(dataSource, seekTo: seekTo);
+        if (!playTheRecord) playRecord.setValue(record);
+      } catch (e) {
+        SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
+        rethrow;
+      } finally {
+        loading.setValue(false);
+      }
+    }));
   }
 
   // 获取列表中的下一个资源

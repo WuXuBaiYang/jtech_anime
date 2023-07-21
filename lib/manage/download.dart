@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:jtech_anime/common/manage.dart';
@@ -44,36 +45,20 @@ class DownloadManage extends BaseManage {
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
     try {
-      // 判断当前任务是否在下载队列，如果是则直接返回
+      // 如果当前任务在下载队列则直接返回true
       final url = record.downloadUrl;
       if (downloadQueue.contains(url)) return true;
-      // 如果当前任务在等待队列则判断是否可以添加该任务到下载队列
-      if (prepareQueue.contains(url)) {
-        final task = prepareQueue.getItem(url);
-        if (task == null) return false;
-        return _resumeTask(task);
-      }
+      // 如果当前任务在等待队列则直接返回false
+      if (prepareQueue.contains(url)) return true;
       // 创建缓存目录
-      final savePath = await FileTool.getDirPath(
-        '$_videoCachePath/${Tool.md5(record.url)}',
-        root: FileDir.applicationDocuments,
-      );
-      if (savePath == null) return false;
+      final savePath = record.savePath.isNotEmpty
+          ? record.savePath
+          : await FileTool.getDirPath(
+              '$_videoCachePath/${Tool.md5(record.url)}',
+              root: FileDir.applicationDocuments);
+      if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
-      final task = DownloadTask(
-        isM3U8: _isM3U8File(url),
-        cancelKey: CancelToken(),
-        savePath: savePath,
-        url: url,
-      );
-      //  如果下载队列没有满则直接进入下载
-      if (downloadQueue.length < _maxDownloadCount) {
-        downloadQueue.putValue(url, task);
-        return _resumeTask(task);
-      }
-      // 否则装到准备队列
-      prepareQueue.putValue(url, task);
-      return true;
+      return _resumeTask(DownloadTask.fromRecord(record, savePath));
     } catch (e) {
       LogTool.e('开始下载任务失败', error: e);
     }
@@ -82,15 +67,19 @@ class DownloadManage extends BaseManage {
 
   // 恢复启动一个下载任务
   Future<bool> _resumeTask(DownloadTask task) async {
-    // 如果下载队列满了则直接返回
-    if (downloadQueue.length >= _maxDownloadCount) return false;
-    // 更新下载记录的存储路径
-    final record = await db.getDownloadRecord(task.url);
-    if (record != null) {
-      await db.updateDownload(record..savePath = task.savePath);
+    // 如果下载队列达到上限则将任务添加到准备队列
+    if (downloadQueue.length >= _maxDownloadCount) {
+      prepareQueue.putValue(task.url, task);
+      return true;
     }
-    // 移除准备队列的任务并添加到下载队列，修改状态为下载中
-    task = task.copyWith(downloading: true);
+    // 如果目录不存在则创建
+    final dir = Directory(task.savePath);
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+    // 更新下载记录的状态
+    await db.updateDownload(task.record
+      ..status = DownloadRecordStatus.download
+      ..updateTime = DateTime.now());
+    // 移除准备队列的任务并添加到下载队列
     downloadQueue.putValue(task.url, task);
     prepareQueue.removeValue(task.url);
     // 判断任务类型并开始下载
@@ -98,9 +87,8 @@ class DownloadManage extends BaseManage {
       task.url,
       task.savePath,
       cancelToken: task.cancelKey,
-      done: () => _doneTask(task),
       failed: (e) => _taskOnError(task, e),
-      complete: (s) => _updateTaskComplete(task, s),
+      complete: (_) => _updateTaskComplete(task),
       receiveProgress: (c, t, s) => _updateTaskProgress(task, c, t, s),
     );
     return true;
@@ -108,25 +96,26 @@ class DownloadManage extends BaseManage {
 
   // 更新下载进度
   void _updateTaskProgress(DownloadTask task, int count, int total, int speed) {
-    task = task.copyWith(
-      speed: FileTool.formatSize(speed, lowerCase: true),
-      progress: count,
-      total: total,
+    final value = FileTool.formatSize(speed);
+    downloadQueue.putValue(
+      task.url,
+      task.copyWith(
+        progress: count,
+        total: total,
+        speed: value,
+      ),
     );
-    downloadQueue.putValue(task.url, task);
   }
 
   // 更新下载任务为完成状态
-  void _updateTaskComplete(DownloadTask task, String savePath) async {
+  void _updateTaskComplete(DownloadTask task) async {
     // 完成下载任务
     _doneTask(task);
     // 更新下载任务为已完成
-    final record = await db.getDownloadRecord(task.url);
-    if (record == null) return;
-    db.updateDownload(record
+    db.updateDownload(task.record
       ..status = DownloadRecordStatus.complete
       ..updateTime = DateTime.now()
-      ..savePath = savePath);
+      ..savePath = task.savePath);
   }
 
   // 下载任务异常处理
@@ -134,9 +123,7 @@ class DownloadManage extends BaseManage {
     // 完成下载任务
     _doneTask(task);
     // 更新状态到数据库
-    final record = await db.getDownloadRecord(task.url);
-    if (record == null) return;
-    db.updateDownload(record
+    db.updateDownload(task.record
       ..status = DownloadRecordStatus.fail
       ..updateTime = DateTime.now()
       ..failText = '下载失败');
@@ -158,7 +145,7 @@ class DownloadManage extends BaseManage {
       if (downloadQueue.contains(url)) {
         // 如果正在下载的任务则取消下载
         final item = downloadQueue.getItem(url);
-        item?.cancelKey?.cancel('stopTask');
+        item?.cancelKey.cancel('stopTask');
         downloadQueue.removeValue(url);
       }
       if (prepareQueue.contains(url)) {
@@ -188,7 +175,7 @@ class DownloadManage extends BaseManage {
   Future<void> _downloadM3U8(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 500),
+    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
@@ -197,11 +184,6 @@ class DownloadManage extends BaseManage {
   }) async {
     Timer? timer;
     try {
-      // 根据存储路径创建缓存目录
-      final dir = File(savePath);
-      if (!await dir.exists()) {
-        await dir.create();
-      }
       // 解析索引文件并遍历要下载的资源集合
       final baseUri = Uri.parse(url);
       final downloads = await _parseM3U8File(baseUri);
@@ -217,10 +199,10 @@ class DownloadManage extends BaseManage {
         final canPause = await _supportPause(firstUrl);
         for (final filename in downloads.keys) {
           final content = downloads[filename] ?? '';
-          final file = File('${dir.path}/$filename');
+          final file = File('$savePath/$filename');
           if (filename != _m3u8IndexFilename) {
             // 文件不存在则启用下载
-            if (!await file.exists()) {
+            if (!file.existsSync()) {
               // 下载文件并存储到本地
               final temp = await _download(
                 content,
@@ -259,7 +241,7 @@ class DownloadManage extends BaseManage {
   Future<void> _downloadVideo(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 500),
+    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
@@ -268,11 +250,6 @@ class DownloadManage extends BaseManage {
   }) async {
     Timer? timer;
     try {
-      // 根据存储路径创建缓存目录
-      final dir = File(savePath);
-      if (!await dir.exists()) {
-        await dir.create();
-      }
       int speed = 0, count = 0, total = -1;
       timer = Timer.periodic(updateDelay, (_) {
         receiveProgress?.call(count, total, speed);
@@ -282,8 +259,8 @@ class DownloadManage extends BaseManage {
       final canPause = await _supportPause(url);
       // 文件不存在则启用下载
       final filename = Uri.parse(url).path.split('/').last;
-      final file = File('${dir.path}/$filename');
-      if (!await file.exists()) {
+      final file = File('$savePath/$filename');
+      if (!file.existsSync()) {
         // 下载文件并存储到本地
         final temp = await _download(
           url,
@@ -345,13 +322,13 @@ class DownloadManage extends BaseManage {
       received += data.length;
       raf.writeFromSync(data);
       onReceiveProgress?.call(received, total);
-    }, onDone: () async {
+    }, onDone: () {
       c.complete(saveFile);
-      await raf.close();
       done?.call();
-    }, onError: (e) async {
+      raf.close();
+    }, onError: (e) {
       c.completeError(e);
-      await raf.close();
+      raf.close();
     }, cancelOnError: true);
     // 如果执行的cancel事件则终止文件流
     cancelToken?.whenCancel.then((_) async {
@@ -396,9 +373,6 @@ class DownloadManage extends BaseManage {
     }
     return {};
   }
-
-  // 根据url判断是否为m3u8文件
-  bool _isM3U8File(String url) => Uri.parse(url).path.endsWith('.m3u8');
 
   // 解析m3u8主文件
   Uri? _parseM3U8MasterFile(HlsMasterPlaylist playlist) {
