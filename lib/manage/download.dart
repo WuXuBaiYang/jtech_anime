@@ -84,6 +84,11 @@ class DownloadManage extends BaseManage {
   Future<bool> _resumeTask(DownloadTask task) async {
     // 如果下载队列满了则直接返回
     if (downloadQueue.length >= _maxDownloadCount) return false;
+    // 更新下载记录的存储路径
+    final record = await db.getDownloadRecord(task.url);
+    if (record != null) {
+      await db.updateDownload(record..savePath = task.savePath);
+    }
     // 移除准备队列的任务并添加到下载队列，修改状态为下载中
     task = task.copyWith(downloading: true);
     downloadQueue.putValue(task.url, task);
@@ -93,9 +98,9 @@ class DownloadManage extends BaseManage {
       task.url,
       task.savePath,
       cancelToken: task.cancelKey,
+      done: () => _doneTask(task),
       failed: (e) => _taskOnError(task, e),
       complete: (s) => _updateTaskComplete(task, s),
-      done: () => _doneTask(task),
       receiveProgress: (c, t, s) => _updateTaskProgress(task, c, t, s),
     );
     return true;
