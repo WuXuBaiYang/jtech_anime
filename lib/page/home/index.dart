@@ -49,6 +49,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
+    return SizedBox();
     return Scaffold(
       body: AnimeFilterConfigMenu(
         complete: () => logic.loadAnimeList(context, false),

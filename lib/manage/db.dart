@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/model/database/collect.dart';
+import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/model/database/search_record.dart';
@@ -32,9 +33,48 @@ class DBManage extends BaseManage {
         SearchRecordSchema,
         PlayRecordSchema,
         CollectSchema,
+        DownloadRecordSchema,
       ],
       directory: dir.path,
     );
+  }
+
+  // 删除下载记录
+  Future<bool> removeDownloadRecord(int id) => isar.writeTxn<bool>(() {
+        // 移除下载记录
+        return isar.downloadRecords.delete(id);
+      });
+
+  // 添加或更新下载记录
+  Future<DownloadRecord?> updateDownload(DownloadRecord item) =>
+      isar.writeTxn<DownloadRecord?>(() async {
+        // 更新或添加下载记录
+        return isar.downloadRecords
+            .put(item)
+            .then((id) => isar.downloadRecords.get(id));
+      });
+
+  // 获取下载记录(根据番剧的播放地址，不是访问地址)
+  Future<DownloadRecord?> getDownloadRecord(String playUrl) =>
+      isar.downloadRecords.where().downloadUrlEqualTo(playUrl).findFirst();
+
+  // 获取下载记录列表
+  Future<List<DownloadRecord>> getDownloadRecordList(
+    String source, {
+    int pageIndex = 1,
+    int pageSize = 25,
+    List<DownloadRecordStatus> status = const [],
+  }) async {
+    if (pageIndex < 1 || pageSize < 1) return [];
+    return isar.downloadRecords
+        .where()
+        .sourceEqualTo(source)
+        .filter()
+        .anyOf(status, (q, e) => q.statusEqualTo(e))
+        .sortByUpdateTimeDesc()
+        .offset((--pageIndex) * pageSize)
+        .limit(pageSize)
+        .findAll();
   }
 
   // 添加或移除收藏

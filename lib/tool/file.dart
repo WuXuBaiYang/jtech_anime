@@ -11,7 +11,7 @@ import 'log.dart';
 */
 class FileTool {
   // 清除目录文件
-  static Future<bool> clearDir({String path = ''}) async {
+  static Future<bool> clearDir([String path = '']) async {
     try {
       final dir = Directory(path);
       if (dir.existsSync()) await dir.delete(recursive: true);
@@ -23,23 +23,23 @@ class FileTool {
   }
 
   // 解析目录大小
-  static Future<String> parseDirSize({
+  static Future<String> formatDirSize({
     String path = '',
     bool lowerCase = false,
     int fixed = 1,
   }) async {
     final result = await getDirSize(path);
-    return parseFileSize(result, lowerCase: lowerCase, fixed: fixed);
+    return formatSize(result, lowerCase: lowerCase, fixed: fixed);
   }
 
   // 迭代计算一个目录的大小
-  static Future<int> getDirSize(String path, {int size = 0}) async {
+  static Future<int> getDirSize(String path, [int size = 0]) async {
     final items = Directory(path).listSync(recursive: true, followLinks: true);
     for (final item in items) {
       if (item is File) {
         size += await item.length();
       } else if (item is Directory) {
-        size = await getDirSize(item.absolute.path, size: size);
+        size = await getDirSize(item.absolute.path, size);
       }
     }
     return size;
@@ -55,7 +55,7 @@ class FileTool {
   };
 
   // 文件大小格式转换
-  static String parseFileSize(
+  static String formatSize(
     int size, {
     bool lowerCase = false,
     int fixed = 1,

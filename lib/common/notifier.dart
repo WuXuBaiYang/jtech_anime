@@ -153,6 +153,15 @@ class MapValueChangeNotifier<K, V> extends ValueChangeNotifier<Map<K, V>> {
   // 获取value集合
   Iterable<V> get values => value.values;
 
+  // 判断key是否存在
+  bool contains(K k) => value.containsKey(k);
+
+  // 获取子项
+  V? getItem(K k) {
+    if (values.contains(k)) return value[k];
+    return null;
+  }
+
   // 清除数据
   void clear() {
     value.clear();
