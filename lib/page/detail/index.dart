@@ -201,6 +201,7 @@ class _AnimeDetailPageState
   // 构建番剧资源子项
   Widget _buildAnimeResourcesItem(ResourceItemModel item,
       Map<String, DownloadRecord> downloadMap, String? playResUrl) {
+    final downloadRecord = downloadMap[item.url];
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       child: Stack(
@@ -219,11 +220,15 @@ class _AnimeDetailPageState
                     style: TextStyle(color: kPrimaryColor))
                 : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
-          if (downloadMap.containsKey(item.url))
+          if (downloadRecord != null)
             Align(
               alignment: Alignment.bottomRight,
-              child: Icon(FontAwesomeIcons.circleCheck,
-                  size: 14, color: kPrimaryColor),
+              child: Icon(
+                  downloadRecord.status == DownloadRecordStatus.complete
+                      ? FontAwesomeIcons.circleCheck
+                      : FontAwesomeIcons.circleDown,
+                  color: kPrimaryColor,
+                  size: 14),
             ),
         ],
       ),
