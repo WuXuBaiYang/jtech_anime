@@ -10,11 +10,13 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/collect.dart';
+import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/download.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
@@ -145,9 +147,10 @@ class _AnimeDetailPageState
         const Spacer(),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () => DownloadSheet.show(context, resources: resources),
+          onPressed: () =>
+              DownloadSheet.show(context, animeInfo: logic.animeDetail.value)
+                  .whenComplete(() => logic.cacheController.refreshValue()),
         ),
-        const SizedBox(width: 4),
       ],
     );
   }
@@ -159,49 +162,70 @@ class _AnimeDetailPageState
         child: StatusBox(status: StatusBoxStatus.empty),
       );
     }
-    return ValueListenableBuilder<PlayRecord?>(
-      valueListenable: logic.playRecord,
-      builder: (_, playRecord, __) {
-        return TabBarView(
-          children: List.generate(resources.length, (i) {
-            final items = resources[i];
-            return GridView.builder(
-              itemCount: items.length,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                mainAxisExtent: 40,
-                crossAxisCount: 4,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-              ),
-              itemBuilder: (_, i) {
-                final item = items[i];
-                return _buildAnimeResourcesItem(item, playRecord?.resUrl);
-              },
-            );
-          }),
-        );
-      },
-    );
+    return CacheFutureBuilder<Map<String, DownloadRecord>>(
+        controller: logic.cacheController,
+        future: logic.loadDownloadRecord,
+        builder: (_, snap) {
+          if (!snap.hasData) return const SizedBox();
+          final downloadMap = snap.data!;
+          return ValueListenableBuilder<PlayRecord?>(
+            valueListenable: logic.playRecord,
+            builder: (_, playRecord, __) {
+              return TabBarView(
+                children: List.generate(resources.length, (i) {
+                  final items = resources[i];
+                  return GridView.builder(
+                    itemCount: items.length,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      mainAxisExtent: 40,
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                    ),
+                    itemBuilder: (_, i) {
+                      final item = items[i];
+                      return _buildAnimeResourcesItem(
+                          item, downloadMap, playRecord?.resUrl);
+                    },
+                  );
+                }),
+              );
+            },
+          );
+        });
   }
 
   // 构建番剧资源子项
-  Widget _buildAnimeResourcesItem(ResourceItemModel item, String? playResUrl) {
+  Widget _buildAnimeResourcesItem(ResourceItemModel item,
+      Map<String, DownloadRecord> downloadMap, String? playResUrl) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: double.maxFinite,
-        height: double.maxFinite,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.black26),
-        ),
-        child: playResUrl == item.url
-            ? CustomScrollText.slow('上次看到 ${item.name}',
-                style: TextStyle(color: kPrimaryColor))
-            : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      child: Stack(
+        children: [
+          Container(
+            width: double.maxFinite,
+            height: double.maxFinite,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.black26),
+            ),
+            child: playResUrl == item.url
+                ? CustomScrollText.slow('上次看到 ${item.name}',
+                    style: TextStyle(color: kPrimaryColor))
+                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+          if (downloadMap.containsKey(item.url))
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Icon(FontAwesomeIcons.circleCheck,
+                  size: 14, color: kPrimaryColor),
+            ),
+        ],
       ),
       onTap: () => logic.goPlay(item),
     );
@@ -237,6 +261,10 @@ class _AnimeDetailLogic extends BaseLogic {
 
   // 收藏信息
   final collectInfo = ValueChangeNotifier<Collect?>(null);
+
+  // 缓存控制器
+  final cacheController =
+      CacheFutureBuilderController<Map<String, DownloadRecord>>();
 
   @override
   void init() {
@@ -336,5 +364,14 @@ class _AnimeDetailLogic extends BaseLogic {
     } finally {
       loading.setValue(false);
     }
+  }
+
+  // 加载下载记录
+  Future<Map<String, DownloadRecord>> loadDownloadRecord() async {
+    final result = await db.getDownloadRecordList(
+      parserHandle.currentSource,
+      animeList: [animeDetail.value.url],
+    );
+    return result.asMap().map((_, v) => MapEntry(v.resUrl, v));
   }
 }

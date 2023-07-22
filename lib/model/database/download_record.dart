@@ -28,8 +28,8 @@ class DownloadRecord {
   // 异常描述
   String? failText;
 
-  // 所在资源组的名称
-  String resName = '';
+  // 资源地址
+  String resUrl = '';
 
   // 下载地址
   @Index(type: IndexType.value, unique: true, replace: true)

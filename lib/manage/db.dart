@@ -63,7 +63,10 @@ class DBManage extends BaseManage {
     String source, {
     int pageIndex = 1,
     int pageSize = 25,
+    // 按照下载状态过滤
     List<DownloadRecordStatus> status = const [],
+    // 按照番剧地址过滤
+    List<String> animeList = const [],
   }) async {
     if (pageIndex < 1 || pageSize < 1) return [];
     return isar.downloadRecords
@@ -71,6 +74,8 @@ class DBManage extends BaseManage {
         .sourceEqualTo(source)
         .filter()
         .anyOf(status, (q, e) => q.statusEqualTo(e))
+        .and()
+        .anyOf(animeList, (q, e) => q.urlEqualTo(e))
         .sortByUpdateTimeDesc()
         .offset((--pageIndex) * pageSize)
         .limit(pageSize)
