@@ -46,8 +46,8 @@ class MyApp extends StatelessWidget {
       builder: (c, snap) => MaterialApp(
         title: Common.appName,
         theme: snap.data?.data,
-        debugShowCheckedModeBanner: false,
         navigatorKey: router.navigateKey,
+        debugShowCheckedModeBanner: false,
         onGenerateRoute: router.onGenerateRoute(
           routesMap: RoutePath.routes,
         ),

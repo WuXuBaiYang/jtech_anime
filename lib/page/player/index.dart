@@ -330,9 +330,12 @@ class _PlayerLogic extends BaseLogic {
     animeInfo = ValueChangeNotifier(arguments['animeDetail']);
     resourceInfo = ValueChangeNotifier(arguments['item']);
     final playTheRecord = arguments['playTheRecord'];
-    // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
-    changeVideo(context, resourceInfo.value, playTheRecord)
-        .catchError((_) => router.router.pop());
+    // 初始化加载
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
+      changeVideo(context, resourceInfo.value, playTheRecord)
+          .catchError((_) => router.router.pop());
+    });
   }
 
   // 创建视频播放器控制器

@@ -11,6 +11,7 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/collect.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
+import 'package:jtech_anime/page/detail/download.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
@@ -120,7 +121,7 @@ class _AnimeDetailPageState
             preferredSize: const Size.fromHeight(kToolbarHeight),
             child: Container(
               color: !showAppbar ? Colors.white : null,
-              child: _buildAppbarBottom(item.resources.length),
+              child: _buildAppbarBottom(item.resources),
             ),
           ),
         );
@@ -129,21 +130,22 @@ class _AnimeDetailPageState
   }
 
   // 构建标题栏底部
-  Widget _buildAppbarBottom(int count) {
+  Widget _buildAppbarBottom(List<List<ResourceItemModel>> resources) {
     return Row(
       children: [
-        if (count > 0)
+        if (resources.isNotEmpty)
           TabBar(
             isScrollable: true,
             onTap: logic.resourceIndex.setValue,
-            tabs: List.generate(count, (i) => Tab(text: '资源${i + 1}')),
+            tabs: List.generate(
+              resources.length,
+              (i) => Tab(text: '资源${i + 1}'),
+            ),
           ),
         const Spacer(),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () {
-            SnackTool.showMessage(context, message: '正在施工中~');
-          },
+          onPressed: () => DownloadSheet.show(context, resources: resources),
         ),
         const SizedBox(width: 4),
       ],

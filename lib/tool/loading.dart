@@ -24,7 +24,7 @@ class Loading {
         barrierDismissible: dismissible,
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
-      const duration = Duration(milliseconds: 100);
+      const duration = Duration(milliseconds: 500);
       final result = await loadFuture;
       // 如果传入的future加载时间过短（还不够弹窗动画时间），则进行等待
       final end = DateTime.now().subtract(duration);

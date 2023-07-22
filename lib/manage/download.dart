@@ -24,12 +24,6 @@ class DownloadManage extends BaseManage {
   // m3u8索引文件名
   static const _m3u8IndexFilename = 'index.m3u8';
 
-  // 下载队列最大任务数
-  static const _maxDownloadCount = 3;
-
-  // 番剧缓存目录
-  static const _videoCachePath = 'video_cache';
-
   static final DownloadManage _instance = DownloadManage._internal();
 
   factory DownloadManage() => _instance;
@@ -41,6 +35,12 @@ class DownloadManage extends BaseManage {
 
   // 准备队列
   final prepareQueue = MapValueChangeNotifier<String, DownloadTask>.empty();
+
+  // 番剧缓存目录
+  final videoCachePath = ValueChangeNotifier<String>('video_cache');
+
+  // 最大下载数
+  final maxDownloadCount = ValueChangeNotifier<int>(3);
 
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
@@ -54,7 +54,7 @@ class DownloadManage extends BaseManage {
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
           : await FileTool.getDirPath(
-              '$_videoCachePath/${Tool.md5(record.url)}',
+              '${videoCachePath.value}/${Tool.md5(record.url)}',
               root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
@@ -68,7 +68,7 @@ class DownloadManage extends BaseManage {
   // 恢复启动一个下载任务
   Future<bool> _resumeTask(DownloadTask task) async {
     // 如果下载队列达到上限则将任务添加到准备队列
-    if (downloadQueue.length >= _maxDownloadCount) {
+    if (downloadQueue.length >= maxDownloadCount.value) {
       prepareQueue.putValue(task.url, task);
       return true;
     }
@@ -94,9 +94,14 @@ class DownloadManage extends BaseManage {
     return true;
   }
 
+  // 更新计数器（当达到最大计数的时候才执行更新）
+  int _updateCount = 0;
+
   // 更新下载进度
   void _updateTaskProgress(DownloadTask task, int count, int total, int speed) {
     final value = FileTool.formatSize(speed);
+    final notify = ++_updateCount >= downloadQueue.length;
+    if (notify) _updateCount = 0;
     downloadQueue.putValue(
       task.url,
       task.copyWith(
@@ -104,6 +109,7 @@ class DownloadManage extends BaseManage {
         total: total,
         speed: value,
       ),
+      notify: notify,
     );
   }
 
@@ -175,7 +181,7 @@ class DownloadManage extends BaseManage {
   Future<void> _downloadM3U8(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 1000),
+    Duration updateDelay = const Duration(milliseconds: 500),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
@@ -241,7 +247,7 @@ class DownloadManage extends BaseManage {
   Future<void> _downloadVideo(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 1000),
+    Duration updateDelay = const Duration(milliseconds: 500),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,

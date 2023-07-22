@@ -26,7 +26,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('下载管理页'),
+        title: const Text('番剧缓存'),
       ),
     );
   }
