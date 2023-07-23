@@ -18,8 +18,27 @@ class DownloadRecordList extends StatelessWidget {
       itemCount: recordList.length,
       itemBuilder: (_, i) {
         final item = recordList[i];
-        return SizedBox();
+        if (i == 0 || recordList[i - 1].url != item.url) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDownloadAnimeItem(item),
+              _buildDownloadTaskItem(context, item),
+            ],
+          );
+        }
+        return _buildDownloadTaskItem(context, item);
       },
     );
+  }
+
+  // 构建下载任务番剧信息
+  Widget _buildDownloadAnimeItem(DownloadRecord item) {
+    return SizedBox();
+  }
+
+  // 构建下载任务列表项
+  Widget _buildDownloadTaskItem(BuildContext context, DownloadRecord item) {
+    return SizedBox();
   }
 }

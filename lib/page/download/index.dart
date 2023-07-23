@@ -5,8 +5,10 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
+import 'package:jtech_anime/page/download/list.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 
 /*
 * 下载管理页
@@ -34,8 +36,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
     super.initState();
     // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 初始化加载完成下载记录
-      logic.loadDownloadRecords(context, false);
       // 监听下载完成事件
       download.addDownloadCompleteListener((record) {
         // 移除下载列表
@@ -62,7 +62,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
         ),
         body: TabBarView(children: [
           _buildDownloadingList(),
-          _buildDownloadRecordList(),
+          _buildDownloadRecordList(context),
         ]),
       ),
     );
@@ -70,12 +70,28 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 
   // 构建下载队列
   Widget _buildDownloadingList() {
-    return SizedBox();
+    return ValueListenableBuilder<List<DownloadRecord>>(
+      valueListenable: logic.downloadingList,
+      builder: (_, recordList, __) {
+        return DownloadRecordList(recordList: recordList);
+      },
+    );
   }
 
   // 构建下载记录列表
-  Widget _buildDownloadRecordList() {
-    return SizedBox();
+  Widget _buildDownloadRecordList(BuildContext context) {
+    return ValueListenableBuilder<List<DownloadRecord>>(
+      valueListenable: logic.downloadRecordList,
+      builder: (_, recordList, __) {
+        return CustomRefreshView(
+          enableRefresh: true,
+          enableLoadMore: true,
+          initialRefresh: true,
+          child: DownloadRecordList(recordList: recordList),
+          onRefresh: (loadMore) => logic.loadDownloadRecords(context, loadMore),
+        );
+      },
+    );
   }
 }
 
