@@ -318,16 +318,6 @@ class _HomeLogic extends BaseLogic {
           ? parserHandle.loadAnimeListNextPage(params: params)
           : parserHandle.loadAnimeList(params: params));
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
-
-      // var i = 0;
-      // for (var e in result) {
-      //   db.updateCollect(Collect()
-      //     ..url = e.url
-      //     ..name = e.name
-      //     ..cover = e.cover
-      //     ..order = i++
-      //     ..source = AnimeSource.yhdmz.name);
-      // }
     } catch (e) {
       SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
     } finally {

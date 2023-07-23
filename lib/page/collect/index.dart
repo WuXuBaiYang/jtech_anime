@@ -156,7 +156,7 @@ class _CollectLogic extends BaseLogic {
   final collectList = ListValueChangeNotifier<Collect>.empty();
 
   // 当前页码
-  var _pageIndex = 1;
+  int _pageIndex = 1;
 
   // 加载收藏列表
   Future<void> loadCollectList(BuildContext context, bool loadMore) async {
@@ -167,7 +167,6 @@ class _CollectLogic extends BaseLogic {
       final result = await db.getCollectList(
         parserHandle.currentSource,
         pageIndex: index,
-        pageSize: 10,
       );
       if (result.isNotEmpty) {
         _pageIndex = index;

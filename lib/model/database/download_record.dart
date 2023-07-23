@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:isar/isar.dart';
+import 'package:jtech_anime/model/download.dart';
 
 part 'download_record.g.dart';
 
@@ -44,7 +46,31 @@ class DownloadRecord {
   // 更新时间
   DateTime updateTime = DateTime.now();
 
-  // 下载任务记录
+  // 下载任务
+  @ignore
+  DownloadTask? task;
+
+  // 判断是否为m3u8文件
+  bool get isM3U8 => Uri.parse(url).path.endsWith('.m3u8');
+
+  // 创建下载任务
+  DownloadRecord createTask(String savePath) {
+    task = DownloadTask(cancelKey: CancelToken());
+    this.savePath = savePath;
+    return this;
+  }
+
+  // 更新下载任务信息
+  DownloadRecord updateTask(int progress, int total, int speed) {
+    if (task == null) return this;
+    return this
+      ..task = DownloadTask(
+        cancelKey: task!.cancelKey,
+        progress: progress,
+        total: total,
+        speed: speed,
+      );
+  }
 }
 
 enum DownloadRecordStatus { download, complete, fail }

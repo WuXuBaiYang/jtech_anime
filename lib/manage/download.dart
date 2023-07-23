@@ -7,10 +7,12 @@ import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/tool.dart';
+
+// 下载完成回调
+typedef DownloadCompleteCallback = void Function(DownloadRecord record);
 
 /*
 * 下载管理
@@ -31,16 +33,23 @@ class DownloadManage extends BaseManage {
   DownloadManage._internal();
 
   // 下载队列
-  final downloadQueue = MapValueChangeNotifier<String, DownloadTask>.empty();
+  final downloadQueue = MapValueChangeNotifier<String, DownloadRecord>.empty();
 
   // 准备队列
-  final prepareQueue = MapValueChangeNotifier<String, DownloadTask>.empty();
+  final prepareQueue = MapValueChangeNotifier<String, DownloadRecord>.empty();
 
   // 番剧缓存目录
   final videoCachePath = ValueChangeNotifier<String>('video_cache');
 
   // 最大下载数
   final maxDownloadCount = ValueChangeNotifier<int>(3);
+
+  // 下载完成回调
+  final List<DownloadCompleteCallback> _downloadCompleteCallbacks = [];
+
+  // 添加下载完成回调
+  void addDownloadCompleteListener(DownloadCompleteCallback callback) =>
+      _downloadCompleteCallbacks.add(callback);
 
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
@@ -58,7 +67,7 @@ class DownloadManage extends BaseManage {
               root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
-      return _resumeTask(DownloadTask.fromRecord(record, savePath));
+      return _resumeTask(record.createTask(savePath));
     } catch (e) {
       LogTool.e('开始下载任务失败', error: e);
     }
@@ -66,30 +75,31 @@ class DownloadManage extends BaseManage {
   }
 
   // 恢复启动一个下载任务
-  Future<bool> _resumeTask(DownloadTask task) async {
+  Future<bool> _resumeTask(DownloadRecord record) async {
+    final downloadUrl = record.downloadUrl;
     // 如果下载队列达到上限则将任务添加到准备队列
     if (downloadQueue.length >= maxDownloadCount.value) {
-      prepareQueue.putValue(task.url, task);
+      prepareQueue.putValue(downloadUrl, record);
       return true;
     }
     // 如果目录不存在则创建
-    final dir = Directory(task.savePath);
+    final dir = Directory(record.savePath);
     if (!dir.existsSync()) dir.createSync(recursive: true);
     // 更新下载记录的状态
-    await db.updateDownload(task.record
+    await db.updateDownload(record
       ..status = DownloadRecordStatus.download
       ..updateTime = DateTime.now());
     // 移除准备队列的任务并添加到下载队列
-    downloadQueue.putValue(task.url, task);
-    prepareQueue.removeValue(task.url);
+    downloadQueue.putValue(downloadUrl, record);
+    prepareQueue.removeValue(downloadUrl);
     // 判断任务类型并开始下载
-    (task.isM3U8 ? _downloadM3U8 : _downloadVideo)(
-      task.url,
-      task.savePath,
-      cancelToken: task.cancelKey,
-      failed: (e) => _taskOnError(task, e),
-      complete: (_) => _updateTaskComplete(task),
-      receiveProgress: (c, t, s) => _updateTaskProgress(task, c, t, s),
+    (record.isM3U8 ? _downloadM3U8 : _downloadVideo)(
+      downloadUrl,
+      record.savePath,
+      cancelToken: record.task?.cancelKey,
+      failed: (e) => _taskOnError(record, e),
+      complete: (_) => _updateTaskComplete(record),
+      receiveProgress: (c, t, s) => _updateTaskProgress(record, c, t, s),
     );
     return true;
   }
@@ -98,47 +108,46 @@ class DownloadManage extends BaseManage {
   int _updateCount = 0;
 
   // 更新下载进度
-  void _updateTaskProgress(DownloadTask task, int count, int total, int speed) {
-    final value = FileTool.formatSize(speed);
+  void _updateTaskProgress(
+      DownloadRecord record, int count, int total, int speed) {
     final notify = ++_updateCount >= downloadQueue.length;
     if (notify) _updateCount = 0;
     downloadQueue.putValue(
-      task.url,
-      task.copyWith(
-        progress: count,
-        total: total,
-        speed: value,
-      ),
       notify: notify,
+      record.downloadUrl,
+      record.updateTask(count, total, speed),
     );
   }
 
   // 更新下载任务为完成状态
-  void _updateTaskComplete(DownloadTask task) async {
+  void _updateTaskComplete(DownloadRecord record) async {
     // 完成下载任务
-    _doneTask(task);
+    _doneTask(record);
     // 更新下载任务为已完成
-    db.updateDownload(task.record
+    db.updateDownload(record
       ..status = DownloadRecordStatus.complete
-      ..updateTime = DateTime.now()
-      ..savePath = task.savePath);
+      ..updateTime = DateTime.now());
+    // 回调下载完成事件
+    for (var listener in _downloadCompleteCallbacks) {
+      listener.call(record);
+    }
   }
 
   // 下载任务异常处理
-  void _taskOnError(DownloadTask task, Exception e) async {
+  void _taskOnError(DownloadRecord record, Exception e) async {
     // 完成下载任务
-    _doneTask(task);
+    _doneTask(record);
     // 更新状态到数据库
-    db.updateDownload(task.record
+    db.updateDownload(record
       ..status = DownloadRecordStatus.fail
       ..updateTime = DateTime.now()
       ..failText = '下载失败');
   }
 
   // 结束下载任务(下载完成/下载停止/下载异常)
-  void _doneTask(DownloadTask task) {
+  void _doneTask(DownloadRecord record) {
     // 从下载队列中移除下载任务
-    downloadQueue.removeValue(task.url);
+    downloadQueue.removeValue(record.downloadUrl);
     // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
     if (prepareQueue.isEmpty) return;
     _resumeTask(prepareQueue.values.first);
@@ -147,15 +156,15 @@ class DownloadManage extends BaseManage {
   // 暂停一个下载任务
   Future<bool> stopTask(DownloadRecord record) async {
     try {
-      final url = record.downloadUrl;
-      if (downloadQueue.contains(url)) {
+      final downloadUrl = record.downloadUrl;
+      if (downloadQueue.contains(downloadUrl)) {
         // 如果正在下载的任务则取消下载
-        final item = downloadQueue.getItem(url);
-        item?.cancelKey.cancel('stopTask');
-        downloadQueue.removeValue(url);
+        final item = downloadQueue.getItem(downloadUrl);
+        item?.task?.cancelKey.cancel('stopTask');
+        downloadQueue.removeValue(downloadUrl);
       }
-      if (prepareQueue.contains(url)) {
-        prepareQueue.removeValue(url);
+      if (prepareQueue.contains(downloadUrl)) {
+        prepareQueue.removeValue(downloadUrl);
       }
     } catch (e) {
       LogTool.e('停止下载任务失败', error: e);
