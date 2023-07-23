@@ -43,6 +43,8 @@ class DownloadRecord {
 
   // 更新时间
   DateTime updateTime = DateTime.now();
+
+  // 下载任务记录
 }
 
 enum DownloadRecordStatus { download, complete, fail }

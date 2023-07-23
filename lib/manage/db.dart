@@ -76,7 +76,7 @@ class DBManage extends BaseManage {
         .anyOf(status, (q, e) => q.statusEqualTo(e))
         .and()
         .anyOf(animeList, (q, e) => q.urlEqualTo(e))
-        .sortByUpdateTimeDesc()
+        .sortByUrl()
         .offset((--pageIndex) * pageSize)
         .limit(pageSize)
         .findAll();
