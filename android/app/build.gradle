@@ -76,6 +76,14 @@ android {
             signingConfig signingConfigs.config
         }
     }
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            if (variant.buildType.name.equals('release')) {
+                output.getPackageApplication().outputDirectory = new File("../../publish/apk")
+                output.outputFileName = "jtech_anime.apk"
+            }
+        }
+    }
 }
 
 flutter {

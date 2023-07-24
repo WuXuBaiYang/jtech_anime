@@ -100,8 +100,20 @@ dependencies:
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
 
+  # supabase服务
+  supabase_flutter: ^1.10.9
+
+  # 权限管理
+  permission_handler: ^10.4.3
+
+  # android版本更新
+  ota_update: ^5.1.0
+
   # 桌面端浏览器爬虫(win/mac/linux)
   puppeteer: ^3.1.1
+
+  # 通知栏消息
+  flutter_local_notifications: ^15.1.0+1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -139,6 +151,7 @@ flutter:
   assets:
     - assets/filter/
     - assets/anime/
+    - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

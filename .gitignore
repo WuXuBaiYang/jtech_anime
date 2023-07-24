@@ -28,3 +28,7 @@ doc/api/
 .idea
 
 *.g.dart
+
+assets/supabase.json
+publish
+keystore
