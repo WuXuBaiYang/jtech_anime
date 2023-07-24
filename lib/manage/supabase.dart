@@ -49,7 +49,7 @@ class SupabaseManage extends BaseManage {
   // 获取supabase信息
   Future<void> _initSupabaseInfo() async {
     try {
-      final json = await rootBundle.loadString('assets/supabase.json');
+      final json = await rootBundle.loadString('assets/filter/supabase.json');
       _supabaseInfo = jsonDecode(json);
     } catch (e) {
       LogTool.e('开源版本不支持自动更新');
