@@ -94,11 +94,14 @@ dependencies:
   # 视频播放器
   flutter_meedu_videoplayer: ^4.2.20
   media_kit_libs_android_video: ^1.2.0
-#  media_kit_libs_macos_video: ^1.0.5
-#  media_kit_libs_windows_video: ^1.0.2
+  #  media_kit_libs_macos_video: ^1.0.5
+  #  media_kit_libs_windows_video: ^1.0.2
 
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
+
+  # 桌面端浏览器爬虫(win/mac/linux)
+  puppeteer: ^3.1.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
