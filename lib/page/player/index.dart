@@ -436,9 +436,13 @@ class _PlayerLogic extends BaseLogic {
         // 根据资源与视频下标切换视频播放地址
         final result = await parserHandle.getAnimeVideoCache([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
+        final playUrl = result.first.playUrl;
+        final downloadRecord = await db.getDownloadRecord(playUrl);
         // 解析完成之后实现视频播放
-        final dataSource = DataSource(
-            type: DataSourceType.network, source: result.first.playUrl);
+        final dataSource = downloadRecord != null
+            ? DataSource(
+                type: DataSourceType.file, source: downloadRecord.filePath)
+            : DataSource(type: DataSourceType.network, source: playUrl);
         final seekTo = playTheRecord && record != null
             ? Duration(milliseconds: record.progress)
             : Duration.zero;

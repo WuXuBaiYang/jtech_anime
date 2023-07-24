@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:isar/isar.dart';
+import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/model/download.dart';
 
 part 'download_record.g.dart';
@@ -46,12 +47,25 @@ class DownloadRecord {
   // 更新时间
   DateTime updateTime = DateTime.now();
 
+  // 判断状态是否已完成
+  bool get isComplete => status == DownloadRecordStatus.complete;
+
+  // 判断状态是否为下载
+  bool get isDownload => status == DownloadRecordStatus.download;
+
+  // 判断状态是否为异常
+  bool get isFail => status == DownloadRecordStatus.fail;
+
   // 下载任务
   @ignore
   DownloadTask? task;
 
   // 判断是否为m3u8文件
   bool get isM3U8 => Uri.parse(url).path.endsWith('.m3u8');
+
+  // 获取播放文件路径
+  String get filePath =>
+      isM3U8 ? '$savePath/${DownloadManage.m3u8IndexFilename}' : savePath;
 
   // 创建下载任务
   DownloadRecord createTask(String savePath) {
@@ -73,4 +87,4 @@ class DownloadRecord {
   }
 }
 
-enum DownloadRecordStatus { download, complete, fail }
+enum DownloadRecordStatus { download, fail, complete }

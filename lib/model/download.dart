@@ -19,10 +19,14 @@ class DownloadTask extends BaseModel {
   // 下载速度
   final int speed;
 
+  // 是否正在下载
+  final bool downloading;
+
   DownloadTask({
     required this.cancelKey,
     this.progress = 0,
     this.total = 0,
     this.speed = 0,
+    this.downloading = false,
   });
 }

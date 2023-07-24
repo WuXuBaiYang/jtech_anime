@@ -21,10 +21,10 @@ typedef DownloadCompleteCallback = void Function(DownloadRecord record);
 */
 class DownloadManage extends BaseManage {
   // m3u8密钥文件名
-  static const _m3u8KeyFilename = 'key.key';
+  static const m3u8KeyFilename = 'key.key';
 
   // m3u8索引文件名
-  static const _m3u8IndexFilename = 'index.m3u8';
+  static const m3u8IndexFilename = 'index.m3u8';
 
   static final DownloadManage _instance = DownloadManage._internal();
 
@@ -50,6 +50,14 @@ class DownloadManage extends BaseManage {
   // 添加下载完成回调
   void addDownloadCompleteListener(DownloadCompleteCallback callback) =>
       _downloadCompleteCallbacks.add(callback);
+
+  // 开始多条下载任务
+  Future<List<bool>> startTasks(List<DownloadRecord> records) =>
+      Future.wait<bool>(records.map(startTask));
+
+  // 启动全部下载任务
+  Future<List<bool>> startAllTasks() => Future.wait<bool>(
+      [...downloadQueue.values, ...prepareQueue.values].map(startTask));
 
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
@@ -98,8 +106,9 @@ class DownloadManage extends BaseManage {
       record.savePath,
       cancelToken: record.task?.cancelKey,
       failed: (e) => _taskOnError(record, e),
-      complete: (_) => _updateTaskComplete(record),
-      receiveProgress: (c, t, s) => _updateTaskProgress(record, c, t, s),
+      complete: (savePath) => _updateTaskComplete(record, savePath),
+      receiveProgress: (count, total, savePath) =>
+          _updateTaskProgress(record, count, total, savePath),
     );
     return true;
   }
@@ -120,13 +129,14 @@ class DownloadManage extends BaseManage {
   }
 
   // 更新下载任务为完成状态
-  void _updateTaskComplete(DownloadRecord record) async {
+  void _updateTaskComplete(DownloadRecord record, String savePath) async {
     // 完成下载任务
     _doneTask(record);
     // 更新下载任务为已完成
     db.updateDownload(record
       ..status = DownloadRecordStatus.complete
-      ..updateTime = DateTime.now());
+      ..updateTime = DateTime.now()
+      ..savePath = savePath);
     // 回调下载完成事件
     for (var listener in _downloadCompleteCallbacks) {
       listener.call(record);
@@ -153,6 +163,14 @@ class DownloadManage extends BaseManage {
     _resumeTask(prepareQueue.values.first);
   }
 
+  // 暂停全部下载任务
+  Future<List<bool>> stopAllTasks() => Future.wait<bool>(
+      [...downloadQueue.values, ...prepareQueue.values].map(stopTask));
+
+  // 暂停多条下载任务
+  Future<List<bool>> stopTasks(List<DownloadRecord> records) async =>
+      Future.wait<bool>(records.map(stopTask));
+
   // 暂停一个下载任务
   Future<bool> stopTask(DownloadRecord record) async {
     try {
@@ -171,6 +189,14 @@ class DownloadManage extends BaseManage {
     }
     return false;
   }
+
+  // 删除全部下载任务
+  Future<List<bool>> removeAllTasks() => Future.wait<bool>(
+      [...downloadQueue.values, ...prepareQueue.values].map(removeTask));
+
+  // 删除多条下载任务
+  Future<List<bool>> removeTasks(List<DownloadRecord> records) =>
+      Future.wait<bool>(records.map(removeTask));
 
   // 删除一个下载任务
   Future<bool> removeTask(DownloadRecord record) async {
@@ -215,7 +241,7 @@ class DownloadManage extends BaseManage {
         for (final filename in downloads.keys) {
           final content = downloads[filename] ?? '';
           final file = File('$savePath/$filename');
-          if (filename != _m3u8IndexFilename) {
+          if (filename != m3u8IndexFilename) {
             // 文件不存在则启用下载
             if (!file.existsSync()) {
               // 下载文件并存储到本地
@@ -294,7 +320,7 @@ class DownloadManage extends BaseManage {
         // 下载完成后去掉.tmp标记
         await temp.rename(file.path);
       }
-      return complete?.call(savePath);
+      return complete?.call(file.path);
     } catch (e) {
       LogTool.e('视频下载失败', error: e);
       failed?.call(e as Exception);
@@ -407,7 +433,7 @@ class DownloadManage extends BaseManage {
     // 获取密钥下载地址（如果存在）
     String? key = playlist.segments.first.fullSegmentEncryptionKeyUri;
     if (key != null) {
-      content = content.replaceAll(key, _m3u8KeyFilename);
+      content = content.replaceAll(key, m3u8KeyFilename);
       key = _mergeUrl(key, baseUri);
     }
     // 遍历分片列表并同时生成本地索引文件
@@ -425,8 +451,8 @@ class DownloadManage extends BaseManage {
     }
     return {
       ...resources,
-      _m3u8IndexFilename: content,
-      if (key != null) _m3u8KeyFilename: key,
+      m3u8IndexFilename: content,
+      if (key != null) m3u8KeyFilename: key,
     };
   }
 

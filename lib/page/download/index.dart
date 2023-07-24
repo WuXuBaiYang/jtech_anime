@@ -1,11 +1,21 @@
+import 'dart:math';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
+import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
+import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/page/download/list.dart';
+import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
@@ -59,6 +69,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
               tabs: [Tab(text: '下载队列'), Tab(text: '已下载')],
             ),
           ),
+          actions: [
+            _buildDownloadTotalSpeed(),
+          ],
         ),
         body: TabBarView(children: [
           _buildDownloadingList(),
@@ -68,13 +81,77 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
     );
   }
 
+  // 构建下载总速度
+  Widget _buildDownloadTotalSpeed() {
+    return ValueListenableBuilder(
+      valueListenable: logic.downloadingList,
+      builder: (_, recordList, __) {
+        if (recordList.isEmpty) return const SizedBox();
+        int totalSpeed = 0;
+        recordList
+            .map((e) => e.task?.speed ?? 0)
+            .forEach((e) => totalSpeed += e);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text('${FileTool.formatSize(totalSpeed)}/s',
+              style: TextStyle(color: kPrimaryColor, fontSize: 20)),
+        );
+      },
+    );
+  }
+
   // 构建下载队列
   Widget _buildDownloadingList() {
     return ValueListenableBuilder<List<DownloadRecord>>(
       valueListenable: logic.downloadingList,
       builder: (_, recordList, __) {
-        return DownloadRecordList(recordList: recordList);
+        return Column(
+          children: [
+            _buildDownloadingHead(recordList),
+            Expanded(
+              child: DownloadRecordList(
+                recordList: recordList,
+                onTaskTap: (item) {
+                  if (item.task == null) return;
+                  item.task!.downloading
+                      ? download.stopTask(item)
+                      : download.startTask(item);
+                },
+              ),
+            ),
+          ],
+        );
       },
+    );
+  }
+
+  // 构建下载队列头部
+  Widget _buildDownloadingHead(List<DownloadRecord> recordList) {
+    const padding = EdgeInsets.only(top: 18, left: 14, right: 4);
+    final downloadCount = download.downloadQueue.length;
+    final prepareCount = download.prepareQueue.length;
+    final canPause = downloadCount != 0 || prepareCount != 0;
+    final canPlay = downloadCount + prepareCount < recordList.length;
+    return Padding(
+      padding: padding,
+      child: Row(
+        children: [
+          Text('$downloadCount / $prepareCount / ${recordList.length}',
+              style: const TextStyle(color: Colors.black54, fontSize: 16)),
+          const Spacer(),
+          IconButton(
+            onPressed: canPause ? () => download.stopAllTasks() : null,
+            icon: const Icon(FontAwesomeIcons.pause),
+            color: kPrimaryColor,
+          ),
+          IconButton(
+            onPressed: canPlay ? () => download.startAllTasks() : null,
+            icon: const Icon(FontAwesomeIcons.play),
+            color: kPrimaryColor,
+          ),
+        ],
+      ),
     );
   }
 
@@ -87,7 +164,18 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
           enableRefresh: true,
           enableLoadMore: true,
           initialRefresh: true,
-          child: DownloadRecordList(recordList: recordList),
+          child: DownloadRecordList(
+            recordList: recordList,
+            onTaskTap: (item) =>
+                router.pushNamed(RoutePath.animeDetail, arguments: {
+              'animeDetail': AnimeModel(
+                url: item.url,
+                name: item.name,
+                cover: item.cover,
+              ),
+              'downloadRecord': item,
+            }),
+          ),
           onRefresh: (loadMore) => logic.loadDownloadRecords(context, loadMore),
         );
       },
@@ -114,7 +202,18 @@ class _DownloadLogic extends BaseLogic {
   void init() {
     super.init();
     // 获取下载队列基础数据
-    loadDownloadingList();
+    loadDownloadingList().then((value) {
+      final temp = downloadingList.value
+          .map((e) => e
+            ..task = DownloadTask(
+                cancelKey: CancelToken(),
+                progress: Random().nextInt(9),
+                total: 10,
+                speed: 1000 * 1000 * 54,
+                downloading: Random().nextBool()))
+          .toList();
+      downloadingList.setValue(temp);
+    });
     // 监听下载队列与等待队列
     download.downloadQueue.addListener(
         () => _updateDownloadingList(download.downloadQueue.value));
@@ -129,8 +228,10 @@ class _DownloadLogic extends BaseLogic {
         parserHandle.currentSource,
         // 最大可显示下载队列为999
         pageSize: 999,
-        status: DownloadRecordStatus.values
-          ..remove(DownloadRecordStatus.complete),
+        status: [
+          DownloadRecordStatus.download,
+          DownloadRecordStatus.fail,
+        ],
       );
       downloadingList.setValue(results);
     } catch (e) {

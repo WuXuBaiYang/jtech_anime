@@ -287,6 +287,8 @@ class _AnimeDetailLogic extends BaseLogic {
   void setupArguments(BuildContext context, Map arguments) {
     // 设置传入的番剧信息
     animeDetail = ValueChangeNotifier(arguments['animeDetail']);
+    // 获取下载记录
+    final downloadRecord = arguments['downloadRecord'];
     // 判断是否需要播放观看记录
     final play = arguments['playTheRecord'] ?? false;
     // 初始化加载
@@ -296,6 +298,8 @@ class _AnimeDetailLogic extends BaseLogic {
           .whenComplete(() {
         // 加载完番剧详情后播放记录
         if (play) playTheRecord();
+        // 如果存在下载记录则代表需要直接播放已下载视频
+        if (downloadRecord != null) playTheDownload(downloadRecord);
       });
     });
   }
@@ -325,6 +329,16 @@ class _AnimeDetailLogic extends BaseLogic {
         url: record.resUrl,
       ),
       playTheRecord: true,
+    );
+  }
+
+  // 播放下载内容
+  Future<void>? playTheDownload(DownloadRecord record) {
+    return goPlay(
+      ResourceItemModel(
+        name: record.name,
+        url: record.resUrl,
+      ),
     );
   }
 
