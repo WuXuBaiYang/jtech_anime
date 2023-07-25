@@ -108,7 +108,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
       builder: (_, recordList, __) {
         return Column(
           children: [
-            _buildDownloadingHead(recordList),
+            if (recordList.isNotEmpty) _buildDownloadingHead(recordList),
             Expanded(
               child: DownloadRecordList(
                 recordList: recordList,

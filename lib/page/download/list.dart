@@ -4,6 +4,7 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 // 下载任务点击事件
 typedef DownloadTaskTapCallback = void Function(DownloadRecord record);
@@ -25,6 +26,13 @@ class DownloadRecordList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (recordList.isEmpty) {
+      return const Center(
+        child: StatusBox(
+          status: StatusBoxStatus.empty,
+        ),
+      );
+    }
     return ListView.builder(
       itemCount: recordList.length,
       itemBuilder: (_, i) {
