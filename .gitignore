@@ -31,4 +31,4 @@ doc/api/
 
 assets/filter/supabase.json
 publish
-keystore
+publish/keystore
