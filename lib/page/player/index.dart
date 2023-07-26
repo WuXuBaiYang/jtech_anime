@@ -21,7 +21,6 @@ import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
 
 /*
@@ -267,7 +266,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
-      logic.controller.pause();
+      logic.controller
+        ..lockedControls.value = false
+        ..pause();
     }
   }
 
@@ -352,10 +353,6 @@ class _PlayerLogic extends BaseLogic {
         fullscreen: false,
         videoFit: true,
         pip: false,
-      ),
-      loadingWidget: const StatusBox(
-        status: StatusBoxStatus.loading,
-        animSize: 30,
       ),
       screenManager: const ScreenManager(
         orientations: [
