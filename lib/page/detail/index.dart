@@ -291,12 +291,15 @@ class _AnimeDetailLogic extends BaseLogic {
     final downloadRecord = arguments['downloadRecord'];
     // 判断是否需要播放观看记录
     final play = arguments['playTheRecord'] ?? false;
-    // 初始化加载番剧详情
-    Loading.show(loadFuture: loadAnimeDetail())?.whenComplete(() {
-      // 加载完番剧详情后播放记录
-      if (play) playTheRecord();
-      // 如果存在下载记录则代表需要直接播放已下载视频
-      if (downloadRecord != null) playTheDownload(downloadRecord);
+    // 初始化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 初始化加载番剧详情
+      Loading.show(loadFuture: loadAnimeDetail())?.whenComplete(() {
+        // 加载完番剧详情后播放记录
+        if (play) playTheRecord();
+        // 如果存在下载记录则代表需要直接播放已下载视频
+        if (downloadRecord != null) playTheDownload(downloadRecord);
+      });
     });
   }
 

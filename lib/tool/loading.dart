@@ -18,7 +18,7 @@ class Loading {
   static Future<T?>? show<T>({
     required Future<T?> loadFuture,
     ValueChangeNotifier<String>? title,
-    bool dismissible = true,
+    bool dismissible = false,
     BuildContext? context,
   }) async {
     context ??= router.navigator?.context;
