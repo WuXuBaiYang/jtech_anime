@@ -257,7 +257,7 @@ class _DownloadLogic extends BaseLogic {
             : downloadRecordList.setValue(result);
       }
     } catch (e) {
-      SnackTool.showMessage(context, message: '下载记录加载失败，请重试~');
+      SnackTool.showMessage( message: '下载记录加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }

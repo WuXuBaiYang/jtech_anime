@@ -43,17 +43,17 @@ class _PlayRecordPageState
       appBar: AppBar(
         title: const Text('播放记录'),
       ),
-      body: _buildPlayRecords(context),
+      body: _buildPlayRecords(),
     );
   }
 
   // 构建播放记录列表
-  Widget _buildPlayRecords(BuildContext context) {
+  Widget _buildPlayRecords() {
     return CustomRefreshView(
       enableRefresh: true,
       enableLoadMore: true,
       initialRefresh: true,
-      onRefresh: (loadMore) => logic.loadPlayRecords(context, loadMore),
+      onRefresh: (loadMore) => logic.loadPlayRecords(loadMore),
       child: ValueListenableBuilder<List<PlayRecord>>(
         valueListenable: logic.playRecords,
         builder: (_, playRecords, __) {
@@ -70,7 +70,7 @@ class _PlayRecordPageState
                 itemCount: playRecords.length,
                 itemBuilder: (_, i) {
                   final item = playRecords[i];
-                  return _buildPlayRecordsItem(context, item);
+                  return _buildPlayRecordsItem(item);
                 },
               ),
             ],
@@ -87,7 +87,7 @@ class _PlayRecordPageState
   final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);
 
   // 构建播放记录项
-  Widget _buildPlayRecordsItem(BuildContext context, PlayRecord item) {
+  Widget _buildPlayRecordsItem(PlayRecord item) {
     final progress = Duration(milliseconds: item.progress);
     return InkWell(
       child: DefaultTextStyle(
@@ -129,7 +129,7 @@ class _PlayRecordPageState
           ),
         ),
       ),
-      onTap: () => logic.goDetail(context, item),
+      onTap: () => logic.goDetail(item),
     );
   }
 }
@@ -147,7 +147,7 @@ class _PlayRecordLogic extends BaseLogic {
   var _pageIndex = 1;
 
   // 加载播放记录
-  Future<void> loadPlayRecords(BuildContext context, bool loadMore) async {
+  Future<void> loadPlayRecords(bool loadMore) async {
     if (isLoading) return;
     try {
       loading.setValue(true);
@@ -163,14 +163,14 @@ class _PlayRecordLogic extends BaseLogic {
             : playRecords.setValue(result);
       }
     } catch (e) {
-      SnackTool.showMessage(context, message: '播放记录加载失败，请重试~');
+      SnackTool.showMessage(message: '播放记录加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }
   }
 
   // 跳转到详情页
-  Future<void>? goDetail(BuildContext context, PlayRecord item) async {
+  Future<void>? goDetail(PlayRecord item) async {
     await router.pushNamed(RoutePath.animeDetail, arguments: {
       'animeDetail': AnimeModel(
         url: item.url,

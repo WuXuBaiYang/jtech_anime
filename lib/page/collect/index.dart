@@ -42,17 +42,17 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
       appBar: AppBar(
         title: const Text('我的收藏'),
       ),
-      body: _buildCollectList(context),
+      body: _buildCollectList(),
     );
   }
 
   // 构建收藏列表
-  Widget _buildCollectList(BuildContext context) {
+  Widget _buildCollectList() {
     return CustomRefreshView(
       enableRefresh: true,
       enableLoadMore: true,
       initialRefresh: true,
-      onRefresh: (loadMore) => logic.loadCollectList(context, loadMore),
+      onRefresh: (loadMore) => logic.loadCollectList(loadMore),
       child: ValueListenableBuilder<List<Collect>>(
         valueListenable: logic.collectList,
         builder: (_, collectList, __) {
@@ -74,14 +74,14 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
                     if (oldIndex < newIndex) newIndex -= 1;
                     final oldItem = collectList[oldIndex];
                     final newItem = collectList[newIndex];
-                    logic.updateCollectOrder(context, oldItem, newItem.order);
+                    logic.updateCollectOrder(oldItem, newItem.order);
                     // 更新本地列表排序
                     var child = collectList.removeAt(oldIndex);
                     collectList.insert(newIndex, child);
                   }),
                   itemBuilder: (_, i) {
                     final item = collectList[i];
-                    return _buildCollectListItem(context, item, i);
+                    return _buildCollectListItem(item, i);
                   },
                 );
               }),
@@ -99,7 +99,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
   final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);
 
   // 构建收藏列表项
-  Widget _buildCollectListItem(BuildContext context, Collect item, int i) {
+  Widget _buildCollectListItem(Collect item, int i) {
     return InkWell(
       key: ValueKey(item),
       child: DefaultTextStyle(
@@ -129,7 +129,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
                       icon: Icon(item.collected
                           ? FontAwesomeIcons.heartCircleCheck
                           : FontAwesomeIcons.heart),
-                      onPressed: () => logic.updateCollect(context, item, i),
+                      onPressed: () => logic.updateCollect(item, i),
                     ),
                   ],
                 ),
@@ -141,7 +141,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
           ),
         ),
       ),
-      onTap: () => logic.goDetail(context, item, i),
+      onTap: () => logic.goDetail(item, i),
     );
   }
 }
@@ -159,7 +159,7 @@ class _CollectLogic extends BaseLogic {
   int _pageIndex = 1;
 
   // 加载收藏列表
-  Future<void> loadCollectList(BuildContext context, bool loadMore) async {
+  Future<void> loadCollectList(bool loadMore) async {
     if (isLoading) return;
     try {
       loading.setValue(true);
@@ -175,15 +175,14 @@ class _CollectLogic extends BaseLogic {
             : collectList.setValue(result);
       }
     } catch (e) {
-      SnackTool.showMessage(context, message: '收藏列表加载失败，请重试~');
+      SnackTool.showMessage(message: '收藏列表加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }
   }
 
   // 更新收藏状态（收藏/取消收藏）
-  Future<void> updateCollect(
-      BuildContext context, Collect item, int index) async {
+  Future<void> updateCollect(Collect item, int index) async {
     try {
       final result = await db.updateCollect(item);
       collectList.putValue(
@@ -192,14 +191,13 @@ class _CollectLogic extends BaseLogic {
             ..collected = result != null
             ..id = result?.id ?? Isar.autoIncrement);
     } catch (e) {
-      SnackTool.showMessage(context,
+      SnackTool.showMessage(
           message: '${item.id == Isar.autoIncrement ? '收藏' : '取消收藏'}失败，请重试~');
     }
   }
 
   // 更新收藏状态（获取最新的状态进行更新）
-  Future<void> updateCollectStatus(
-      BuildContext context, Collect item, int index) async {
+  Future<void> updateCollectStatus(Collect item, int index) async {
     try {
       final result = await db.getCollect(item.url);
       collectList.putValue(
@@ -208,29 +206,28 @@ class _CollectLogic extends BaseLogic {
             ..collected = result != null
             ..id = result?.id ?? Isar.autoIncrement);
     } catch (e) {
-      SnackTool.showMessage(context, message: '收藏状态更新失败，请重试~');
+      SnackTool.showMessage(message: '收藏状态更新失败，请重试~');
     }
   }
 
   // 更新收藏项排序
-  Future<void> updateCollectOrder(
-      BuildContext context, Collect item, int to) async {
+  Future<void> updateCollectOrder(Collect item, int to) async {
     try {
       await db.updateCollectOrder(item.url,
           source: parserHandle.currentSource, to: to);
     } catch (e) {
-      SnackTool.showMessage(context, message: '排序更新失败,请重试~');
+      SnackTool.showMessage(message: '排序更新失败,请重试~');
     }
   }
 
   // 跳转到详情页
-  Future<void>? goDetail(BuildContext context, Collect item, int i) {
+  Future<void>? goDetail(Collect item, int i) {
     return router.pushNamed(RoutePath.animeDetail, arguments: {
       'animeDetail': AnimeModel(
         url: item.url,
         name: item.name,
         cover: item.cover,
       ),
-    })?.then((_) => updateCollectStatus(context, item, i));
+    })?.then((_) => updateCollectStatus(item, i));
   }
 }

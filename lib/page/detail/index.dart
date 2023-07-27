@@ -91,7 +91,7 @@ class _AnimeDetailPageState
                   icon: Icon(collect.collected
                       ? FontAwesomeIcons.heartCircleCheck
                       : FontAwesomeIcons.heart),
-                  onPressed: () => logic.updateCollect(context, collect),
+                  onPressed: () => logic.updateCollect(collect),
                 );
               },
             ),
@@ -291,21 +291,17 @@ class _AnimeDetailLogic extends BaseLogic {
     final downloadRecord = arguments['downloadRecord'];
     // 判断是否需要播放观看记录
     final play = arguments['playTheRecord'] ?? false;
-    // 初始化加载
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 初始化加载番剧详情
-      Loading.show(context, loadFuture: loadAnimeDetail(context))
-          .whenComplete(() {
-        // 加载完番剧详情后播放记录
-        if (play) playTheRecord();
-        // 如果存在下载记录则代表需要直接播放已下载视频
-        if (downloadRecord != null) playTheDownload(downloadRecord);
-      });
+    // 初始化加载番剧详情
+    Loading.show(loadFuture: loadAnimeDetail())?.whenComplete(() {
+      // 加载完番剧详情后播放记录
+      if (play) playTheRecord();
+      // 如果存在下载记录则代表需要直接播放已下载视频
+      if (downloadRecord != null) playTheDownload(downloadRecord);
     });
   }
 
   // 更新收藏状态（收藏/取消收藏）
-  Future<void> updateCollect(BuildContext context, Collect item) async {
+  Future<void> updateCollect(Collect item) async {
     if (isLoading) return;
     try {
       final result = await db.updateCollect(item);
@@ -314,7 +310,7 @@ class _AnimeDetailLogic extends BaseLogic {
         collected: result != null,
       ));
     } catch (e) {
-      SnackTool.showMessage(context,
+      SnackTool.showMessage(
           message: '${item.id != Isar.autoIncrement ? '取消收藏' : '收藏'}失败，请重试~');
     }
   }
@@ -357,7 +353,7 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 加载番剧详情
-  Future<void> loadAnimeDetail(BuildContext context) async {
+  Future<void> loadAnimeDetail() async {
     if (isLoading) return;
     final animeUrl = animeDetail.value.url;
     if (animeUrl.isEmpty) return;
@@ -379,7 +375,7 @@ class _AnimeDetailLogic extends BaseLogic {
             ..source = parserHandle.currentSource
             ..collected = false));
     } catch (e) {
-      SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
+      SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }

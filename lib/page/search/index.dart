@@ -41,7 +41,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
     return Scaffold(
       body: Stack(
         children: [
-          _buildSearchList(context),
+          _buildSearchList(),
           _buildSearchBar(context),
         ],
       ),
@@ -56,21 +56,21 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       child: SearchBarView(
         inSearching: logic.loading,
         searchRecordList: logic.searchRecordList,
-        search: (keyword) => logic.startSearch(context, keyword),
-        recordDelete: (item) => logic.deleteSearchRecord(context, item),
+        search: (keyword) => logic.startSearch(keyword),
+        recordDelete: (item) => logic.deleteSearchRecord(item),
       ),
     );
   }
 
   // 构建搜索列表
-  Widget _buildSearchList(BuildContext context) {
+  Widget _buildSearchList() {
     final padding = MediaQuery.of(context).padding;
     return CustomRefreshView(
         displacement: 120,
         enableRefresh: true,
         enableLoadMore: true,
         controller: logic.controller,
-        onRefresh: (loadMore) => logic.search(context, loadMore),
+        onRefresh: (loadMore) => logic.search(loadMore),
         child: ValueListenableBuilder<List<AnimeModel>>(
             valueListenable: logic.searchList,
             builder: (_, searchList, __) {
@@ -170,14 +170,13 @@ class _SearchLogic extends BaseLogic {
   String? _lastKeyword;
 
   // 启动刷新
-  startSearch(BuildContext context, String keyword) {
+  startSearch(String keyword) {
     _lastKeyword = keyword;
     controller.startRefresh();
   }
 
   // 执行搜索
-  Future<void> search(BuildContext context, bool loadMore,
-      {String? keyword}) async {
+  Future<void> search(bool loadMore, {String? keyword}) async {
     keyword ??= _lastKeyword;
     if (isLoading) return;
     if (keyword == null || keyword.isEmpty) return;
@@ -200,21 +199,20 @@ class _SearchLogic extends BaseLogic {
           : parserHandle.searchAnimeList(keyword));
       loadMore ? searchList.addValues(result) : searchList.setValue(result);
     } catch (e) {
-      SnackTool.showMessage(context, message: '搜索请求失败，请重试~');
+      SnackTool.showMessage(message: '搜索请求失败，请重试~');
     } finally {
       loading.setValue(false);
     }
   }
 
   // 删除搜索记录
-  Future<bool> deleteSearchRecord(
-      BuildContext context, SearchRecord item) async {
+  Future<bool> deleteSearchRecord(SearchRecord item) async {
     var result = false;
     try {
       result = await db.removeSearchRecord(item.id);
       if (result) searchRecordList.removeValue(item);
     } catch (e) {
-      SnackTool.showMessage(context, message: '搜索记录删除失败，请重试~');
+      SnackTool.showMessage(message: '搜索记录删除失败，请重试~');
     }
     return result;
   }

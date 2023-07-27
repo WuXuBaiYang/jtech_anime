@@ -57,7 +57,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildResourceTab(context),
+          _buildResourceTab(),
           const Divider(color: Colors.white, thickness: 0.1, height: 1),
           Expanded(child: _buildResourceTabView()),
         ],
@@ -66,7 +66,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   }
 
   // 构建资源分类tab
-  Widget _buildResourceTab(BuildContext context) {
+  Widget _buildResourceTab() {
     return Row(
       children: [
         TabBar(
@@ -92,9 +92,8 @@ class _DownloadSheetState extends State<DownloadSheet> {
                   ),
                 IconButton(
                   icon: const Icon(FontAwesomeIcons.check),
-                  onPressed: selectList.isNotEmpty
-                      ? () => _addDownloadTask(context)
-                      : null,
+                  onPressed:
+                      selectList.isNotEmpty ? () => _addDownloadTask() : null,
                 ),
               ],
             );
@@ -171,10 +170,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
   }
 
   // 添加下载任务
-  void _addDownloadTask(BuildContext context) {
+  void _addDownloadTask() {
     final title = ValueChangeNotifier<String>('正在解析~');
     Loading.show<List<bool>>(
-      context,
       title: title,
       loadFuture: parserHandle
           // 获取视频缓存
@@ -193,11 +191,10 @@ class _DownloadSheetState extends State<DownloadSheet> {
             ..name = e.item?.name ?? ''))
           // 使用下载记录启动下载
           .then((records) => Future.wait(records.map(download.startTask))),
-    ).then((results) {
+    )?.then((results) {
       final success = results?.where((e) => e).length ?? 0;
       final fail = (results?.length ?? 0) - success;
-      SnackTool.showMessage(context,
-          message: '已添加到下载，成功 $success 个/失败 $fail 个');
+      SnackTool.showMessage(message: '已添加到下载，成功 $success 个/失败 $fail 个');
     }).whenComplete(() => cacheController.refreshValue());
   }
 }

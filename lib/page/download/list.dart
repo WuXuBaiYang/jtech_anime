@@ -38,11 +38,11 @@ class DownloadRecordList extends StatelessWidget {
       itemBuilder: (_, i) {
         final item = recordList[i];
         if (i == 0 || recordList[i - 1].url != item.url) {
-          return _buildDownloadAnimeItem(context, item);
+          return _buildDownloadAnimeItem(item);
         }
         return Padding(
           padding: const EdgeInsets.only(left: 77, bottom: 6),
-          child: _buildDownloadTaskItem(context, item),
+          child: _buildDownloadTaskItem(item),
         );
       },
     );
@@ -55,7 +55,7 @@ class DownloadRecordList extends StatelessWidget {
   final subTitleStyle = const TextStyle(fontSize: 14, color: Colors.black38);
 
   // 构建下载任务番剧信息
-  Widget _buildDownloadAnimeItem(BuildContext context, DownloadRecord item) {
+  Widget _buildDownloadAnimeItem(DownloadRecord item) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -79,7 +79,7 @@ class DownloadRecordList extends StatelessWidget {
                 child: Text(item.title, style: titleStyle),
               ),
               const SizedBox(height: 8),
-              _buildDownloadTaskItem(context, item),
+              _buildDownloadTaskItem(item),
             ],
           ),
         ),
@@ -88,7 +88,7 @@ class DownloadRecordList extends StatelessWidget {
   }
 
   // 构建下载任务列表项
-  Widget _buildDownloadTaskItem(BuildContext context, DownloadRecord item) {
+  Widget _buildDownloadTaskItem(DownloadRecord item) {
     final iconData = item.isComplete
         ? FontAwesomeIcons.circlePlay
         : ((item.task != null && item.task!.downloading)

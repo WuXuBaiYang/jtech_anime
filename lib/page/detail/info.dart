@@ -26,15 +26,15 @@ class AnimeDetailInfo extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          _buildInfoBackground(context),
-          _buildInfo(context),
+          _buildInfoBackground(),
+          _buildInfo(),
         ],
       ),
     );
   }
 
   // 构建背景图
-  Widget _buildInfoBackground(BuildContext context) {
+  Widget _buildInfoBackground() {
     return Blur(
       blur: 14,
       blurColor: Colors.white,
@@ -57,7 +57,7 @@ class AnimeDetailInfo extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 14);
 
   // 构建信息部分
-  Widget _buildInfo(BuildContext context) {
+  Widget _buildInfo() {
     return SafeArea(
       child: DefaultTextStyle(
         maxLines: 1,
@@ -72,9 +72,9 @@ class AnimeDetailInfo extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoCover(context),
+                  _buildInfoCover(),
                   const SizedBox(width: 14),
-                  Expanded(child: _buildInfoText(context)),
+                  Expanded(child: _buildInfoText()),
                 ],
               ),
             ),
@@ -98,7 +98,7 @@ class AnimeDetailInfo extends StatelessWidget {
   }
 
   // 构建封面
-  Widget _buildInfoCover(BuildContext context) {
+  Widget _buildInfoCover() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: ImageView.net(animeInfo.cover,
@@ -107,7 +107,7 @@ class AnimeDetailInfo extends StatelessWidget {
   }
 
   // 构建消息文本部分
-  _buildInfoText(BuildContext context) {
+  _buildInfoText() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

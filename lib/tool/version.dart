@@ -86,10 +86,10 @@ class AppVersionTool {
             const PermissionRequest.androidManageExternalStorage(),
             const PermissionRequest.androidRequestInstallPackages(),
           ]).then((v) {
-            if (!v) return SnackTool.showMessage(context, message: '未能获取到权限');
-            Navigator.pop(context, true);
+            if (!v) return SnackTool.showMessage(message: '未能获取到权限');
+            router.pop(true);
             _installAndroidApk(context, info);
-            SnackTool.showMessage(context, message: '正在下载安装包...');
+            SnackTool.showMessage(message: '正在下载安装包...');
           });
         },
         child: const Text('更新'),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 import 'log.dart';
@@ -14,19 +15,20 @@ class Loading {
   static Future? _loadingDialog;
 
   // 展示加载弹窗
-  static Future<T?> show<T>(
-    BuildContext context, {
+  static Future<T?>? show<T>({
     required Future<T?> loadFuture,
-    bool dismissible = true,
     ValueChangeNotifier<String>? title,
+    bool dismissible = true,
+    BuildContext? context,
   }) async {
+    context ??= router.navigator?.context;
+    if (context == null) return null;
     final navigator = Navigator.of(context);
     try {
       if (_loadingDialog != null) navigator.maybePop();
       _loadingDialog = showDialog<void>(
         context: context,
-        builder: (_) =>
-            _buildLoadingView(context, title ?? ValueChangeNotifier('加载中~')),
+        builder: (_) => _buildLoadingView(title ?? ValueChangeNotifier('加载中~')),
         barrierDismissible: dismissible,
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
@@ -45,8 +47,7 @@ class Loading {
   }
 
   // 构建加载视图
-  static Widget _buildLoadingView(
-      BuildContext context, ValueChangeNotifier<String> title) {
+  static Widget _buildLoadingView(ValueChangeNotifier<String> title) {
     return Center(
       child: Card(
         child: Padding(
