@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
@@ -54,53 +56,67 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: widget.animeInfo.resources.length,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildResourceTab(),
-          const Divider(color: Colors.white, thickness: 0.1, height: 1),
-          Expanded(child: _buildResourceTabView()),
-        ],
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(FontAwesomeIcons.xmark),
+            onPressed: () => router.pop(),
+          ),
+          title: const Text('番剧缓存'),
+          actions: [
+            TextButton(
+              onPressed: () => router.pushNamed(RoutePath.download),
+              child: const Text('缓存管理'),
+            ),
+            _buildSubmitButton()
+          ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: _buildResourceTab(),
+          ),
+        ),
+        body: _buildResourceTabView(),
       ),
+    );
+  }
+
+  // 构建提交按钮
+  Widget _buildSubmitButton() {
+    return ValueListenableBuilder<List<ResourceItemModel>>(
+      valueListenable: selectResources,
+      builder: (_, selectList, __) {
+        return Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            if (selectList.isNotEmpty)
+              Text(
+                '${selectList.length}',
+                textAlign: TextAlign.start,
+                style: const TextStyle(fontSize: 10),
+              ),
+            IconButton(
+              icon: const Icon(FontAwesomeIcons.check),
+              onPressed:
+                  selectList.isNotEmpty ? () => _addDownloadTask() : null,
+            ),
+          ],
+        );
+      },
     );
   }
 
   // 构建资源分类tab
   Widget _buildResourceTab() {
-    return Row(
-      children: [
-        TabBar(
-          isScrollable: true,
-          indicatorColor: kPrimaryColor,
-          dividerColor: Colors.transparent,
-          tabs: List.generate(widget.animeInfo.resources.length, (i) {
-            return Tab(text: '资源${i + 1}');
-          }),
-        ),
-        const Spacer(),
-        ValueListenableBuilder<List<ResourceItemModel>>(
-          valueListenable: selectResources,
-          builder: (_, selectList, __) {
-            return Stack(
-              alignment: Alignment.bottomCenter,
-              children: [
-                if (selectList.isNotEmpty)
-                  Text(
-                    '${selectList.length}',
-                    textAlign: TextAlign.start,
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                IconButton(
-                  icon: const Icon(FontAwesomeIcons.check),
-                  onPressed:
-                      selectList.isNotEmpty ? () => _addDownloadTask() : null,
-                ),
-              ],
-            );
-          },
-        ),
-        const SizedBox(width: 4),
-      ],
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TabBar(
+        isScrollable: true,
+        indicatorColor: kPrimaryColor,
+        dividerColor: Colors.transparent,
+        tabs: List.generate(widget.animeInfo.resources.length, (i) {
+          return Tab(text: '资源${i + 1}');
+        }),
+      ),
     );
   }
 
