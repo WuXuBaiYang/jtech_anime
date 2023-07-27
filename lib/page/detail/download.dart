@@ -65,7 +65,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
           title: const Text('番剧缓存'),
           actions: [
             TextButton(
-              onPressed: () => router.pushNamed(RoutePath.download),
+              onPressed: () => router
+                  .pushNamed(RoutePath.download)
+                  ?.then((_) => cacheController.refreshValue()),
               child: const Text('缓存管理'),
             ),
             _buildSubmitButton()
@@ -96,8 +98,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
               ),
             IconButton(
               icon: const Icon(FontAwesomeIcons.check),
-              onPressed:
-                  selectList.isNotEmpty ? () => _addDownloadTask() : null,
+              onPressed: selectList.isNotEmpty ? _addDownloadTask : null,
             ),
           ],
         );
@@ -107,13 +108,14 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   // 构建资源分类tab
   Widget _buildResourceTab() {
+    final resources = widget.animeInfo.resources;
     return Align(
       alignment: Alignment.centerLeft,
       child: TabBar(
         isScrollable: true,
         indicatorColor: kPrimaryColor,
         dividerColor: Colors.transparent,
-        tabs: List.generate(widget.animeInfo.resources.length, (i) {
+        tabs: List.generate(resources.length, (i) {
           return Tab(text: '资源${i + 1}');
         }),
       ),
@@ -160,13 +162,14 @@ class _DownloadSheetState extends State<DownloadSheet> {
           final item = items[i];
           final selected = selectList.contains(item);
           final downloaded = downloadMap.containsKey(item.url);
+          final avatar =
+              downloaded ? const Icon(FontAwesomeIcons.circleCheck) : null;
           return ChoiceChip(
-            avatar:
-                downloaded ? const Icon(FontAwesomeIcons.circleCheck) : null,
+            avatar: avatar,
             selected: selected,
             label: Text(item.name),
             onSelected: !downloaded
-                ? (v) => selected
+                ? (_) => selected
                     ? selectResources.removeValue(item)
                     : selectResources.addValue(item)
                 : null,
@@ -177,12 +180,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
   }
 
   // 加载下载记录表
-  Future<Map<String, DownloadRecord>> _loadDownloadRecordMap() async {
-    final result = await db.getDownloadRecordList(
+  Future<Map<String, DownloadRecord>> _loadDownloadRecordMap() {
+    return db.getDownloadRecordList(
       parserHandle.currentSource,
       animeList: [widget.animeInfo.url],
-    );
-    return result.asMap().map((_, v) => MapEntry(v.resUrl, v));
+    ).then((v) => v.asMap().map((_, v) => MapEntry(v.resUrl, v)));
   }
 
   // 添加下载任务
@@ -194,7 +196,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
           // 获取视频缓存
           .getAnimeVideoCache(
             selectResources.value,
-            progress: (count, total) => title.setValue('正在解析($count/$total)'),
+            progress: (count, total) {
+              title.setValue('正在解析($count/$total)');
+            },
           )
           // 将视频缓存封装为下载记录结构
           .then((videoCaches) => videoCaches.map((e) => DownloadRecord()
@@ -211,6 +215,6 @@ class _DownloadSheetState extends State<DownloadSheet> {
       final success = results?.where((e) => e).length ?? 0;
       final fail = (results?.length ?? 0) - success;
       SnackTool.showMessage(message: '已添加到下载，成功 $success 个/失败 $fail 个');
-    }).whenComplete(() => cacheController.refreshValue());
+    }).whenComplete(cacheController.refreshValue);
   }
 }
