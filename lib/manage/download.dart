@@ -52,12 +52,8 @@ class DownloadManage extends BaseManage {
       _downloadCompleteCallbacks.add(callback);
 
   // 开始多条下载任务
-  Future<List<bool>> startTasks(List<DownloadRecord> records) =>
-      Future.wait<bool>(records.map(startTask));
-
-  // 启动全部下载任务
-  Future<List<bool>> startAllTasks(List<DownloadRecord> records) =>
-      Future.wait<bool>(records.map(startTask));
+  Future<void> startTasks(List<DownloadRecord> records) =>
+      Future.forEach(records, (e) async => await startTask(e));
 
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
@@ -161,8 +157,8 @@ class DownloadManage extends BaseManage {
   }
 
   // 暂停全部下载任务
-  Future<List<bool>> stopAllTasks() => Future.wait<bool>(
-      [...downloadQueue.values, ...prepareQueue.values].map(stopTask));
+  Future<List<bool>> stopAllTasks() =>
+      stopTasks([...downloadQueue.values, ...prepareQueue.values]);
 
   // 暂停多条下载任务
   Future<List<bool>> stopTasks(List<DownloadRecord> records) async =>
@@ -188,8 +184,8 @@ class DownloadManage extends BaseManage {
   }
 
   // 删除全部下载任务
-  Future<List<bool>> removeAllTasks() => Future.wait<bool>(
-      [...downloadQueue.values, ...prepareQueue.values].map(removeTask));
+  Future<List<bool>> removeAllTasks() =>
+      removeTasks([...downloadQueue.values, ...prepareQueue.values]);
 
   // 删除多条下载任务
   Future<List<bool>> removeTasks(List<DownloadRecord> records) =>

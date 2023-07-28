@@ -144,7 +144,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
           IconButton(
             onPressed: canPlay
                 ? () => download
-                    .startAllTasks(recordList.map((e) => e.copyWith()).toList())
+                    .startTasks(recordList.map((e) => e.copyWith()).toList())
                 : null,
             icon: const Icon(FontAwesomeIcons.play),
             color: kPrimaryColor,
