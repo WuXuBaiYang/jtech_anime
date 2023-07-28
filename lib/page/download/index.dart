@@ -110,9 +110,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
               child: DownloadRecordList(
                 recordList: recordList,
                 onTaskTap: (item) {
-                  (item.task?.downloading ?? false)
+                  (item.task != null && item.task!.downloading)
                       ? download.stopTask(item)
-                      : download.startTask(item);
+                      : download.startTask(item.copyWith());
                 },
               ),
             ),

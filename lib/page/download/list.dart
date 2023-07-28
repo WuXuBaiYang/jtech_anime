@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime/manage/db.dart';
+import 'package:jtech_anime/manage/download.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/tool/file.dart';
+import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
+import 'package:jtech_anime/widget/message_dialog.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 // 下载任务点击事件
@@ -38,11 +43,11 @@ class DownloadRecordList extends StatelessWidget {
       itemBuilder: (_, i) {
         final item = recordList[i];
         if (i == 0 || recordList[i - 1].url != item.url) {
-          return _buildDownloadAnimeItem(item);
+          return _buildDownloadAnimeItem(context, item);
         }
         return Padding(
           padding: const EdgeInsets.only(left: 77, bottom: 6),
-          child: _buildDownloadTaskItem(item),
+          child: _buildDownloadTaskItem(context, item),
         );
       },
     );
@@ -55,40 +60,43 @@ class DownloadRecordList extends StatelessWidget {
   final subTitleStyle = const TextStyle(fontSize: 14, color: Colors.black38);
 
   // 构建下载任务番剧信息
-  Widget _buildDownloadAnimeItem(DownloadRecord item) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(width: 8),
-        Padding(
-          padding: const EdgeInsets.only(top: 14),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: ImageView.net(item.cover,
-                width: 60, height: 80, fit: BoxFit.cover),
+  Widget _buildDownloadAnimeItem(BuildContext context, DownloadRecord item) {
+    return InkWell(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 14),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: ImageView.net(item.cover,
+                  width: 60, height: 80, fit: BoxFit.cover),
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(item.title, style: titleStyle),
-              ),
-              const SizedBox(height: 8),
-              _buildDownloadTaskItem(item),
-            ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(item.title, style: titleStyle),
+                ),
+                const SizedBox(height: 8),
+                _buildDownloadTaskItem(context, item),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+      onLongPress: () => _deleteAnimeRecords(context, item),
     );
   }
 
   // 构建下载任务列表项
-  Widget _buildDownloadTaskItem(DownloadRecord item) {
+  Widget _buildDownloadTaskItem(BuildContext context, DownloadRecord item) {
     const borderRadios = BorderRadius.horizontal(left: Radius.circular(8));
     return ClipRRect(
       borderRadius: borderRadios,
@@ -116,17 +124,59 @@ class DownloadRecordList extends StatelessWidget {
                         style: subTitleStyle),
                   const SizedBox(width: 14),
                   if (item.isFail)
-                    Icon(FontAwesomeIcons.triangleExclamation,
-                        color: Colors.redAccent.withOpacity(0.8), size: 12),
+                    IconButton(
+                      icon: Icon(FontAwesomeIcons.triangleExclamation,
+                          color: Colors.redAccent.withOpacity(0.8), size: 14),
+                      onPressed: () =>
+                          SnackTool.showMessage(message: item.failText ?? ''),
+                    ),
                   const SizedBox(width: 14),
-                  Icon(_getPlayIconStatus(item), color: kPrimaryColor),
-                  const SizedBox(width: 14),
+                  IconButton(
+                    icon: Icon(_getPlayIconStatus(item), color: kPrimaryColor),
+                    onPressed: () => onTaskTap?.call(item),
+                  ),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
             onTap: () => onTaskTap?.call(item),
+            onLongPress: () => _showDeleteDialog(context, [item]),
           ),
         ],
+      ),
+    );
+  }
+
+  // 删除关于这部番剧的所有记录
+  Future<void> _deleteAnimeRecords(
+      BuildContext context, DownloadRecord item) async {
+    return db.getDownloadRecordList(
+      item.source,
+      pageSize: 999,
+      animeList: [item.url],
+    ).then((items) => _showDeleteDialog(context, items));
+  }
+
+  // 展示删除弹窗
+  Future<void> _showDeleteDialog(
+      BuildContext context, List<DownloadRecord> items) {
+    final name = items.firstOrNull?.name;
+    final content =
+        '是否删除 $name ${items.length > 1 ? '等${items.length}条记录' : ''}';
+    return MessageDialog.show(
+      context,
+      title: const Text('删除'),
+      content: Text(content),
+      actionMiddle: TextButton(
+        child: const Text('取消'),
+        onPressed: () => router.pop(),
+      ),
+      actionRight: TextButton(
+        child: const Text('删除'),
+        onPressed: () {
+          download.removeTasks(items);
+          router.pop();
+        },
       ),
     );
   }
