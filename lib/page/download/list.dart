@@ -89,18 +89,13 @@ class DownloadRecordList extends StatelessWidget {
 
   // 构建下载任务列表项
   Widget _buildDownloadTaskItem(DownloadRecord item) {
-    final iconData = item.isComplete
-        ? FontAwesomeIcons.circlePlay
-        : ((item.task != null && item.task!.downloading)
-            ? FontAwesomeIcons.pause
-            : FontAwesomeIcons.play);
     const borderRadios = BorderRadius.horizontal(left: Radius.circular(8));
     return ClipRRect(
       borderRadius: borderRadios,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          if (item.task != null)
+          if (item.task != null && item.task!.total > 0)
             LinearProgressIndicator(
               valueColor:
                   AlwaysStoppedAnimation(kPrimaryColor.withOpacity(0.15)),
@@ -124,7 +119,7 @@ class DownloadRecordList extends StatelessWidget {
                     Icon(FontAwesomeIcons.triangleExclamation,
                         color: Colors.redAccent.withOpacity(0.8), size: 12),
                   const SizedBox(width: 14),
-                  Icon(iconData, color: kPrimaryColor),
+                  Icon(_getPlayIconStatus(item), color: kPrimaryColor),
                   const SizedBox(width: 14),
                 ],
               ),
@@ -134,5 +129,13 @@ class DownloadRecordList extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // 获取播放状态
+  IconData _getPlayIconStatus(DownloadRecord item) {
+    if (item.isComplete) return FontAwesomeIcons.circlePlay;
+    if (item.task == null) return FontAwesomeIcons.play;
+    if (item.task!.downloading) return FontAwesomeIcons.pause;
+    return FontAwesomeIcons.hourglassHalf;
   }
 }

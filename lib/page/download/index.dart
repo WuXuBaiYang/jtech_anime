@@ -1,6 +1,3 @@
-import 'dart:math';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
@@ -13,7 +10,6 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/page/download/list.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
@@ -87,14 +83,15 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
       valueListenable: logic.downloadingList,
       builder: (_, recordList, __) {
         if (recordList.isEmpty) return const SizedBox();
-        int totalSpeed = 0;
+        int? totalSpeed;
         recordList
-            .map((e) => e.task?.speed ?? 0)
-            .forEach((e) => totalSpeed += e);
-
+            .where((e) => e.task != null)
+            .map((e) => e.task!.speed)
+            .forEach((e) => totalSpeed = (totalSpeed ?? 0) + e);
+        if (totalSpeed == null) return const SizedBox();
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('${FileTool.formatSize(totalSpeed)}/s',
+          child: Text('${FileTool.formatSize(totalSpeed!)}/s',
               style: TextStyle(color: kPrimaryColor, fontSize: 20)),
         );
       },
@@ -113,8 +110,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
               child: DownloadRecordList(
                 recordList: recordList,
                 onTaskTap: (item) {
-                  if (item.task == null) return;
-                  item.task!.downloading
+                  (item.task?.downloading ?? false)
                       ? download.stopTask(item)
                       : download.startTask(item);
                 },
@@ -146,7 +142,10 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
             color: kPrimaryColor,
           ),
           IconButton(
-            onPressed: canPlay ? () => download.startAllTasks() : null,
+            onPressed: canPlay
+                ? () => download
+                    .startAllTasks(recordList.map((e) => e.copyWith()).toList())
+                : null,
             icon: const Icon(FontAwesomeIcons.play),
             color: kPrimaryColor,
           ),
@@ -202,18 +201,7 @@ class _DownloadLogic extends BaseLogic {
   void init() {
     super.init();
     // 获取下载队列基础数据
-    loadDownloadingList().then((value) {
-      final temp = downloadingList.value
-          .map((e) => e
-            ..task = DownloadTask(
-                cancelKey: CancelToken(),
-                progress: Random().nextInt(9),
-                total: 10,
-                speed: 1000 * 1000 * 54,
-                downloading: Random().nextBool()))
-          .toList();
-      downloadingList.setValue(temp);
-    });
+    loadDownloadingList();
     // 监听下载队列与等待队列
     download.downloadQueue.addListener(
         () => _updateDownloadingList(download.downloadQueue.value));
@@ -257,7 +245,7 @@ class _DownloadLogic extends BaseLogic {
             : downloadRecordList.setValue(result);
       }
     } catch (e) {
-      SnackTool.showMessage( message: '下载记录加载失败，请重试~');
+      SnackTool.showMessage(message: '下载记录加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }
@@ -266,7 +254,7 @@ class _DownloadLogic extends BaseLogic {
   // 更新下载队列
   void _updateDownloadingList(Map<String, DownloadRecord> downloadMap) {
     return downloadingList.setValue(downloadingList.value
-        .map((e) => downloadMap[e.downloadUrl] ?? e)
+        .map((e) => downloadMap[e.downloadUrl] ?? (e..task = null))
         .toList());
   }
 }

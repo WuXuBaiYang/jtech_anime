@@ -189,7 +189,8 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   // 添加下载任务
   void _addDownloadTask() {
-    final title = ValueChangeNotifier<String>('正在解析~');
+    final title =
+        ValueChangeNotifier<String>('正在解析(1/${selectResources.length})');
     Loading.show<List<bool>>(
       title: title,
       loadFuture: parserHandle

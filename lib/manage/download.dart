@@ -56,8 +56,8 @@ class DownloadManage extends BaseManage {
       Future.wait<bool>(records.map(startTask));
 
   // 启动全部下载任务
-  Future<List<bool>> startAllTasks() => Future.wait<bool>(
-      [...downloadQueue.values, ...prepareQueue.values].map(startTask));
+  Future<List<bool>> startAllTasks(List<DownloadRecord> records) =>
+      Future.wait<bool>(records.map(startTask));
 
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
@@ -90,16 +90,13 @@ class DownloadManage extends BaseManage {
       prepareQueue.putValue(downloadUrl, record);
       return true;
     }
-    // 如果目录不存在则创建
-    final dir = Directory(record.savePath);
-    if (!dir.existsSync()) dir.createSync(recursive: true);
     // 更新下载记录的状态
     await db.updateDownload(record
       ..status = DownloadRecordStatus.download
       ..updateTime = DateTime.now());
     // 移除准备队列的任务并添加到下载队列
-    downloadQueue.putValue(downloadUrl, record);
     prepareQueue.removeValue(downloadUrl);
+    downloadQueue.putValue(downloadUrl, record..updateTaskStatus(true));
     // 判断任务类型并开始下载
     (record.isM3U8 ? _downloadM3U8 : _downloadVideo)(
       downloadUrl,
@@ -232,6 +229,7 @@ class DownloadManage extends BaseManage {
         int speed = 0, count = 0;
         final total = downloads.length;
         timer = Timer.periodic(updateDelay, (_) {
+          if (cancelToken?.isCancelled ?? false) return;
           receiveProgress?.call(count, total, speed);
           speed = 0;
         });
@@ -293,6 +291,7 @@ class DownloadManage extends BaseManage {
     try {
       int speed = 0, count = 0, total = -1;
       timer = Timer.periodic(updateDelay, (_) {
+        if (cancelToken?.isCancelled ?? false) return;
         receiveProgress?.call(count, total, speed);
         speed = 0;
       });
@@ -349,7 +348,9 @@ class DownloadManage extends BaseManage {
     // 开始下载
     final options = Options(
       responseType: ResponseType.stream,
-      headers: _getRange(downloadStart),
+      headers: {
+        if (canPause) ..._getRange(downloadStart),
+      },
       followRedirects: false,
     );
     final resp = await Dio().get<ResponseBody>(url, options: options);
@@ -459,6 +460,7 @@ class DownloadManage extends BaseManage {
   // 判断是否支持断点续传
   Future<bool> _supportPause(String url) async {
     try {
+      return false;
       final options = Options(headers: _getRange(0, 1024));
       final resp = await Dio().get(url, options: options);
       if (resp.statusCode == 200) {
