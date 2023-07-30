@@ -58,11 +58,9 @@ class MessageDialog extends StatelessWidget {
     return AlertDialog(
       title: title,
       content: content,
-      titlePadding: const EdgeInsets.all(14),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-      actionsPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: _dialogActions,
+      actionsAlignment: MainAxisAlignment.spaceBetween,
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
   }
 

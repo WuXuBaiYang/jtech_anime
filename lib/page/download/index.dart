@@ -14,6 +14,7 @@ import 'package:jtech_anime/page/download/list.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/widget/message_dialog.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 
 /*
@@ -65,9 +66,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
               tabs: [Tab(text: '下载队列'), Tab(text: '已下载')],
             ),
           ),
-          actions: [
-            _buildDownloadTotalSpeed(),
-          ],
         ),
         body: TabBarView(children: [
           _buildDownloadingList(),
@@ -77,29 +75,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
     );
   }
 
-  // 构建下载总速度
-  Widget _buildDownloadTotalSpeed() {
-    return ValueListenableBuilder(
-      valueListenable: logic.downloadingList,
-      builder: (_, recordList, __) {
-        if (recordList.isEmpty) return const SizedBox();
-        int? totalSpeed;
-        recordList
-            .where((e) => e.task != null)
-            .map((e) => e.task!.speed)
-            .forEach((e) => totalSpeed = (totalSpeed ?? 0) + e);
-        if (totalSpeed == null) return const SizedBox();
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('${FileTool.formatSize(totalSpeed!)}/s',
-              style: TextStyle(color: kPrimaryColor, fontSize: 20)),
-        );
-      },
-    );
-  }
-
   // 构建下载队列
   Widget _buildDownloadingList() {
+    const status = [DownloadRecordStatus.download, DownloadRecordStatus.fail];
     return ValueListenableBuilder<List<DownloadRecord>>(
       valueListenable: logic.downloadingList,
       builder: (_, recordList, __) {
@@ -109,11 +87,15 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
             Expanded(
               child: DownloadRecordList(
                 recordList: recordList,
-                onTaskTap: (item) {
-                  (item.task != null && item.task!.downloading)
-                      ? download.stopTask(item)
-                      : download.startTask(item.copyWith());
-                },
+                onTaskLongTap: (item) =>
+                    _showDeleteDialog(context, [item], logic.downloadingList),
+                onAnimeLongTap: (item) => logic
+                    .getAnimeDownloadRecord(item, status: status)
+                    .then((items) => _showDeleteDialog(
+                        context, items, logic.downloadingList)),
+                onTaskTap: (item) => item.task != null
+                    ? download.stopTask(item)
+                    : download.startTask(item.copyWith()),
               ),
             ),
           ],
@@ -124,28 +106,23 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 
   // 构建下载队列头部
   Widget _buildDownloadingHead(List<DownloadRecord> recordList) {
-    const padding = EdgeInsets.only(top: 18, left: 14, right: 4);
-    final downloadCount = download.downloadQueue.length;
-    final prepareCount = download.prepareQueue.length;
-    final canPause = downloadCount != 0 || prepareCount != 0;
-    final canPlay = downloadCount + prepareCount < recordList.length;
+    final padding =
+        const EdgeInsets.symmetric(horizontal: 14).copyWith(top: 18);
     return Padding(
       padding: padding,
       child: Row(
         children: [
-          Text('$downloadCount / $prepareCount / ${recordList.length}',
-              style: const TextStyle(color: Colors.black54, fontSize: 16)),
+          _buildDownloadTotalSpeed(),
           const Spacer(),
           IconButton(
-            onPressed: canPause ? () => download.stopAllTasks() : null,
+            onPressed: download.stopAllTasks,
             icon: const Icon(FontAwesomeIcons.pause),
             color: kPrimaryColor,
           ),
           IconButton(
-            onPressed: canPlay
-                ? () => download
-                    .startTasks(recordList.map((e) => e.copyWith()).toList())
-                : null,
+            onPressed: () => download.startTasks(
+              recordList.map((e) => e.copyWith()).toList(),
+            ),
             icon: const Icon(FontAwesomeIcons.play),
             color: kPrimaryColor,
           ),
@@ -154,8 +131,29 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
     );
   }
 
+  // 构建下载总速度
+  Widget _buildDownloadTotalSpeed() {
+    return ValueListenableBuilder(
+      valueListenable: logic.downloadingList,
+      builder: (_, recordList, __) {
+        if (recordList.isEmpty) return const SizedBox();
+        int totalSpeed = 0;
+        recordList
+            .where((e) => e.task != null)
+            .map((e) => e.task!.speed)
+            .forEach((e) => totalSpeed += e);
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text('${FileTool.formatSize(totalSpeed)}/s',
+              style: TextStyle(color: kPrimaryColor, fontSize: 20)),
+        );
+      },
+    );
+  }
+
   // 构建下载记录列表
   Widget _buildDownloadRecordList(BuildContext context) {
+    const status = [DownloadRecordStatus.complete];
     return ValueListenableBuilder<List<DownloadRecord>>(
       valueListenable: logic.downloadRecordList,
       builder: (_, recordList, __) {
@@ -165,19 +163,54 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
           initialRefresh: true,
           child: DownloadRecordList(
             recordList: recordList,
-            onTaskTap: (item) =>
-                router.pushNamed(RoutePath.animeDetail, arguments: {
-              'animeDetail': AnimeModel(
-                url: item.url,
-                name: item.name,
-                cover: item.cover,
-              ),
-              'downloadRecord': item,
-            }),
+            onTaskLongTap: (item) =>
+                _showDeleteDialog(context, [item], logic.downloadRecordList),
+            onAnimeLongTap: (item) => logic
+                .getAnimeDownloadRecord(item, status: status)
+                .then((items) => _showDeleteDialog(
+                    context, items, logic.downloadRecordList)),
+            onTaskTap: (item) => router.pushNamed(
+              RoutePath.animeDetail,
+              arguments: {
+                'animeDetail': AnimeModel(
+                  url: item.url,
+                  name: item.name,
+                  cover: item.cover,
+                ),
+                'downloadRecord': item,
+              },
+            ),
           ),
           onRefresh: (loadMore) => logic.loadDownloadRecords(context, loadMore),
         );
       },
+    );
+  }
+
+  // 展示删除弹窗
+  Future<void> _showDeleteDialog(
+    BuildContext context,
+    List<DownloadRecord> items,
+    ListValueChangeNotifier<DownloadRecord> notifier,
+  ) {
+    final item = items.firstOrNull;
+    final content =
+        '是否删除 ${item?.title} ${item?.name} ${items.length > 1 ? '等${items.length}条下载记录' : ''}';
+    return MessageDialog.show(
+      context,
+      title: const Text('删除'),
+      content: Text(content),
+      actionMiddle: TextButton(
+        child: const Text('取消'),
+        onPressed: () => router.pop(),
+      ),
+      actionRight: TextButton(
+        child: const Text('删除'),
+        onPressed: () {
+          logic.removeDownloadRecord(items, notifier);
+          router.pop();
+        },
+      ),
     );
   }
 }
@@ -202,11 +235,8 @@ class _DownloadLogic extends BaseLogic {
     super.init();
     // 获取下载队列基础数据
     loadDownloadingList();
-    // 监听下载队列与等待队列
-    download.downloadQueue.addListener(
-        () => _updateDownloadingList(download.downloadQueue.value));
-    download.prepareQueue.addListener(
-        () => _updateDownloadingList(download.downloadQueue.value));
+    // 监听下载队列
+    download.downloadQueue.addListener(updateDownloadingList);
   }
 
   // 获取下载队列列表
@@ -252,9 +282,40 @@ class _DownloadLogic extends BaseLogic {
   }
 
   // 更新下载队列
-  void _updateDownloadingList(Map<String, DownloadRecord> downloadMap) {
-    return downloadingList.setValue(downloadingList.value
+  void updateDownloadingList() {
+    final downloadMap = download.downloadQueue.value;
+    downloadingList.setValue(downloadingList.value
         .map((e) => downloadMap[e.downloadUrl] ?? (e..task = null))
         .toList());
+  }
+
+  // 获取番剧对应的下载任务
+  Future<List<DownloadRecord>> getAnimeDownloadRecord(DownloadRecord item,
+      {List<DownloadRecordStatus> status = const []}) {
+    return db.getDownloadRecordList(
+      item.source,
+      pageSize: 999,
+      status: status,
+      animeList: [item.url],
+    );
+  }
+
+  // 删除下载记录
+  Future<void> removeDownloadRecord(List<DownloadRecord> items,
+      ListValueChangeNotifier<DownloadRecord> notifier) {
+    int i = 0;
+    return download
+        .removeTasks(items)
+        .then(
+          (values) => items
+              .map((e) => e.downloadUrl)
+              .where((e) => !values[i++])
+              .toList(),
+        )
+        .then(
+          (records) => notifier.removeWhere(
+            (e) => records.contains(e.downloadUrl),
+          ),
+        );
   }
 }

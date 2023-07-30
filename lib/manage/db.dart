@@ -39,6 +39,9 @@ class DBManage extends BaseManage {
     );
   }
 
+  // 监听下载记录变化
+  Stream<void> watchDownloadRecord() => isar.downloadRecords.watchLazy();
+
   // 删除下载记录
   Future<bool> removeDownloadRecord(int id) => isar.writeTxn<bool>(() {
         // 移除下载记录

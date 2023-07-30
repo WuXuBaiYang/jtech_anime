@@ -191,7 +191,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   void _addDownloadTask() {
     final title =
         ValueChangeNotifier<String>('正在解析(1/${selectResources.length})');
-    Loading.show<List<bool>>(
+    Loading.show<void>(
       title: title,
       loadFuture: parserHandle
           // 获取视频缓存
@@ -202,20 +202,21 @@ class _DownloadSheetState extends State<DownloadSheet> {
             },
           )
           // 将视频缓存封装为下载记录结构
-          .then((videoCaches) => videoCaches.map((e) => DownloadRecord()
-            ..title = widget.animeInfo.name
-            ..cover = widget.animeInfo.cover
-            ..url = widget.animeInfo.url
-            ..source = parserHandle.currentSource
-            ..resUrl = e.url
-            ..downloadUrl = e.playUrl
-            ..name = e.item?.name ?? ''))
+          .then((videoCaches) => videoCaches
+              .map((e) => DownloadRecord()
+                ..title = widget.animeInfo.name
+                ..cover = widget.animeInfo.cover
+                ..url = widget.animeInfo.url
+                ..source = parserHandle.currentSource
+                ..resUrl = e.url
+                ..downloadUrl = e.playUrl
+                ..name = e.item?.name ?? '')
+              .toList())
           // 使用下载记录启动下载
-          .then((records) => Future.wait(records.map(download.startTask))),
-    )?.then((results) {
-      final success = results?.where((e) => e).length ?? 0;
-      final fail = (results?.length ?? 0) - success;
-      SnackTool.showMessage(message: '已添加到下载，成功 $success 个/失败 $fail 个');
-    }).whenComplete(cacheController.refreshValue);
+          .then(download.startTasks),
+    )?.whenComplete(() {
+      SnackTool.showMessage(message: '已添加到下载队列');
+      cacheController.refreshValue();
+    });
   }
 }
