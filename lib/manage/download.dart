@@ -127,7 +127,10 @@ class DownloadManage extends BaseManage {
   // 更新下载进度
   void _updateTaskProgress(
       DownloadRecord record, int count, int total, int speed) {
-    final notify = ++_updateCount >= maxDownloadCount.value;
+    int maxCount = maxDownloadCount.value;
+    final queueCount = downloadQueue.length;
+    maxCount = queueCount > maxCount ? maxCount : queueCount;
+    final notify = ++_updateCount >= maxCount;
     if (notify) {
       _updateTaskTotalProgress();
       _updateCount = 0;
@@ -256,7 +259,7 @@ class DownloadManage extends BaseManage {
   Future<void> _downloadM3U8(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 500),
+    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
@@ -323,7 +326,7 @@ class DownloadManage extends BaseManage {
   Future<void> _downloadVideo(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 500),
+    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
