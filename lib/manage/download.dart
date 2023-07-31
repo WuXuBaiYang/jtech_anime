@@ -502,8 +502,8 @@ class DownloadManage extends BaseManage {
 
   // 判断是否支持断点续传
   Future<bool> _supportPause(String url) async {
+    return false;
     try {
-      return false;
       final options = Options(headers: _getRange(0, 1024));
       final resp = await Dio().get(url, options: options);
       if (resp.statusCode == 200) {
