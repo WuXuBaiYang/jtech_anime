@@ -267,7 +267,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 */
 class _HomeLogic extends BaseLogic {
   // 折叠高度
-  static const double expandedHeight = 300.0;
+  static const double expandedHeight = 350.0;
 
   // 标题栏展示状态¶
   final showAppbar = ValueChangeNotifier<bool>(true);

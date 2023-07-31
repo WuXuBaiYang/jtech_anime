@@ -11,6 +11,8 @@ import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/tool.dart';
 
+import 'notification.dart';
+
 // 下载完成回调
 typedef DownloadCompleteCallback = void Function(DownloadRecord record);
 
@@ -26,6 +28,9 @@ class DownloadManage extends BaseManage {
   // m3u8索引文件名
   static const m3u8IndexFilename = 'index.m3u8';
 
+  // 下载进度通知id
+  static const downloadProgressNoticeId = 9527;
+
   static final DownloadManage _instance = DownloadManage._internal();
 
   factory DownloadManage() => _instance;
@@ -40,6 +45,12 @@ class DownloadManage extends BaseManage {
 
   // 最大下载数
   final maxDownloadCount = ValueChangeNotifier<int>(3);
+
+  // 总速度
+  final totalSpeed = ValueChangeNotifier<int>(0);
+
+  // 总进度
+  final totalProgress = ValueChangeNotifier<double>(0);
 
   // 下载完成回调
   final List<DownloadCompleteCallback> _downloadCompleteCallbacks = [];
@@ -116,12 +127,44 @@ class DownloadManage extends BaseManage {
   // 更新下载进度
   void _updateTaskProgress(
       DownloadRecord record, int count, int total, int speed) {
-    final notify = ++_updateCount >= downloadQueue.length;
-    if (notify) _updateCount = 0;
+    final notify = ++_updateCount >= maxDownloadCount.value;
+    if (notify) {
+      _updateTaskTotalProgress();
+      _updateCount = 0;
+    }
     downloadQueue.putValue(
       notify: notify,
       record.downloadUrl,
       record.updateTask(count, total, speed),
+    );
+  }
+
+  // 更新总体下载进度
+  void _updateTaskTotalProgress() {
+    // 计算总体进度与总体速度
+    double speed = 0, ratio = 0, total = 0;
+    String? firstAnimeName;
+    for (var e in downloadQueue.values) {
+      final task = e.task;
+      if (task == null) continue;
+      firstAnimeName ??= '${e.title} ${e.name}';
+      ratio += task.progress;
+      speed += task.speed;
+      total += task.total;
+    }
+    ratio /= total;
+    totalSpeed.setValue(speed.toInt());
+    totalProgress.setValue(ratio);
+    final length = downloadQueue.length;
+    final progress = (ratio * 100).toStringAsFixed(1);
+    final content =
+        '($progress%)  正在下载 $firstAnimeName ${length > 1 ? '等 $length 部视频' : ''}';
+    notice.showProgress(
+      progress: (100 * ratio).toInt(),
+      id: downloadProgressNoticeId,
+      indeterminate: false,
+      maxProgress: 100,
+      title: content,
     );
   }
 
@@ -157,8 +200,11 @@ class DownloadManage extends BaseManage {
     downloadQueue.removeValue(record.downloadUrl);
     // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
     final list = prepareList;
-    if (list.isEmpty) return;
-    _resumeTask(list.first);
+    if (list.isEmpty) {
+      notice.cancel(downloadProgressNoticeId);
+    } else {
+      _resumeTask(list.first);
+    }
   }
 
   // 暂停全部下载任务

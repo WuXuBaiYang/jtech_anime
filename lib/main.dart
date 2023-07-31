@@ -10,6 +10,7 @@ import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download.dart';
 import 'package:jtech_anime/manage/event.dart';
+import 'package:jtech_anime/manage/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/page/home/index.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
@@ -26,6 +27,7 @@ void main() async {
   await event.init(); // 事件服务
   await db.init(); // 数据库
   await download.init(); // 下载管理
+  await notice.init(); // 消息通知
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
     await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);

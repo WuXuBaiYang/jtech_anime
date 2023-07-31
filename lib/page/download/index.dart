@@ -13,6 +13,7 @@ import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/download/list.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
+import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
@@ -50,6 +51,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
         // 刷新下载完成队列
         logic.loadDownloadRecords(context, false);
       });
+      // 请求通知权限
+      PermissionTool.checkNotification(context);
     });
   }
 
@@ -133,15 +136,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 
   // 构建下载总速度
   Widget _buildDownloadTotalSpeed() {
-    return ValueListenableBuilder(
-      valueListenable: logic.downloadingList,
-      builder: (_, recordList, __) {
-        if (recordList.isEmpty) return const SizedBox();
-        int totalSpeed = 0;
-        recordList
-            .where((e) => e.task != null)
-            .map((e) => e.task!.speed)
-            .forEach((e) => totalSpeed += e);
+    return ValueListenableBuilder<int>(
+      valueListenable: download.totalSpeed,
+      builder: (_, totalSpeed, __) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text('${FileTool.formatSize(totalSpeed)}/s',

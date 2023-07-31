@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/time_table.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 // 时间表点击回调
