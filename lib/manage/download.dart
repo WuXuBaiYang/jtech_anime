@@ -155,7 +155,7 @@ class DownloadManage extends BaseManage {
       speed += task.speed;
       total += task.total;
     }
-    ratio /= total;
+    if (total != 0 && ratio != 0) ratio /= total;
     totalSpeed.setValue(speed.toInt());
     totalProgress.setValue(ratio);
     final length = downloadQueue.length;
@@ -205,6 +205,8 @@ class DownloadManage extends BaseManage {
     final list = prepareList;
     if (list.isEmpty) {
       notice.cancel(downloadProgressNoticeId);
+      totalProgress.setValue(0);
+      totalSpeed.setValue(0);
     } else {
       _resumeTask(list.first);
     }
@@ -497,9 +499,9 @@ class DownloadManage extends BaseManage {
       content = content.replaceAll(origin, filename);
     }
     return {
-      ...resources,
-      m3u8IndexFilename: content,
       if (key != null) m3u8KeyFilename: key,
+      m3u8IndexFilename: content,
+      ...resources,
     };
   }
 

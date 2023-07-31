@@ -301,18 +301,15 @@ class _DownloadLogic extends BaseLogic {
   Future<void> removeDownloadRecord(List<DownloadRecord> items,
       ListValueChangeNotifier<DownloadRecord> notifier) {
     int i = 0;
-    return download
-        .removeTasks(items)
-        .then(
-          (values) => items
-              .map((e) => e.downloadUrl)
-              .where((e) => !values[i++])
-              .toList(),
-        )
-        .then(
-          (records) => notifier.removeWhere(
-            (e) => records.contains(e.downloadUrl),
-          ),
-        );
+    return download.removeTasks(items).then((values) {
+      return items
+          .map((e) => e.downloadUrl)
+          .where((e) => values[i++])
+          .toList();
+    }).then((records) {
+      return notifier.removeWhere(
+        (e) => records.contains(e.downloadUrl),
+      );
+    });
   }
 }

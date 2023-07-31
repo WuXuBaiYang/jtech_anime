@@ -10,6 +10,7 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/tool/loading.dart';
+import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 
@@ -26,6 +27,7 @@ class DownloadSheet extends StatefulWidget {
 
   static Future<void> show(BuildContext context,
       {required AnimeModel animeInfo}) {
+    PermissionTool.checkNotification(context);
     return showModalBottomSheet(
       clipBehavior: Clip.hardEdge,
       context: context,
@@ -217,6 +219,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
     )?.whenComplete(() {
       SnackTool.showMessage(message: '已添加到下载队列');
       cacheController.refreshValue();
+      selectResources.setValue([]);
     });
   }
 }
