@@ -52,10 +52,10 @@ class DownloadManage extends BaseManage {
   final _bufferQueue = <String, DownloadTaskItem>{};
 
   // 下载任务流
-  final _downloadProgress = StreamController<DownloadTask>.broadcast();
+  final _downloadProgress = StreamController<DownloadTask?>.broadcast();
 
   // 获取下载任务流
-  Stream<DownloadTask> get downloadProgress => _downloadProgress.stream;
+  Stream<DownloadTask?> get downloadProgress => _downloadProgress.stream;
 
   // 下载完成回调
   final List<DownloadCompleteCallback> _downloadCompleteCallbacks = [];
@@ -114,8 +114,8 @@ class DownloadManage extends BaseManage {
     // 启动监听下载进度
     _startDownloadProgress();
     // 判断任务类型并开始下载
-    final downloader = record.isM3U8 ? _m3u8Download : _videoDownload;
-    final playFile = await downloader.start(
+    (record.isM3U8 ? _m3u8Download : _videoDownload)
+        .start(
       downloadUrl,
       record.savePath,
       cancelToken: cancelToken,
@@ -124,13 +124,15 @@ class DownloadManage extends BaseManage {
       complete: (_) => _updateTaskComplete(record),
       receiveProgress: (count, total, speed) =>
           _updateTaskProgress(record, count, total, speed),
-    );
-    // 更新下载记录的播放文件地址
-    if (playFile != null) {
-      await db.updateDownload(record
-        ..playFilePath = playFile.path
-        ..updateTime = DateTime.now());
-    }
+    )
+        .then((playFile) {
+      // 更新下载记录的播放文件地址
+      if (playFile != null) {
+        db.updateDownload(record
+          ..playFilePath = playFile.path
+          ..updateTime = DateTime.now());
+      }
+    });
     return true;
   }
 
@@ -230,9 +232,14 @@ class DownloadManage extends BaseManage {
   StreamSubscription<DownloadTask>? _downloadProgressStream;
 
   // 启动下载进度流
-  void _startDownloadProgress() => _downloadProgressStream ??=
-      Stream.periodic(const Duration(seconds: 1), _updateDownloadProgress)
-          .listen(_downloadProgress.add);
+  void _startDownloadProgress() {
+    if (_downloadProgressStream == null) {
+      _downloadProgress.add(_updateDownloadProgress(0));
+      _downloadProgressStream =
+          Stream.periodic(const Duration(seconds: 1), _updateDownloadProgress)
+              .listen(_downloadProgress.add);
+    }
+  }
 
   // 关闭下载进度流
   void _stopDownloadProgress() {
@@ -240,6 +247,7 @@ class DownloadManage extends BaseManage {
     if (downloadQueue.isEmpty && prepareQueue.isEmpty) {
       _downloadProgressStream?.cancel();
       _downloadProgressStream = null;
+      _downloadProgress.add(null);
     }
   }
 

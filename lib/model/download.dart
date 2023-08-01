@@ -59,13 +59,13 @@ class DownloadTask extends BaseModel {
 */
 class DownloadTaskItem extends BaseModel {
   // 已下载数量
-  final int count;
+  int count = 0;
 
   // 总数量
-  final int total;
+  int total = 0;
 
   // 下载速度
-  final int speed;
+  int speed = 0;
 
   // 获取进度比例
   double get ratio {
@@ -73,17 +73,13 @@ class DownloadTaskItem extends BaseModel {
     return count / total;
   }
 
+  DownloadTaskItem.zero();
+
   DownloadTaskItem(this.count, this.total, this.speed);
 
-  DownloadTaskItem.zero()
-      : count = 0,
-        total = 0,
-        speed = 0;
-
   // 叠加参数
-  DownloadTaskItem stack(int count, int total, int speed) => DownloadTaskItem(
-        this.count + count,
-        this.total + total,
-        this.speed + speed,
-      );
+  DownloadTaskItem stack(int count, int total, int speed) => this
+    ..count += count
+    ..total += total
+    ..speed += speed;
 }

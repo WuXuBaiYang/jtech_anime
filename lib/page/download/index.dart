@@ -92,7 +92,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
     return ValueListenableBuilder<List<DownloadRecord>>(
       valueListenable: logic.downloadingList,
       builder: (_, recordList, __) {
-        return StreamBuilder<DownloadTask>(
+        return StreamBuilder<DownloadTask?>(
           stream: download.downloadProgress,
           builder: (_, snap) {
             return Column(
