@@ -52,8 +52,10 @@ class DownloadManage extends BaseManage {
   final _bufferQueue = <String, DownloadTaskItem>{};
 
   // 下载任务流
-  late Stream<DownloadTask> downloadProgress =
-      Stream.periodic(const Duration(seconds: 1), _updateDownloadProgress);
+  final _downloadProgress = StreamController<DownloadTask>.broadcast();
+
+  // 获取下载任务流
+  Stream<DownloadTask> get downloadProgress => _downloadProgress.stream;
 
   // 下载完成回调
   final List<DownloadCompleteCallback> _downloadCompleteCallbacks = [];
@@ -109,6 +111,8 @@ class DownloadManage extends BaseManage {
       return true;
     }
     downloadQueue.putValue(downloadUrl, cancelToken);
+    // 启动监听下载进度
+    _startDownloadProgress();
     // 判断任务类型并开始下载
     final downloader = record.isM3U8 ? _m3u8Download : _videoDownload;
     final playFile = await downloader.start(
@@ -141,7 +145,7 @@ class DownloadManage extends BaseManage {
         : DownloadTaskItem(count, total, speed);
   }
 
-// 更新下载任务为完成状态
+  // 更新下载任务为完成状态
   void _updateTaskComplete(DownloadRecord record) async {
     // 完成下载任务
     _doneTask(record);
@@ -155,7 +159,7 @@ class DownloadManage extends BaseManage {
     }
   }
 
-// 下载任务异常处理
+  // 下载任务异常处理
   void _taskOnError(DownloadRecord record, Exception e) async {
     // 完成下载任务
     _doneTask(record);
@@ -166,7 +170,7 @@ class DownloadManage extends BaseManage {
       ..failText = e.toString());
   }
 
-// 结束下载任务(下载完成/下载停止/下载异常)
+  // 结束下载任务(下载完成/下载停止/下载异常)
   void _doneTask(DownloadRecord record) {
     final downloadUrl = record.downloadUrl;
     // 从下载队列与准备队列中移除下载任务
@@ -180,13 +184,15 @@ class DownloadManage extends BaseManage {
         if (item != null) _resumeTask(item);
       });
     }
+    // 停止监听下载进度
+    _stopDownloadProgress();
   }
 
-// 暂停多条下载任务
+  // 暂停多条下载任务
   Future<List<bool>> stopTasks(List<DownloadRecord> records) async =>
       Future.wait<bool>(records.map(stopTask));
 
-// 暂停一个下载任务
+  // 暂停一个下载任务
   Future<bool> stopTask(DownloadRecord record) async {
     try {
       final downloadUrl = record.downloadUrl;
@@ -202,11 +208,11 @@ class DownloadManage extends BaseManage {
     return false;
   }
 
-// 删除多条下载任务
+  // 删除多条下载任务
   Future<List<bool>> removeTasks(List<DownloadRecord> records) =>
       Future.wait<bool>(records.map(removeTask));
 
-// 删除一个下载任务
+  // 删除一个下载任务
   Future<bool> removeTask(DownloadRecord record) async {
     try {
       // 停止下载任务
@@ -218,6 +224,23 @@ class DownloadManage extends BaseManage {
       LogTool.e('移除下载任务失败', error: e);
     }
     return false;
+  }
+
+  // 下载进度流
+  StreamSubscription<DownloadTask>? _downloadProgressStream;
+
+  // 启动下载进度流
+  void _startDownloadProgress() => _downloadProgressStream ??=
+      Stream.periodic(const Duration(seconds: 1), _updateDownloadProgress)
+          .listen(_downloadProgress.add);
+
+  // 关闭下载进度流
+  void _stopDownloadProgress() {
+    // 如果下载队列与准备队列都没有任务了，则可以销毁下载进度流
+    if (downloadQueue.isEmpty && prepareQueue.isEmpty) {
+      _downloadProgressStream?.cancel();
+      _downloadProgressStream = null;
+    }
   }
 
   // 更新下载任务队列
@@ -234,11 +257,22 @@ class DownloadManage extends BaseManage {
     }
     // 总进度比值等于(下载任务+下载任务...)/(下载任务数+准备任务数)
     final totalCount = downloadQueue.length + prepareQueue.length;
+    totalRatio = totalRatio / totalCount;
+    final progress = totalRatio * 100;
+    // 推送消息
+    final content = '(${progress.toStringAsFixed(1)}%)  正在下载 $totalCount 条视频';
+    notice.showProgress(
+      id: downloadProgressNoticeId,
+      progress: progress.toInt(),
+      indeterminate: false,
+      maxProgress: 100,
+      title: content,
+    );
     // 清空缓冲队列并返回
     final downloadTask = DownloadTask(
-      totalSpeed: totalSpeed.toInt(),
-      totalRatio: totalRatio / totalCount,
       downloadingMap: Map.from(_bufferQueue),
+      totalSpeed: totalSpeed.toInt(),
+      totalRatio: totalRatio,
       times: count,
     );
     _bufferQueue.clear();

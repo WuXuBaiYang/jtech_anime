@@ -66,7 +66,8 @@ class DownloadRecord {
 
   // 获取播放文件
   @ignore
-  File get playFile => File(playFilePath);
+  File get playFile =>
+      File(playFilePath.isNotEmpty ? playFilePath : '$savePath/index.m3u8');
 
   DownloadRecord copyWith({
     Id? id,
