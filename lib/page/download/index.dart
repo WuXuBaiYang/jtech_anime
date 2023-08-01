@@ -47,7 +47,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
       // 监听下载完成事件
       download.addDownloadCompleteListener((record) {
         // 移除下载列表
-        logic.downloadingList.removeValue(record);
+        logic.downloadingList.removeWhere((e) {
+          return e.downloadUrl == record.downloadUrl;
+        });
         // 刷新下载完成队列
         logic.loadDownloadRecords(context, false);
       });
@@ -302,10 +304,7 @@ class _DownloadLogic extends BaseLogic {
       ListValueChangeNotifier<DownloadRecord> notifier) {
     int i = 0;
     return download.removeTasks(items).then((values) {
-      return items
-          .map((e) => e.downloadUrl)
-          .where((e) => values[i++])
-          .toList();
+      return items.map((e) => e.downloadUrl).where((e) => values[i++]).toList();
     }).then((records) {
       return notifier.removeWhere(
         (e) => records.contains(e.downloadUrl),
