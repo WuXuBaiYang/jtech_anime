@@ -276,6 +276,7 @@ class DownloadManage extends BaseManage {
       if (downloads.isNotEmpty) {
         int speed = 0, count = 0;
         final total = downloads.length;
+        receiveProgress?.call(count, total, speed);
         timer = Timer.periodic(updateDelay, (_) {
           if (cancelToken?.isCancelled ?? false) return;
           receiveProgress?.call(count, total, speed);
