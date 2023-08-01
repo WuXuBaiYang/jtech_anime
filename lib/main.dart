@@ -8,7 +8,7 @@ import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/download.dart';
+import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/notification.dart';
 import 'package:jtech_anime/manage/router.dart';

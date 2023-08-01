@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:isar/isar.dart';
-import 'package:jtech_anime/manage/download.dart';
+import 'package:jtech_anime/manage/download/download.dart';
+import 'package:jtech_anime/manage/download/m3u8.dart';
 import 'package:jtech_anime/model/download.dart';
 
 part 'download_record.g.dart';
@@ -70,7 +71,7 @@ class DownloadRecord {
   // 获取播放文件路径
   @ignore
   String get filePath =>
-      isM3U8 ? '$savePath/${DownloadManage.m3u8IndexFilename}' : savePath;
+      isM3U8 ? '$savePath/${M3U8Downloader.m3u8IndexFilename}' : savePath;
 
   // 创建下载任务
   DownloadRecord createTask(String savePath) {
