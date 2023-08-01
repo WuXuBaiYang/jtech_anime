@@ -11,6 +11,7 @@ import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
@@ -42,8 +43,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     super.initState();
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 初始化加载首页数据
-      logic.loadAnimeList(context, false);
+      // 检查版本更新
+      AppVersionTool.check(context);
     });
   }
 
@@ -51,22 +52,22 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       body: AnimeFilterConfigMenu(
-        complete: () => logic.loadAnimeList(context, false),
+        complete: () => logic.loadAnimeList(false),
         filterConfig: logic.filterConfig,
         filterSelect: logic.filterSelect,
         body: NestedScrollView(
           controller: logic.scrollController,
           headerSliverBuilder: (_, __) {
-            return [_buildAppBar(context)];
+            return [_buildAppBar()];
           },
-          body: _buildAnimeList(context),
+          body: _buildAnimeList(),
         ),
       ),
     );
   }
 
   // 构建页面头部
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar() {
     return ValueListenableBuilder2<Map<String, FilterSelect>, bool>(
       first: logic.filterConfig,
       second: logic.showAppbar,
@@ -138,10 +139,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () {
-            SnackTool.showMessage(context, message: '还在施工中~');
-            // router.pushNamed(RoutePath.download);
-          },
+          onPressed: () => router.pushNamed(RoutePath.download),
         ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.handPointDown),
@@ -171,11 +169,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 构建番剧列表
-  Widget _buildAnimeList(BuildContext context) {
+  Widget _buildAnimeList() {
     return CustomRefreshView(
       enableRefresh: true,
       enableLoadMore: true,
-      onRefresh: (loadMore) => logic.loadAnimeList(context, loadMore),
+      onRefresh: (loadMore) => logic.loadAnimeList(loadMore),
       child: ValueListenableBuilder<List<AnimeModel>>(
         valueListenable: logic.animeList,
         builder: (_, animeList, __) {
@@ -269,7 +267,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 */
 class _HomeLogic extends BaseLogic {
   // 折叠高度
-  static const double expandedHeight = 300.0;
+  static const double expandedHeight = 350.0;
 
   // 标题栏展示状态¶
   final showAppbar = ValueChangeNotifier<bool>(true);
@@ -299,6 +297,8 @@ class _HomeLogic extends BaseLogic {
       // 判断是否需要展示标题栏
       showAppbar.setValue(scrollController.offset > _scrollOffset);
     });
+    // 初始化加载首页数据
+    loadAnimeList(false);
   }
 
   // 获取滚动偏移量
@@ -311,7 +311,7 @@ class _HomeLogic extends BaseLogic {
       duration: const Duration(milliseconds: 400), curve: Curves.ease);
 
   // 加载番剧列表
-  Future<void> loadAnimeList(BuildContext context, bool loadMore) async {
+  Future<void> loadAnimeList(bool loadMore) async {
     if (isLoading) return;
     try {
       loading.setValue(true);
@@ -321,18 +321,8 @@ class _HomeLogic extends BaseLogic {
           ? parserHandle.loadAnimeListNextPage(params: params)
           : parserHandle.loadAnimeList(params: params));
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
-
-      // var i = 0;
-      // for (var e in result) {
-      //   db.updateCollect(Collect()
-      //     ..url = e.url
-      //     ..name = e.name
-      //     ..cover = e.cover
-      //     ..order = i++
-      //     ..source = AnimeSource.yhdmz.name);
-      // }
     } catch (e) {
-      SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
+      SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }

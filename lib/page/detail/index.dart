@@ -10,10 +10,13 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/collect.dart';
+import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
+import 'package:jtech_anime/page/detail/download.dart';
 import 'package:jtech_anime/page/detail/info.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
@@ -88,7 +91,7 @@ class _AnimeDetailPageState
                   icon: Icon(collect.collected
                       ? FontAwesomeIcons.heartCircleCheck
                       : FontAwesomeIcons.heart),
-                  onPressed: () => logic.updateCollect(context, collect),
+                  onPressed: () => logic.updateCollect(collect),
                 );
               },
             ),
@@ -120,7 +123,7 @@ class _AnimeDetailPageState
             preferredSize: const Size.fromHeight(kToolbarHeight),
             child: Container(
               color: !showAppbar ? Colors.white : null,
-              child: _buildAppbarBottom(item.resources.length),
+              child: _buildAppbarBottom(item.resources),
             ),
           ),
         );
@@ -129,23 +132,25 @@ class _AnimeDetailPageState
   }
 
   // 构建标题栏底部
-  Widget _buildAppbarBottom(int count) {
+  Widget _buildAppbarBottom(List<List<ResourceItemModel>> resources) {
     return Row(
       children: [
-        if (count > 0)
+        if (resources.isNotEmpty)
           TabBar(
             isScrollable: true,
             onTap: logic.resourceIndex.setValue,
-            tabs: List.generate(count, (i) => Tab(text: '资源${i + 1}')),
+            tabs: List.generate(
+              resources.length,
+              (i) => Tab(text: '资源${i + 1}'),
+            ),
           ),
         const Spacer(),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () {
-            SnackTool.showMessage(context, message: '正在施工中~');
-          },
+          onPressed: () =>
+              DownloadSheet.show(context, animeInfo: logic.animeDetail.value)
+                  .whenComplete(() => logic.cacheController.refreshValue()),
         ),
-        const SizedBox(width: 4),
       ],
     );
   }
@@ -157,49 +162,75 @@ class _AnimeDetailPageState
         child: StatusBox(status: StatusBoxStatus.empty),
       );
     }
-    return ValueListenableBuilder<PlayRecord?>(
-      valueListenable: logic.playRecord,
-      builder: (_, playRecord, __) {
-        return TabBarView(
-          children: List.generate(resources.length, (i) {
-            final items = resources[i];
-            return GridView.builder(
-              itemCount: items.length,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                mainAxisExtent: 40,
-                crossAxisCount: 4,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-              ),
-              itemBuilder: (_, i) {
-                final item = items[i];
-                return _buildAnimeResourcesItem(item, playRecord?.resUrl);
-              },
-            );
-          }),
-        );
-      },
-    );
+    return CacheFutureBuilder<Map<String, DownloadRecord>>(
+        controller: logic.cacheController,
+        future: logic.loadDownloadRecord,
+        builder: (_, snap) {
+          if (!snap.hasData) return const SizedBox();
+          final downloadMap = snap.data!;
+          return ValueListenableBuilder<PlayRecord?>(
+            valueListenable: logic.playRecord,
+            builder: (_, playRecord, __) {
+              return TabBarView(
+                children: List.generate(resources.length, (i) {
+                  final items = resources[i];
+                  return GridView.builder(
+                    itemCount: items.length,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      mainAxisExtent: 40,
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                    ),
+                    itemBuilder: (_, i) {
+                      final item = items[i];
+                      return _buildAnimeResourcesItem(
+                          item, downloadMap, playRecord?.resUrl);
+                    },
+                  );
+                }),
+              );
+            },
+          );
+        });
   }
 
   // 构建番剧资源子项
-  Widget _buildAnimeResourcesItem(ResourceItemModel item, String? playResUrl) {
+  Widget _buildAnimeResourcesItem(ResourceItemModel item,
+      Map<String, DownloadRecord> downloadMap, String? playResUrl) {
+    final downloadRecord = downloadMap[item.url];
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: double.maxFinite,
-        height: double.maxFinite,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.black26),
-        ),
-        child: playResUrl == item.url
-            ? CustomScrollText.slow('上次看到 ${item.name}',
-                style: TextStyle(color: kPrimaryColor))
-            : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      child: Stack(
+        children: [
+          Container(
+            width: double.maxFinite,
+            height: double.maxFinite,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.black26),
+            ),
+            child: playResUrl == item.url
+                ? CustomScrollText.slow('上次看到 ${item.name}',
+                    style: TextStyle(color: kPrimaryColor))
+                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+          if (downloadRecord != null)
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Icon(
+                  downloadRecord.status == DownloadRecordStatus.complete
+                      ? FontAwesomeIcons.circleCheck
+                      : FontAwesomeIcons.circleDown,
+                  color: kPrimaryColor,
+                  size: 14),
+            ),
+        ],
       ),
       onTap: () => logic.goPlay(item),
     );
@@ -236,6 +267,10 @@ class _AnimeDetailLogic extends BaseLogic {
   // 收藏信息
   final collectInfo = ValueChangeNotifier<Collect?>(null);
 
+  // 缓存控制器
+  final cacheController =
+      CacheFutureBuilderController<Map<String, DownloadRecord>>();
+
   @override
   void init() {
     super.init();
@@ -252,23 +287,24 @@ class _AnimeDetailLogic extends BaseLogic {
   void setupArguments(BuildContext context, Map arguments) {
     // 设置传入的番剧信息
     animeDetail = ValueChangeNotifier(arguments['animeDetail']);
+    // 获取下载记录
+    final downloadRecord = arguments['downloadRecord'];
     // 判断是否需要播放观看记录
     final play = arguments['playTheRecord'] ?? false;
-    // 初始化加载
+    // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 初始化加载番剧详情
-      Tool.showLoading(
-        context,
-        loadFuture: loadAnimeDetail(context),
-      ).whenComplete(() {
+      Loading.show(loadFuture: loadAnimeDetail())?.whenComplete(() {
         // 加载完番剧详情后播放记录
         if (play) playTheRecord();
+        // 如果存在下载记录则代表需要直接播放已下载视频
+        if (downloadRecord != null) playTheDownload(downloadRecord);
       });
     });
   }
 
   // 更新收藏状态（收藏/取消收藏）
-  Future<void> updateCollect(BuildContext context, Collect item) async {
+  Future<void> updateCollect(Collect item) async {
     if (isLoading) return;
     try {
       final result = await db.updateCollect(item);
@@ -277,7 +313,7 @@ class _AnimeDetailLogic extends BaseLogic {
         collected: result != null,
       ));
     } catch (e) {
-      SnackTool.showMessage(context,
+      SnackTool.showMessage(
           message: '${item.id != Isar.autoIncrement ? '取消收藏' : '收藏'}失败，请重试~');
     }
   }
@@ -286,7 +322,6 @@ class _AnimeDetailLogic extends BaseLogic {
   Future<void>? playTheRecord() {
     final record = playRecord.value;
     if (record == null) return null;
-    if (animeDetail.value.resources.isEmpty) return null;
     return goPlay(
       ResourceItemModel(
         name: record.resName,
@@ -296,8 +331,19 @@ class _AnimeDetailLogic extends BaseLogic {
     );
   }
 
+  // 播放下载内容
+  Future<void>? playTheDownload(DownloadRecord record) {
+    return goPlay(
+      ResourceItemModel(
+        name: record.name,
+        url: record.resUrl,
+      ),
+    );
+  }
+
   // 播放视频
   Future<void>? goPlay(ResourceItemModel item, {bool playTheRecord = false}) {
+    if (animeDetail.value.resources.isEmpty) return null;
     return router.pushNamed(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
       'playTheRecord': playTheRecord,
@@ -310,7 +356,7 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 加载番剧详情
-  Future<void> loadAnimeDetail(BuildContext context) async {
+  Future<void> loadAnimeDetail() async {
     if (isLoading) return;
     final animeUrl = animeDetail.value.url;
     if (animeUrl.isEmpty) return;
@@ -332,9 +378,18 @@ class _AnimeDetailLogic extends BaseLogic {
             ..source = parserHandle.currentSource
             ..collected = false));
     } catch (e) {
-      SnackTool.showMessage(context, message: '番剧加载失败，请重试~');
+      SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {
       loading.setValue(false);
     }
+  }
+
+  // 加载下载记录
+  Future<Map<String, DownloadRecord>> loadDownloadRecord() async {
+    final result = await db.getDownloadRecordList(
+      parserHandle.currentSource,
+      animeList: [animeDetail.value.url],
+    );
+    return result.asMap().map((_, v) => MapEntry(v.resUrl, v));
   }
 }

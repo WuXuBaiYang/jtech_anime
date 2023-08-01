@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jtech_anime/manage/router.dart';
 
 /*
 * snack消息提示工具方法
@@ -7,11 +8,11 @@ import 'package:flutter/material.dart';
 */
 class SnackTool {
   // 展示snack提示
-  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason> show(
-    BuildContext context, {
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? show({
     required Widget child,
     EdgeInsetsGeometry? margin,
     EdgeInsetsGeometry? padding,
+    BuildContext? context,
     ShapeBorder? shape,
     Duration? duration,
     bool? fixed,
@@ -24,6 +25,8 @@ class SnackTool {
     // 默认值
     fixed ??= true;
     duration ??= const Duration(milliseconds: 2000);
+    context ??= router.navigator?.context;
+    if (context == null) return null;
     return ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: child,
       margin: margin,
@@ -39,11 +42,11 @@ class SnackTool {
   }
 
   // 展示常驻snack提示
-  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showConst(
-    BuildContext context, {
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? showConst({
     required Widget child,
     EdgeInsetsGeometry? margin,
     EdgeInsetsGeometry? padding,
+    BuildContext? context,
     ShapeBorder? shape,
     bool? fixed,
     Color? backgroundColor,
@@ -52,24 +55,27 @@ class SnackTool {
     double? elevation,
     double? width,
   }) =>
-      show(context,
-          child: child,
-          duration: const Duration(days: 1),
-          margin: margin,
-          padding: padding,
-          shape: shape,
-          fixed: fixed,
-          backgroundColor: backgroundColor,
-          action: action,
-          elevation: elevation,
-          width: width);
+      show(
+        context: context,
+        child: child,
+        duration: const Duration(days: 1),
+        margin: margin,
+        padding: padding,
+        shape: shape,
+        fixed: fixed,
+        backgroundColor: backgroundColor,
+        action: action,
+        elevation: elevation,
+        width: width,
+      );
 
   // 展示基础的文本snack提示
-  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showMessage(
-    BuildContext context, {
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>?
+      showMessage({
     required String message,
     EdgeInsetsGeometry? margin,
     EdgeInsetsGeometry? padding,
+    BuildContext? context,
     ShapeBorder? shape,
     Duration? duration,
     bool? fixed,
@@ -79,15 +85,17 @@ class SnackTool {
     double? elevation,
     double? width,
   }) =>
-      show(context,
-          child: Text(message),
-          duration: duration,
-          margin: margin,
-          padding: padding,
-          shape: shape,
-          fixed: fixed,
-          backgroundColor: backgroundColor,
-          action: action,
-          elevation: elevation,
-          width: width);
+          show(
+            context: context,
+            child: Text(message),
+            duration: duration,
+            margin: margin,
+            padding: padding,
+            shape: shape,
+            fixed: fixed,
+            backgroundColor: backgroundColor,
+            action: action,
+            elevation: elevation,
+            width: width,
+          );
 }

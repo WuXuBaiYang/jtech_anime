@@ -13,7 +13,7 @@ class VideoCache {
   Id id = Isar.autoIncrement;
 
   // 原始地址
-  @Index(type: IndexType.hash)
+  @Index(type: IndexType.hash, unique: true, replace: true)
   String url = '';
 
   // 播放地址

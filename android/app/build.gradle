@@ -22,9 +22,13 @@ if (flutterVersionName == null) {
 }
 
 // 加载签名文件
-def keystorePropertiesFile = rootProject.file("../keystore/keystore.properties")
 def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+def keystorePropertiesFile = rootProject.file("../publish/keystore/keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
@@ -62,10 +66,10 @@ android {
 
     signingConfigs {
         config {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias'] ? keystoreProperties['keyAlias'] : 'jtech_anime'
+            keyPassword keystoreProperties['keyPassword'] ? keystoreProperties['keyPassword'] : 'jtech_anime'
+            storeFile file(keystoreProperties['storeFile'] ? keystoreProperties['storeFile'] : '../../debug.keystore')
+            storePassword keystoreProperties['storePassword'] ? keystoreProperties['storePassword'] : 'jtech_anime'
         }
     }
     buildTypes {

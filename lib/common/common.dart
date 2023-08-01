@@ -1,3 +1,5 @@
+import 'dart:math';
+
 /*
 * 静态资源/通用静态变量
 * @author wuxubaiyang
@@ -7,8 +9,13 @@ class Common {
   // app名称
   static const String appName = '看番咩?';
 
-  // 动画-加载动
-  static const String statusLoadingAsset = 'assets/anime/status_loading.json';
+  // 动画-加载动画
+  static String get statusLoadingAsset => [
+        'assets/anime/status_loading1.json',
+        'assets/anime/status_loading2.json',
+        'assets/anime/status_loading3.json',
+        'assets/anime/status_loading4.json',
+      ][Random().nextInt(4)];
 
   // 动画-空内容
   static const String statusEmptyAsset = 'assets/anime/status_empty.json';

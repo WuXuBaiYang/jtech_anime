@@ -25,6 +25,9 @@ class ThemeManage extends BaseManage {
   // 获取主色
   Color get primaryColor => currentTheme.colorScheme.primary;
 
+  // 次要颜色
+  Color get secondaryColor => currentTheme.colorScheme.secondary;
+
   // 判断当前是否为暗色调
   bool get isDarkMode => currentTheme.brightness == Brightness.dark;
 
@@ -79,6 +82,9 @@ class ThemeManage extends BaseManage {
 
 // 获取当前主色调
 Color get kPrimaryColor => theme.primaryColor;
+
+// 获取当前次色调
+Color get kSecondaryColor => theme.secondaryColor;
 
 // 判断当前是否为暗色模式
 bool get kDarkMode => theme.isDarkMode;

@@ -3,10 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/tool/log.dart';
-import 'package:jtech_anime/widget/status_box.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
 import 'date.dart';
 
 /*
@@ -63,71 +60,4 @@ class Tool {
     final packageInfo = await PackageInfo.fromPlatform();
     return packageInfo.version;
   }
-
-  // 手机号校验正则
-  static final _verifyPhoneRegExp =
-      RegExp(r'^1(3\d|4[5-9]|5[0-35-9]|6[567]|7[0-8]|8\d|9[0-35-9])\d{8}$');
-
-  // 校验手机号
-  static bool verifyPhone(String phone) {
-    return _verifyPhoneRegExp.hasMatch(phone);
-  }
-
-  // 加载弹窗dialog缓存
-  static Future? _loadingDialog;
-
-  // 展示加载弹窗
-  static Future<T?> showLoading<T>(
-    BuildContext context, {
-    required Future<T?> loadFuture,
-    bool dismissible = true,
-  }) async {
-    final navigator = Navigator.of(context);
-    try {
-      if (_loadingDialog != null) navigator.maybePop();
-      _loadingDialog = showDialog<void>(
-        context: context,
-        barrierDismissible: dismissible,
-        builder: (_) => const Center(
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatusBox(
-                    status: StatusBoxStatus.loading,
-                    animSize: 28,
-                  ),
-                  SizedBox(height: 8),
-                  Text('加载中~', style: TextStyle(color: Colors.black26)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      )..whenComplete(() => _loadingDialog = null);
-      await Future.delayed(const Duration(milliseconds: 150));
-      return await loadFuture;
-    } catch (e) {
-      LogTool.e('弹窗请求异常：', error: e);
-      rethrow;
-    } finally {
-      if (_loadingDialog != null) await navigator.maybePop();
-    }
-  }
-}
-
-/*
-* 自定义异常
-* @author wuxubaiyang
-* @Time 2023/5/29 13:45
-*/
-class CustomException implements Exception {
-  final List<String> message;
-
-  CustomException(this.message);
-
-  @override
-  String toString() => message.join('\n');
 }

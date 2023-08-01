@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 /*
 * 节流
@@ -6,17 +7,22 @@ import 'dart:async';
 * @Time 2023/7/18 13:29
 */
 class Throttle {
-  // 节流
-  Timer? _throttleTimer;
+  // 节流方法
+  static final _throttle = <String>{};
 
   // 节流
-  void call(Function func,
-      [Duration delay = const Duration(milliseconds: 2000)]) {
-    if (_throttleTimer != null) return;
-    _throttleTimer = Timer(delay, () {
-      _throttleTimer?.cancel();
-      _throttleTimer = null;
-    });
+  static void c(Function() func, String key,
+      {Duration delay = const Duration(milliseconds: 2000)}) async {
+    if (_throttle.contains(key)) return;
+    _throttle.add(key);
     func.call();
+    await Future.delayed(delay);
+    _throttle.remove(key);
+  }
+
+  // 节流方法
+  static VoidCallback? click(Function() func, String key,
+      {Duration delay = const Duration(milliseconds: 2000)}) {
+    return () => c(func, key, delay: delay);
   }
 }

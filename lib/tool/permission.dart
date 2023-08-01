@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -13,11 +14,9 @@ typedef OnPermissionCheckFail = void Function(
 */
 class PermissionTool {
   // 检查集合中的权限是否全部通过
-  static Future<bool> checkAllGranted(
-    BuildContext context, {
-    required List<PermissionRequest> permissions,
-    OnPermissionCheckFail? onCheckFail,
-  }) async {
+  static Future<bool> checkAllGranted(BuildContext context,
+      {required List<PermissionRequest> permissions,
+      OnPermissionCheckFail? onCheckFail}) async {
     final failResults = <PermissionResult>[];
     for (final item in permissions) {
       final result = await item.request();
@@ -448,6 +447,14 @@ class PermissionRequest {
         requestMessage = requestMessage ?? '请求通知权限',
         requestFail = requestFail ?? '通知权限请求失败';
 
+  // 请求通知权限
+  const PermissionRequest.accessNotificationPolicy({
+    String? requestMessage,
+    String? requestFail,
+  })  : _permission = Permission.accessNotificationPolicy,
+        requestMessage = requestMessage ?? '允许开关通知权限',
+        requestFail = requestFail ?? '允许开关通知权限';
+
   // 请求蓝牙权限
   const PermissionRequest.bluetooth({
     String? requestMessage,
@@ -484,7 +491,7 @@ class PermissionRequest {
   const PermissionRequest.androidManageExternalStorage({
     String? requestMessage,
     String? requestFail,
-  })  : _permission = Permission.bluetooth,
+  })  : _permission = Permission.manageExternalStorage,
         requestMessage = requestMessage ?? '请求外部存储权限',
         requestFail = requestFail ?? '外部存储权限请求失败';
 
