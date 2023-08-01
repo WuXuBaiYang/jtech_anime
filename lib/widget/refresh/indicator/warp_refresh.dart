@@ -160,8 +160,7 @@ class _WarpRefreshIndicatorState extends State<WarpRefreshIndicator>
   }
 
   // 构建刷新动画
-  Widget _buildRefreshAnime(
-      BuildContext context, Widget child, IndicatorController controller) {
+  Widget _buildRefreshAnime(BuildContext context, Widget child, IndicatorController controller) {
     final animation = Listenable.merge([controller, shakeController]);
     return Stack(
       children: <Widget>[

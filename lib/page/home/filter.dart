@@ -58,9 +58,11 @@ class AnimeFilterConfigMenu extends StatelessWidget {
       children: [
         Positioned.fill(child: body),
         Positioned.fill(child: _buildBackground()),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: _buildFAB(context),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: _buildFAB(context),
+          ),
         ),
       ],
     );

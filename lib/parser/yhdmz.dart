@@ -154,7 +154,8 @@ class YHDMZParserHandle extends ParserHandle {
         if (playUrl == null || playUrl.isEmpty) continue;
         result.add(VideoCache()
           ..url = it.url
-          ..playUrl = playUrl);
+          ..playUrl = playUrl
+          ..item = it);
         progress?.call(result.length, items.length);
         await db.cachePlayUrl(it.url, playUrl);
       } catch (e) {

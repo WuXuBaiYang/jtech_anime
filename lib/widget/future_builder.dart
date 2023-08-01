@@ -17,15 +17,16 @@ class CacheFutureBuilder<T> extends StatefulWidget {
   final AsyncWidgetBuilder<T> builder;
 
   // 控制器
-  final CacheFutureBuilderController<T>? controller;
+  final CacheFutureBuilderController<T> controller;
 
-  const CacheFutureBuilder({
+  CacheFutureBuilder({
     Key? key,
-    this.controller,
-    this.initialData,
     required this.future,
     required this.builder,
-  }) : super(key: key);
+    this.initialData,
+    CacheFutureBuilderController<T>? controller,
+  })  : controller = controller ?? CacheFutureBuilderController<T>(),
+        super(key: key);
 
   @override
   State<StatefulWidget> createState() => _CacheFutureBuilderState<T>();
@@ -37,23 +38,17 @@ class CacheFutureBuilder<T> extends StatefulWidget {
 * @Time 2022-07-27 09:04:31
 */
 class _CacheFutureBuilderState<T> extends State<CacheFutureBuilder<T>> {
-  // 控制器管理
-  late CacheFutureBuilderController<T> controller =
-      widget.controller ?? CacheFutureBuilderController<T>();
-
-  @override
-  void initState() {
-    super.initState();
-    // 监听值变化
-    controller.addListener(() => setState(() {}));
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<T>(
-      future: controller.futureProxy(widget.future),
-      builder: widget.builder,
-      initialData: widget.initialData,
+    return ValueListenableBuilder(
+      valueListenable: widget.controller,
+      builder: (_, __, ___) {
+        return FutureBuilder<T>(
+          future: widget.controller.futureProxy(widget.future),
+          builder: widget.builder,
+          initialData: widget.initialData,
+        );
+      },
     );
   }
 }

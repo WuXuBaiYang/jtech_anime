@@ -43,9 +43,6 @@ dependencies:
   # 路径管理
   path_provider: ^2.0.15
 
-  # 通知栏消息(android/macos)
-  flutter_local_notifications: ^15.1.0+1
-
   # sp缓存
   shared_preferences: ^2.2.0
 
@@ -95,10 +92,28 @@ dependencies:
   battery_plus: ^4.0.1
 
   # 视频播放器
-  flutter_meedu_videoplayer: ^4.2.15
-  media_kit_libs_android_video: ^1.1.1
-  media_kit_libs_macos_video: ^1.0.5
-  media_kit_libs_windows_video: ^1.0.2
+  flutter_meedu_videoplayer: ^4.2.20
+  media_kit_libs_android_video: ^1.2.0
+  #  media_kit_libs_macos_video: ^1.0.5
+  #  media_kit_libs_windows_video: ^1.0.2
+
+  # m3u8文件解析
+  flutter_hls_parser: ^2.0.1
+
+  # supabase服务
+  supabase_flutter: ^1.10.9
+
+  # 权限管理
+  permission_handler: ^10.4.3
+
+  # android版本更新
+  ota_update: ^5.1.0
+
+  # 桌面端浏览器爬虫(win/mac/linux)
+  puppeteer: ^3.1.1
+
+  # 通知栏消息
+  flutter_local_notifications: ^15.1.0+1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

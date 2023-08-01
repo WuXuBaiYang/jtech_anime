@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,12 +17,11 @@ import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
-import 'package:text_scroll/text_scroll.dart';
 
 /*
 * 播放器页面（全屏播放）
@@ -54,21 +53,6 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     super.initState();
     // 监听生命周期
     WidgetsBinding.instance.addObserver(this);
-    // 初始化监听
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 监听播放进度
-      Duration? total;
-      logic.controller.onPositionChanged.listen((e) {
-        // 监听播放进度，当播放完成之后则自动播放下一集
-        if (total != null && e >= total!) {
-          final item = logic.nextResourceInfo.value;
-          if (item != null) {
-            logic.changeVideo(context, item);
-            total = null;
-          }
-        }
-      });
-    });
   }
 
   @override
@@ -80,7 +64,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            Positioned.fill(child: _buildVideoPlayer(context)),
+            Positioned.fill(child: _buildVideoPlayer()),
             Align(
               alignment: Alignment.bottomLeft,
               child: _buildPlayRecordTag(),
@@ -88,7 +72,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
           ],
         ),
         endDrawerEnableOpenDragGesture: false,
-        endDrawer: _buildResourceDrawer(context),
+        endDrawer: _buildResourceDrawer(),
       ),
     );
   }
@@ -102,7 +86,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       );
 
   // 构建资源侧栏弹窗
-  Widget _buildResourceDrawer(BuildContext context) {
+  Widget _buildResourceDrawer() {
     return ValueListenableBuilder<ResourceItemModel>(
       valueListenable: logic.resourceInfo,
       builder: (_, item, __) {
@@ -111,7 +95,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
           resources: logic.resources,
           onResourceSelect: (item) {
             pageKey.currentState?.closeEndDrawer();
-            logic.changeVideo(context, item);
+            logic.changeVideo(item);
           },
         );
       },
@@ -119,20 +103,20 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   }
 
   // 构建视频播放器
-  Widget _buildVideoPlayer(BuildContext context) {
+  Widget _buildVideoPlayer() {
     return MeeduVideoPlayer(
       controller: logic.controller,
       header: (_, controller, responsive) {
-        return _buildVideoPlayerHeader(context);
+        return _buildVideoPlayerHeader();
       },
       bottomRight: (_, controller, responsive) {
-        return _buildVideoPlayerBottomRight(context);
+        return _buildVideoPlayerBottomRight();
       },
     );
   }
 
   // 构建视频播放器头部
-  Widget _buildVideoPlayerHeader(BuildContext context) {
+  Widget _buildVideoPlayerHeader() {
     const titleStyle = TextStyle(fontSize: 18);
     return Row(
       children: [
@@ -203,7 +187,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   }
 
   // 构建视频播放器底部右侧
-  Widget _buildVideoPlayerBottomRight(BuildContext context) {
+  Widget _buildVideoPlayerBottomRight() {
     return Row(
       children: [
         ValueListenableBuilder<ResourceItemModel?>(
@@ -212,7 +196,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
             if (resource == null) return const SizedBox();
             return TextButton(
               onPressed: Throttle.click(
-                () => logic.changeVideo(context, resource),
+                () => logic.changeVideo(resource),
                 'playNextResource',
               ),
               child: const Text('下一集'),
@@ -267,7 +251,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
-      logic.controller.pause();
+      logic.controller
+        ..lockedControls.value = false
+        ..pause();
     }
   }
 
@@ -316,12 +302,21 @@ class _PlayerLogic extends BaseLogic {
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
+    Duration? total;
     controller.onPositionChanged.listen((e) {
       // 更新当前播放进度
       Throttle.c(
         () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
+      // 监听播放进度，当播放完成之后则自动播放下一集
+      if (total != null && e >= total!) {
+        final item = nextResourceInfo.value;
+        if (item != null) {
+          changeVideo(item);
+          total = null;
+        }
+      }
     });
   }
 
@@ -330,9 +325,12 @@ class _PlayerLogic extends BaseLogic {
     animeInfo = ValueChangeNotifier(arguments['animeDetail']);
     resourceInfo = ValueChangeNotifier(arguments['item']);
     final playTheRecord = arguments['playTheRecord'];
-    // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
-    changeVideo(context, resourceInfo.value, playTheRecord)
-        .catchError((_) => router.router.pop());
+    // 初始化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
+      changeVideo(resourceInfo.value, playTheRecord)
+          .catchError((_) => router.router.pop());
+    });
   }
 
   // 创建视频播放器控制器
@@ -347,12 +345,8 @@ class _PlayerLogic extends BaseLogic {
         muteAndSound: true,
         lockControls: true,
         fullscreen: false,
-        videoFit: true,
+        videoFit: false,
         pip: false,
-      ),
-      loadingWidget: const StatusBox(
-        status: StatusBoxStatus.loading,
-        animSize: 30,
       ),
       screenManager: const ScreenManager(
         orientations: [
@@ -416,36 +410,42 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 选择资源/视频
-  Future<void> changeVideo(BuildContext context, ResourceItemModel item,
+  Future<void> changeVideo(ResourceItemModel item,
       [bool playTheRecord = true]) async {
     if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
-    try {
-      loading.setValue(true);
-      resourceInfo.setValue(item);
-      nextResourceInfo.setValue(_findNextResourceItem(item));
-      // 暂停现有播放器
-      await controller.pause();
-      // 根据当前资源获取播放记录
-      final record = await db.getPlayRecord(animeInfo.value.url);
-      // 根据资源与视频下标切换视频播放地址
-      final result = await parserHandle.getAnimeVideoCache([item]);
-      if (result.isEmpty) throw Exception('视频地址解析失败');
-      // 解析完成之后实现视频播放
-      final dataSource = DataSource(
-          type: DataSourceType.network, source: result.first.playUrl);
-      final seekTo = playTheRecord && record != null
-          ? Duration(milliseconds: record.progress)
-          : Duration.zero;
-      await controller.setDataSource(dataSource, seekTo: seekTo);
-      if (!playTheRecord) playRecord.setValue(record);
-    } catch (e) {
-      SnackTool.showMessage(context, message: '获取播放地址失败，请重试~');
-      rethrow;
-    } finally {
-      loading.setValue(false);
-    }
+    return Loading.show(loadFuture: Future(() async {
+      try {
+        loading.setValue(true);
+        resourceInfo.setValue(item);
+        nextResourceInfo.setValue(_findNextResourceItem(item));
+        // 暂停现有播放器
+        await controller.pause();
+        // 根据当前资源获取播放记录
+        final record = await db.getPlayRecord(animeInfo.value.url);
+        // 根据资源与视频下标切换视频播放地址
+        final result = await parserHandle.getAnimeVideoCache([item]);
+        if (result.isEmpty) throw Exception('视频地址解析失败');
+        final playUrl = result.first.playUrl;
+        final downloadRecord = await db.getDownloadRecord(playUrl);
+        // 解析完成之后实现视频播放
+        final dataSource = downloadRecord != null
+            ? DataSource(
+                type: DataSourceType.file, file: File(downloadRecord.filePath))
+            : DataSource(type: DataSourceType.network, source: playUrl);
+        final seekTo = playTheRecord && record != null
+            ? Duration(milliseconds: record.progress)
+            : Duration.zero;
+        await controller.setDataSource(dataSource, seekTo: seekTo);
+        if (!playTheRecord) playRecord.setValue(record);
+      } catch (e) {
+        SnackTool.showMessage(message: '获取播放地址失败，请重试~');
+        rethrow;
+      } finally {
+        loading.setValue(false);
+      }
+    }));
   }
 
   // 获取列表中的下一个资源

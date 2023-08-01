@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 import 'log.dart';
@@ -13,18 +15,24 @@ class Loading {
   static Future? _loadingDialog;
 
   // 展示加载弹窗
-  static Future<T?> show<T>(BuildContext context,
-      {required Future<T?> loadFuture, bool dismissible = true}) async {
+  static Future<T?>? show<T>({
+    required Future<T?> loadFuture,
+    ValueChangeNotifier<String>? title,
+    bool dismissible = false,
+    BuildContext? context,
+  }) async {
+    context ??= router.navigator?.context;
+    if (context == null) return null;
     final navigator = Navigator.of(context);
     try {
       if (_loadingDialog != null) navigator.maybePop();
       _loadingDialog = showDialog<void>(
         context: context,
-        builder: _buildLoadingView,
+        builder: (_) => _buildLoadingView(title ?? ValueChangeNotifier('加载中~')),
         barrierDismissible: dismissible,
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
-      const duration = Duration(milliseconds: 100);
+      const duration = Duration(milliseconds: 500);
       final result = await loadFuture;
       // 如果传入的future加载时间过短（还不够弹窗动画时间），则进行等待
       final end = DateTime.now().subtract(duration);
@@ -39,20 +47,26 @@ class Loading {
   }
 
   // 构建加载视图
-  static Widget _buildLoadingView(BuildContext context) {
-    return const Center(
+  static Widget _buildLoadingView(ValueChangeNotifier<String> title) {
+    return Center(
       child: Card(
         child: Padding(
-          padding: EdgeInsets.all(14),
+          padding: const EdgeInsets.all(14),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              StatusBox(
+              const StatusBox(
                 status: StatusBoxStatus.loading,
                 animSize: 28,
               ),
-              SizedBox(height: 8),
-              Text('加载中~', style: TextStyle(color: Colors.black26)),
+              const SizedBox(height: 8),
+              ValueListenableBuilder<String>(
+                valueListenable: title,
+                builder: (_, text, __) {
+                  return Text(text,
+                      style: const TextStyle(color: Colors.black26));
+                },
+              ),
             ],
           ),
         ),

@@ -28,6 +28,7 @@ doc/api/
 .idea
 
 *.g.dart
-publish
-keystore
+
 assets/filter/supabase.json
+publish
+publish/keystore
