@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/tool/log.dart';
-import 'package:jtech_anime/tool/tool.dart';
 
 /*
 * 下载器基类
@@ -11,11 +9,10 @@ import 'package:jtech_anime/tool/tool.dart';
 * @Time 2023/8/1 11:17
 */
 abstract class Downloader {
-  // 开始下载
-  Future<void> start(
+  // 开始下载，成功则返回播放文件的地址
+  Future<File?> start(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
@@ -121,11 +118,5 @@ abstract class Downloader {
       path = '${tmp.substring(0, index)}/$path';
     }
     return '${baseUri.scheme}://${baseUri.host}$path';
-  }
-
-  // 获取url中得文件名
-  String getFilenameFromUrl(String url) {
-    final path = Uri.parse(url).path;
-    return path.split('/').lastOrNull ?? '${Tool.md5(url)}.ts';
   }
 }

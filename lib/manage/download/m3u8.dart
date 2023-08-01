@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:jtech_anime/manage/download/base.dart';
 import 'package:jtech_anime/tool/log.dart';
+import 'package:path/path.dart';
 
 /*
 * m3u8下载
@@ -13,56 +14,51 @@ import 'package:jtech_anime/tool/log.dart';
 */
 class M3U8Downloader extends Downloader {
   // m3u8密钥文件名
-  static const m3u8KeyFilename = 'key.key';
+  static const _m3u8KeyFilename = 'key.key';
 
   // m3u8索引文件名
-  static const m3u8IndexFilename = 'index.m3u8';
+  static const _m3u8IndexFilename = 'index.m3u8';
 
-  // 根据m3u8下载番剧
   @override
-  Future<void> start(
+  Future<File?> start(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
     void Function(Exception)? failed,
     void Function()? done,
   }) async {
-    Timer? timer;
     try {
       // 解析索引文件并遍历要下载的资源集合
       final baseUri = Uri.parse(url);
       final downloads = await _parseM3U8File(baseUri);
       if (downloads.isNotEmpty) {
-        int speed = 0, count = 0;
-        final total = downloads.length;
-        receiveProgress?.call(count, total, speed);
-        timer = Timer.periodic(updateDelay, (_) {
-          if (cancelToken?.isCancelled ?? false) return;
-          receiveProgress?.call(count, total, speed);
-          speed = 0;
-        });
+        int count = 0, total = downloads.length;
+        receiveProgress?.call(count, total, 0);
         // 如果是索引文件则直接存储到本地
-        final firstUrl = downloads.values.firstOrNull ?? '';
+        File? playFile;
         for (final filename in downloads.keys) {
           final content = downloads[filename] ?? '';
           final file = File('$savePath/$filename');
-          if (filename != m3u8IndexFilename) {
+          if (filename != _m3u8IndexFilename) {
             // 文件不存在则启用下载
             if (!file.existsSync()) {
               // 下载文件并存储到本地
               final temp = await download(
                 content,
                 '${file.path}.tmp',
-                onReceiveProgress: (c, _) => speed += c,
+                onReceiveProgress: (c, _) =>
+                    receiveProgress?.call(count, total, c),
                 cancelToken: cancelToken,
               );
-              // 如果被取消了则直接返回
-              if (cancelToken?.isCancelled ?? false) return done?.call();
               // 如果没有返回下载的文件则认为是异常
-              if (temp == null) return failed?.call(Exception('下载失败'));
+              if (temp == null) throw Exception('下载文件返回为空');
+              // 如果被取消则直接返回done
+              if (cancelToken?.isCancelled ?? false) {
+                done?.call();
+                return null;
+              }
               // 下载完成后去掉.tmp标记
               await temp.rename(file.path);
             }
@@ -71,18 +67,18 @@ class M3U8Downloader extends Downloader {
             final raf = await file.open(mode: FileMode.write);
             await raf.writeString(content);
             await raf.close();
+            playFile = file;
           }
           count++;
         }
-        return complete?.call(savePath);
+        complete?.call(savePath);
+        return playFile;
       }
     } catch (e) {
       LogTool.e('m3u8视频下载失败', error: e);
       failed?.call(e as Exception);
-    } finally {
-      timer?.cancel();
     }
-    return done?.call();
+    return null;
   }
 
   // 解析m3u8文件并获取全部的下载记录
@@ -125,7 +121,7 @@ class M3U8Downloader extends Downloader {
     // 获取密钥下载地址（如果存在）
     String? key = playlist.segments.first.fullSegmentEncryptionKeyUri;
     if (key != null) {
-      content = content.replaceAll(key, m3u8KeyFilename);
+      content = content.replaceAll(key, _m3u8KeyFilename);
       key = mergeUrl(key, baseUri);
     }
     // 遍历分片列表并同时生成本地索引文件
@@ -135,15 +131,15 @@ class M3U8Downloader extends Downloader {
       String? url = item.url;
       if (url == null) continue;
       url = mergeUrl(url, baseUri);
-      final filename = getFilenameFromUrl(url);
+      final filename = basename(url);
       resources[filename] = url;
       // 替换m3u8文件中得分片地址为本地
       final origin = item.url ?? '';
       content = content.replaceAll(origin, filename);
     }
     return {
-      if (key != null) m3u8KeyFilename: key,
-      m3u8IndexFilename: content,
+      if (key != null) _m3u8KeyFilename: key,
+      _m3u8IndexFilename: content,
       ...resources,
     };
   }

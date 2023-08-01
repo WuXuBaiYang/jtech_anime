@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/manage/download/base.dart';
 import 'package:jtech_anime/tool/log.dart';
+import 'package:path/path.dart';
 
 /*
 * 一般视频下载
@@ -13,52 +14,49 @@ import 'package:jtech_anime/tool/log.dart';
 class VideoDownloader extends Downloader {
   // 下载番剧
   @override
-  Future<void> start(
+  Future<File?> start(
     String url,
     String savePath, {
-    Duration updateDelay = const Duration(milliseconds: 1000),
     CancelToken? cancelToken,
     void Function(int count, int total, int speed)? receiveProgress,
     void Function(String savePath)? complete,
     void Function(Exception)? failed,
     void Function()? done,
   }) async {
-    Timer? timer;
     try {
-      int speed = 0, count = 0, total = -1;
-      timer = Timer.periodic(updateDelay, (_) {
-        if (cancelToken?.isCancelled ?? false) return;
-        receiveProgress?.call(count, total, speed);
-        speed = 0;
-      });
+      receiveProgress?.call(0, 0, 0);
       // 文件不存在则启用下载
-      final filename = Uri.parse(url).path.split('/').last;
-      final file = File('$savePath/$filename');
-      if (!file.existsSync()) {
+      final filename = basename(url);
+      final playFile = File('$savePath/$filename');
+      if (!playFile.existsSync()) {
         // 下载文件并存储到本地
+        int lastCount = 0;
         final temp = await download(
           url,
-          '${file.path}.tmp',
+          '${playFile.path}.tmp',
           cancelToken: cancelToken,
           onReceiveProgress: (c, t) {
-            if (total <= 0) total = t;
-            speed += c;
+            receiveProgress?.call(c, t, c - lastCount);
+            lastCount = c;
           },
         );
-        // 如果被取消了则直接返回
-        if (cancelToken?.isCancelled ?? false) return done?.call();
         // 如果没有返回下载的文件则认为是异常
-        if (temp == null) return failed?.call(Exception('下载失败'));
+        if (temp == null) throw Exception('下载文件返回为空');
+        // 如果被取消了则直接返回
+        if (cancelToken?.isCancelled ?? false) {
+          done?.call();
+          return null;
+        }
         // 下载完成后去掉.tmp标记
-        await temp.rename(file.path);
+        await temp.rename(playFile.path);
       }
-      return complete?.call(file.path);
+      complete?.call(playFile.path);
+      return playFile;
     } catch (e) {
       LogTool.e('视频下载失败', error: e);
       failed?.call(e as Exception);
-    } finally {
-      timer?.cancel();
     }
-    return done?.call();
+    done?.call();
+    return null;
   }
 }

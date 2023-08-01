@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -432,7 +431,7 @@ class _PlayerLogic extends BaseLogic {
         // 解析完成之后实现视频播放
         final dataSource = downloadRecord != null
             ? DataSource(
-                type: DataSourceType.file, file: File(downloadRecord.filePath))
+                type: DataSourceType.file, file: downloadRecord.playFile)
             : DataSource(type: DataSourceType.network, source: playUrl);
         final seekTo = playTheRecord && record != null
             ? Duration(milliseconds: record.progress)

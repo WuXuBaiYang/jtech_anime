@@ -10,6 +10,7 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
+import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/page/download/list.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
@@ -39,6 +40,12 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
   @override
   _DownloadLogic initLogic() => _DownloadLogic();
 
+  // 分页控制表
+  late Map<String, Widget Function(BuildContext context)> tabsMap = {
+    '下载队列': _buildDownloadingList,
+    '已下载': _buildDownloadRecordList,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -60,93 +67,82 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
+    final tabs = tabsMap.keys.map((e) => Tab(text: e)).toList();
+    final views = tabsMap.values.map((e) => e.call(context)).toList();
     return DefaultTabController(
-      length: 2,
+      length: tabsMap.length,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('番剧缓存'),
-          bottom: const PreferredSize(
-            preferredSize: Size.fromHeight(kToolbarHeight),
-            child: TabBar(
-              tabs: [Tab(text: '下载队列'), Tab(text: '已下载')],
-            ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: TabBar(tabs: tabs),
           ),
         ),
-        body: TabBarView(children: [
-          _buildDownloadingList(),
-          _buildDownloadRecordList(context),
-        ]),
+        body: TabBarView(children: views),
       ),
     );
   }
 
   // 构建下载队列
-  Widget _buildDownloadingList() {
+  Widget _buildDownloadingList(BuildContext context) {
     const status = [DownloadRecordStatus.download, DownloadRecordStatus.fail];
     return ValueListenableBuilder<List<DownloadRecord>>(
       valueListenable: logic.downloadingList,
       builder: (_, recordList, __) {
-        return Column(
-          children: [
-            if (recordList.isNotEmpty) _buildDownloadingHead(recordList),
-            Expanded(
-              child: DownloadRecordList(
-                recordList: recordList,
-                onTaskLongTap: (item) =>
-                    _showDeleteDialog(context, [item], logic.downloadingList),
-                onAnimeLongTap: (item) => logic
-                    .getAnimeDownloadRecord(item, status: status)
-                    .then((items) => _showDeleteDialog(
-                        context, items, logic.downloadingList)),
-                onTaskTap: (item) => item.task != null
-                    ? download.stopTask(item)
-                    : download.startTask(item.copyWith()),
-              ),
-            ),
-          ],
+        return StreamBuilder<DownloadTask>(
+          stream: download.downloadProgress,
+          builder: (_, snap) {
+            return Column(
+              children: [
+                if (recordList.isNotEmpty)
+                  _buildDownloadingHead(recordList, snap.data),
+                Expanded(
+                  child: DownloadRecordList(
+                    recordList: recordList,
+                    downloadTask: snap.data,
+                    onTaskLongTap: (item) => _showDeleteDialog(
+                        context, [item], logic.downloadingList),
+                    onAnimeLongTap: (item) => logic
+                        .getAnimeDownloadRecord(item, status: status)
+                        .then((items) => _showDeleteDialog(
+                            context, items, logic.downloadingList)),
+                    onTaskTap: download.toggleTask,
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
   // 构建下载队列头部
-  Widget _buildDownloadingHead(List<DownloadRecord> recordList) {
+  Widget _buildDownloadingHead(
+      List<DownloadRecord> recordList, DownloadTask? task) {
     final padding =
         const EdgeInsets.symmetric(horizontal: 14).copyWith(top: 18);
+    final textStyle = TextStyle(color: kPrimaryColor, fontSize: 20);
+    final totalSpeed = '${FileTool.formatSize(task?.totalSpeed ?? 0)}/s';
     return Padding(
       padding: padding,
       child: Row(
         children: [
-          _buildDownloadTotalSpeed(),
+          Text(totalSpeed, style: textStyle),
           const Spacer(),
           IconButton(
-            onPressed: download.stopAllTasks,
+            onPressed: () => download.stopTasks(recordList),
             icon: const Icon(FontAwesomeIcons.pause),
             color: kPrimaryColor,
           ),
           IconButton(
-            onPressed: () => download.startTasks(
-              recordList.map((e) => e.copyWith()).toList(),
-            ),
+            onPressed: () => download.startTasks(recordList),
             icon: const Icon(FontAwesomeIcons.play),
             color: kPrimaryColor,
           ),
         ],
       ),
-    );
-  }
-
-  // 构建下载总速度
-  Widget _buildDownloadTotalSpeed() {
-    return ValueListenableBuilder<int>(
-      valueListenable: download.totalSpeed,
-      builder: (_, totalSpeed, __) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('${FileTool.formatSize(totalSpeed)}/s',
-              style: TextStyle(color: kPrimaryColor, fontSize: 20)),
-        );
-      },
     );
   }
 
@@ -234,8 +230,6 @@ class _DownloadLogic extends BaseLogic {
     super.init();
     // 获取下载队列基础数据
     loadDownloadingList();
-    // 监听下载队列
-    download.downloadQueue.addListener(updateDownloadingList);
   }
 
   // 获取下载队列列表
@@ -278,14 +272,6 @@ class _DownloadLogic extends BaseLogic {
     } finally {
       loading.setValue(false);
     }
-  }
-
-  // 更新下载队列
-  void updateDownloadingList() {
-    final downloadMap = download.downloadQueue.value;
-    downloadingList.setValue(downloadingList.value
-        .map((e) => downloadMap[e.downloadUrl] ?? (e..task = null))
-        .toList());
   }
 
   // 获取番剧对应的下载任务
