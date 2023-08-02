@@ -55,13 +55,13 @@ class M3U8Downloader extends Downloader {
                 },
                 cancelToken: cancelToken,
               );
-              // 如果没有返回下载的文件则认为是异常
-              if (temp == null) throw Exception('下载文件返回为空');
               // 如果被取消则直接返回done
               if (cancelToken?.isCancelled ?? false) {
                 done?.call();
                 return null;
               }
+              // 如果没有返回下载的文件则认为是异常
+              if (temp == null) throw Exception('下载文件返回为空');
               // 下载完成后去掉.tmp标记
               await temp.rename(file.path);
             }

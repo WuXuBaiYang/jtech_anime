@@ -40,13 +40,13 @@ class VideoDownloader extends Downloader {
             lastCount = c;
           },
         );
-        // 如果没有返回下载的文件则认为是异常
-        if (temp == null) throw Exception('下载文件返回为空');
         // 如果被取消了则直接返回
         if (cancelToken?.isCancelled ?? false) {
           done?.call();
           return null;
         }
+        // 如果没有返回下载的文件则认为是异常
+        if (temp == null) throw Exception('下载文件返回为空');
         // 下载完成后去掉.tmp标记
         await temp.rename(playFile.path);
       }
