@@ -12,6 +12,7 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart' as router;
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
@@ -427,7 +428,8 @@ class _PlayerLogic extends BaseLogic {
         final result = await parserHandle.getAnimeVideoCache([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         final playUrl = result.first.playUrl;
-        final downloadRecord = await db.getDownloadRecord(playUrl);
+        final downloadRecord = await db.getDownloadRecord(playUrl,
+            status: [DownloadRecordStatus.complete]);
         // 解析完成之后实现视频播放
         final dataSource = downloadRecord != null
             ? DataSource(

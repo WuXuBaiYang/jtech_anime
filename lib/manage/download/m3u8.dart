@@ -45,11 +45,14 @@ class M3U8Downloader extends Downloader {
             // 文件不存在则启用下载
             if (!file.existsSync()) {
               // 下载文件并存储到本地
+              int lastCount = 0;
               final temp = await download(
                 content,
                 '${file.path}.tmp',
-                onReceiveProgress: (c, _) =>
-                    receiveProgress?.call(count, total, c),
+                onReceiveProgress: (c, _) {
+                  receiveProgress?.call(count, total, c - lastCount);
+                  lastCount = c;
+                },
                 cancelToken: cancelToken,
               );
               // 如果没有返回下载的文件则认为是异常

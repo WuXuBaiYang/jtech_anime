@@ -52,9 +52,8 @@ abstract class Downloader {
       mode: canPause ? FileMode.append : FileMode.write,
     );
     final subscription = resp.data!.stream.listen((data) {
-      received += data.length;
+      onReceiveProgress?.call(received += data.length, total);
       raf.writeFromSync(data);
-      onReceiveProgress?.call(received, total);
     }, onDone: () {
       c.complete(saveFile);
       done?.call();

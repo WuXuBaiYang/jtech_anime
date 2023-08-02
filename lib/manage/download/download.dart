@@ -141,10 +141,8 @@ class DownloadManage extends BaseManage {
       DownloadRecord record, int count, int total, int speed) {
     // 如果缓存队列中存在任务则堆叠参数否则创建新任务
     final downloadUrl = record.downloadUrl;
-    final task = _bufferQueue[downloadUrl];
-    _bufferQueue[downloadUrl] = task != null
-        ? task.stack(count, total, speed)
-        : DownloadTaskItem(count, total, speed);
+    final task = _bufferQueue[downloadUrl] ?? DownloadTaskItem.zero();
+    _bufferQueue[downloadUrl] = task.stack(count, total, speed);
   }
 
   // 更新下载任务为完成状态
@@ -235,9 +233,10 @@ class DownloadManage extends BaseManage {
   void _startDownloadProgress() {
     if (_downloadProgressStream == null) {
       _downloadProgress.add(_updateDownloadProgress(0));
-      _downloadProgressStream =
-          Stream.periodic(const Duration(seconds: 1), _updateDownloadProgress)
-              .listen(_downloadProgress.add);
+      _downloadProgressStream = Stream.periodic(
+        const Duration(seconds: 1),
+        _updateDownloadProgress,
+      ).listen(_downloadProgress.add);
     }
   }
 
@@ -248,6 +247,7 @@ class DownloadManage extends BaseManage {
       _downloadProgressStream?.cancel();
       _downloadProgressStream = null;
       _downloadProgress.add(null);
+      _bufferQueue.clear();
     }
   }
 
@@ -255,9 +255,12 @@ class DownloadManage extends BaseManage {
   DownloadTask _updateDownloadProgress(int count) {
     // 如果缓冲队列为空则直接返回空任务
     if (_bufferQueue.isEmpty) return DownloadTask();
+    final downloadingMap = Map<String, DownloadTaskItem>.from(
+        _bufferQueue.map((k, v) => MapEntry(k, v.copyWith())));
+    _bufferQueue.forEach((_, v) => v.speed = 0);
     // 计算总速度并返回
     double totalSpeed = 0, totalRatio = 0;
-    for (var item in _bufferQueue.values) {
+    for (var item in downloadingMap.values) {
       totalSpeed += item.speed;
       if (item.total != 0 && item.count != 0) {
         totalRatio += item.count / item.total;
@@ -277,14 +280,12 @@ class DownloadManage extends BaseManage {
       title: content,
     );
     // 清空缓冲队列并返回
-    final downloadTask = DownloadTask(
-      downloadingMap: Map.from(_bufferQueue),
+    return DownloadTask(
+      downloadingMap: downloadingMap,
       totalSpeed: totalSpeed.toInt(),
       totalRatio: totalRatio,
       times: count,
     );
-    _bufferQueue.clear();
-    return downloadTask;
   }
 }
 

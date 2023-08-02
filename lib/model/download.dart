@@ -79,7 +79,18 @@ class DownloadTaskItem extends BaseModel {
 
   // 叠加参数
   DownloadTaskItem stack(int count, int total, int speed) => this
-    ..count += count
-    ..total += total
+    ..count = count
+    ..total = total
     ..speed += speed;
+
+  DownloadTaskItem copyWith({
+    int? count,
+    int? total,
+    int? speed,
+  }) =>
+      DownloadTaskItem(
+        count = count ?? this.count,
+        total = total ?? this.total,
+        speed = speed ?? this.speed,
+      );
 }
