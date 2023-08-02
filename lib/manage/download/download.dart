@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -74,8 +75,18 @@ class DownloadManage extends BaseManage {
       isInQueue(record) ? stopTask(record) : startTask(record);
 
   // 开始多条下载任务
-  Future<void> startTasks(List<DownloadRecord> records) =>
-      Future.forEach(records, startTask);
+  Future<List<bool>> startTasks(List<DownloadRecord> records) {
+    // 判断下载队列的空余位置并将其余任务放到准备队列
+    int remaining =
+        records.length - (maxDownloadCount.value - downloadQueue.length);
+    if (remaining > 0) {
+      records.reversed.takeWhile((e) {
+        prepareQueue.putValue(e.downloadUrl, CancelToken());
+        return --remaining <= 0;
+      });
+    }
+    return Future.wait(records.map(startTask));
+  }
 
   // 启动一个下载任务
   Future<bool> startTask(DownloadRecord record) async {
@@ -99,24 +110,36 @@ class DownloadManage extends BaseManage {
 
   // 恢复启动一个下载任务
   Future<bool> _resumeTask(DownloadRecord record) async {
-    final downloadUrl = record.downloadUrl;
-    // 更新下载记录的状态
-    await db.updateDownload(record
-      ..status = DownloadRecordStatus.download
-      ..updateTime = DateTime.now());
-    final cancelToken = CancelToken();
-    // 如果下载队列达到上限则将任务添加到准备队列
-    if (downloadQueue.length >= maxDownloadCount.value) {
-      prepareQueue.putValue(downloadUrl, cancelToken);
+    try {
+      final downloadUrl = record.downloadUrl;
+      // 更新下载记录的状态
+      await db.updateDownload(record
+        ..status = DownloadRecordStatus.download
+        ..updateTime = DateTime.now());
+      final cancelToken = CancelToken();
+      // 如果下载队列达到上限则将任务添加到准备队列
+      if (downloadQueue.length >= maxDownloadCount.value) {
+        prepareQueue.putValue(downloadUrl, cancelToken);
+        return true;
+      }
+      downloadQueue.putValue(downloadUrl, cancelToken);
+      // 启动监听下载进度
+      _startDownloadProgress();
+      // 判断任务类型并开始下载
+      final downloader = record.isM3U8 ? _m3u8Download : _videoDownload;
+      _startDownloadTask(downloader, record, cancelToken: cancelToken);
       return true;
+    } catch (e) {
+      LogTool.e('任务启动失败', error: e);
     }
-    downloadQueue.putValue(downloadUrl, cancelToken);
-    // 启动监听下载进度
-    _startDownloadProgress();
-    // 判断任务类型并开始下载
-    (record.isM3U8 ? _m3u8Download : _videoDownload)
-        .start(
-      downloadUrl,
+    return false;
+  }
+
+  // 启动下载任务
+  Future<File?> _startDownloadTask(Downloader downloader, DownloadRecord record,
+      {CancelToken? cancelToken}) async {
+    final playFile = await downloader.start(
+      record.downloadUrl,
       record.savePath,
       cancelToken: cancelToken,
       done: () => _doneTask(record),
@@ -124,16 +147,21 @@ class DownloadManage extends BaseManage {
       complete: (_) => _updateTaskComplete(record),
       receiveProgress: (count, total, speed) =>
           _updateTaskProgress(record, count, total, speed),
-    )
-        .then((playFile) {
-      // 更新下载记录的播放文件地址
-      if (playFile != null) {
-        db.updateDownload(record
-          ..playFilePath = playFile.path
-          ..updateTime = DateTime.now());
-      }
-    });
-    return true;
+    );
+    // 更新下载记录的播放文件地址
+    if (playFile != null) {
+      db.updateDownload(record
+        ..playFilePath = playFile.path
+        ..updateTime = DateTime.now());
+    }
+    // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
+    if (prepareQueue.isNotEmpty) {
+      final nextTask = await db.getDownloadRecord(prepareQueue.keys.first);
+      if (nextTask != null) _resumeTask(nextTask);
+    } else {
+      notice.cancel(downloadProgressNoticeId);
+    }
+    return playFile;
   }
 
   // 更新下载进度
@@ -176,14 +204,6 @@ class DownloadManage extends BaseManage {
     // 从下载队列与准备队列中移除下载任务
     downloadQueue.removeValue(downloadUrl);
     prepareQueue.removeValue(downloadUrl);
-    // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
-    if (prepareQueue.isEmpty) {
-      notice.cancel(downloadProgressNoticeId);
-    } else {
-      db.getDownloadRecord(prepareQueue.keys.first).then((item) {
-        if (item != null) _resumeTask(item);
-      });
-    }
     // 停止监听下载进度
     _stopDownloadProgress();
   }
@@ -202,6 +222,7 @@ class DownloadManage extends BaseManage {
       downloadQueue.removeValue(downloadUrl);
       // 如果是在准备中的队列则移除准备队列
       prepareQueue.removeValue(downloadUrl);
+      return true;
     } catch (e) {
       LogTool.e('停止下载任务失败', error: e);
     }

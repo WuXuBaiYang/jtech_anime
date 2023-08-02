@@ -163,10 +163,11 @@ class DownloadRecordList extends StatelessWidget {
   // 获取播放状态
   IconData _getPlayIconStatus(DownloadRecord item) {
     if (item.isComplete) return FontAwesomeIcons.circlePlay;
-    if (downloadTask != null) {
-      return downloadTask!.isPrepared(item)
-          ? FontAwesomeIcons.hourglassHalf
-          : FontAwesomeIcons.pause;
+    if (downloadTask?.isPrepared(item) ?? false) {
+      return FontAwesomeIcons.hourglassHalf;
+    }
+    if (downloadTask?.isDownloading(item) ?? false) {
+      return FontAwesomeIcons.pause;
     }
     return FontAwesomeIcons.play;
   }
