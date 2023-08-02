@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test('test', () async {
-    final m = {1: 'a', 2: 'b', 3: 'c'};
-    final a = Map.from(m);
-    m.clear();
-    print(a);
+    final a = [
+      Completer()
+        ..complete(Future(() async {
+          await Future.delayed(const Duration(milliseconds: 500));
+          // throw Exception('异常');
+        }))
+    ];
+    final b = await Future.any(a.map((e) => e.future));
+    print('----------------------');
   });
 }

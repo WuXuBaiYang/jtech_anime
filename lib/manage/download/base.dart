@@ -3,6 +3,10 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/tool/log.dart';
 
+// 下载进度回调
+typedef DownloaderProgressCallback = void Function(
+    int count, int total, int speed);
+
 /*
 * 下载器基类
 * @author wuxubaiyang
@@ -24,7 +28,7 @@ abstract class Downloader {
   Future<File?> download(
     String url,
     String savePath, {
-    ProgressCallback? onReceiveProgress,
+    DownloaderProgressCallback? onReceiveProgress,
     CancelToken? cancelToken,
     void Function()? done,
   }) async {
@@ -52,7 +56,9 @@ abstract class Downloader {
       mode: canPause ? FileMode.append : FileMode.write,
     );
     final subscription = resp.data!.stream.listen((data) {
-      onReceiveProgress?.call(received += data.length, total);
+      final speed = data.length;
+      final count = received += speed;
+      onReceiveProgress?.call(count, total, speed);
       raf.writeFromSync(data);
     }, onDone: () {
       c.complete(saveFile);
@@ -87,21 +93,21 @@ abstract class Downloader {
   // 判断是否支持断点续传
   Future<bool> _supportPause(String url) async {
     return false;
-    try {
-      final options = Options(headers: _getRange(0, 1024));
-      final resp = await Dio().get(url, options: options);
-      if (resp.statusCode == 200) {
-        final headers = resp.headers.map;
-        return [
-          HttpHeaders.rangeHeader,
-          HttpHeaders.acceptRangesHeader,
-          HttpHeaders.contentRangeHeader,
-        ].any(headers.containsKey);
-      }
-    } catch (e) {
-      LogTool.e('检查断点续传失败', error: e);
-    }
-    return false;
+    // try {
+    //   final options = Options(headers: _getRange(0, 1024));
+    //   final resp = await Dio().get(url, options: options);
+    //   if (resp.statusCode == 200) {
+    //     final headers = resp.headers.map;
+    //     return [
+    //       HttpHeaders.rangeHeader,
+    //       HttpHeaders.acceptRangesHeader,
+    //       HttpHeaders.contentRangeHeader,
+    //     ].any(headers.containsKey);
+    //   }
+    // } catch (e) {
+    //   LogTool.e('检查断点续传失败', error: e);
+    // }
+    // return false;
   }
 
   // 生成range头部

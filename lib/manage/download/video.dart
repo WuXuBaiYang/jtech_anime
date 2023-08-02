@@ -30,15 +30,11 @@ class VideoDownloader extends Downloader {
       final playFile = File('$savePath/$filename');
       if (!playFile.existsSync()) {
         // 下载文件并存储到本地
-        int lastCount = 0;
         final temp = await download(
           url,
           '${playFile.path}.tmp',
           cancelToken: cancelToken,
-          onReceiveProgress: (c, t) {
-            receiveProgress?.call(c, t, c - lastCount);
-            lastCount = c;
-          },
+          onReceiveProgress: receiveProgress,
         );
         // 如果被取消了则直接返回
         if (cancelToken?.isCancelled ?? false) {

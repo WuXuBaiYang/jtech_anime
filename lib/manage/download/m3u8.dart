@@ -22,6 +22,9 @@ class M3U8Downloader extends Downloader {
   // m3u8索引文件名
   static const _m3u8IndexFilename = 'index.m3u8';
 
+  // 下载并发数量
+  static const _m3u8ConcurrentLimit = 10;
+
   @override
   Future<File?> start(
     String url,
@@ -36,62 +39,72 @@ class M3U8Downloader extends Downloader {
       // 解析索引文件并遍历要下载的资源集合
       final baseUri = Uri.parse(url);
       final downloads = await _parseM3U8File(baseUri);
-      if (downloads.isNotEmpty) {
-        int count = 0, total = downloads.length;
-        receiveProgress?.call(count, total, 0);
-        // 如果是索引文件则直接存储到本地
-        File? playFile;
-        for (final filename in downloads.keys) {
-          final content = downloads[filename] ?? '';
-          final file = File('$savePath/$filename');
-          if (filename != _m3u8IndexFilename) {
-            // 文件不存在则启用下载
-            if (!file.existsSync()) {
-              // 下载文件并存储到本地
-              int lastCount = 0;
-              final temp = await download(
-                content,
-                '${file.path}.tmp',
-                onReceiveProgress: (c, _) {
-                  receiveProgress?.call(count, total, c - lastCount);
-                  lastCount = c;
-                },
-                cancelToken: cancelToken,
-              );
-              // 如果被取消则直接返回done
-              if (cancelToken?.isCancelled ?? false) {
-                done?.call();
-                return null;
-              }
-              // 如果没有返回下载的文件则认为是异常
-              if (temp == null) throw Exception('下载文件返回为空');
-              // 下载完成后去掉.tmp标记
-              await temp.rename(file.path);
-            }
-          } else {
-            // 如果是索引文件则写入本地
-            final raf = await file.open(mode: FileMode.write);
-            await raf.writeString(content);
-            await raf.close();
-            playFile = file;
-          }
-          count++;
+      if (downloads.isEmpty) return null;
+      // 将索引文件直接写入本地
+      final content = downloads.remove(_m3u8IndexFilename);
+      File? playFile = await _writeM3U8IndexFile(savePath, content);
+      // 剔除掉已经下载过的文件
+      downloads.removeWhere((k, _) => File('$savePath/$k').existsSync());
+      // 限制并发数使用异步队列
+      int count = 0, total = downloads.length;
+      receiveProgress?.call(count, total, 0);
+      final runningTasks = <Completer<File?>>[];
+      for (final filename in downloads.keys) {
+        // 下载文件并存储到本地
+        final future = _doDownloadTask(
+          downloads[filename] ?? '',
+          '$savePath/$filename',
+          cancelToken: cancelToken,
+          onReceiveProgress: (c, _, s) =>
+              receiveProgress?.call(count++, total, s),
+        );
+        runningTasks.add(Completer()..complete(future));
+        // 如果被取消则直接返回done
+        if (cancelToken?.isCancelled ?? false) {
+          done?.call();
+          return null;
         }
-        // 如果存在key则对视频进行合并
-        if (downloads.containsKey(_m3u8KeyFilename) && playFile != null) {
-          final outputFile = File('$savePath/$_m3u8MargeFilename');
-          if (outputFile.existsSync()) outputFile.deleteSync();
-          playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
-          if (playFile == null) throw Exception('视频合并失败');
+        // 判断是否达到最大并发数，达到则等待其中一个完成再继续
+        if (runningTasks.length >= _m3u8ConcurrentLimit) {
+          await Future.any(runningTasks.map((e) => e.future));
+          runningTasks.removeWhere((e) => e.isCompleted);
         }
-        complete?.call(savePath);
-        return playFile;
       }
+      // 等待剩余任务的完成
+      await Future.wait(runningTasks.map((e) => e.future));
+      // 如果存在key则对视频进行合并
+      if (downloads.containsKey(_m3u8KeyFilename) && playFile != null) {
+        final outputFile = File('$savePath/$_m3u8MargeFilename');
+        if (outputFile.existsSync()) outputFile.deleteSync();
+        playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
+        if (playFile == null) throw Exception('视频合并失败');
+      }
+      complete?.call(savePath);
+      return playFile;
     } catch (e) {
       LogTool.e('m3u8视频下载失败', error: e);
       failed?.call(e as Exception);
     }
     return null;
+  }
+
+  // 执行下载任务
+  Future<File?> _doDownloadTask(
+    String downloadUrl,
+    String filePath, {
+    DownloaderProgressCallback? onReceiveProgress,
+    CancelToken? cancelToken,
+  }) async {
+    final result = await download(
+      downloadUrl,
+      '$filePath.tmp',
+      cancelToken: cancelToken,
+      onReceiveProgress: onReceiveProgress,
+    );
+    // 如果没有返回下载的文件则认为是异常
+    if (result == null) throw Exception('下载文件返回为空');
+    // 下载完成后去掉.tmp标记
+    return result.rename(filePath);
   }
 
   // 解析m3u8文件并获取全部的下载记录
@@ -173,5 +186,16 @@ class M3U8Downloader extends Downloader {
         outputFilepath: outputPath,
       ),
     );
+  }
+
+  // 将m3u8索引文件直接写入本地
+  Future<File?> _writeM3U8IndexFile(String savePath, String? content) async {
+    if (content == null) return null;
+    final file = File('$savePath/$_m3u8IndexFilename');
+    if (file.existsSync()) return file;
+    final raf = await file.open(mode: FileMode.write);
+    await raf.writeString(content);
+    await raf.close();
+    return file;
   }
 }
