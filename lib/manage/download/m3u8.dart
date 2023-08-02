@@ -16,11 +16,11 @@ class M3U8Downloader extends Downloader {
   // m3u8密钥文件名
   static const _m3u8KeyFilename = 'key.key';
 
-  // m3u8索引文件名
-  static const _m3u8IndexFilename = 'index.m3u8';
-
   // m3u8合并之后的文件名
   static const _m3u8MargeFilename = 'index.mp4';
+
+  // m3u8索引文件名
+  static const _m3u8IndexFilename = 'index.m3u8';
 
   @override
   Future<File?> start(
