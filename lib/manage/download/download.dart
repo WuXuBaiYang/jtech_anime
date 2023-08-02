@@ -233,8 +233,6 @@ class DownloadManage extends BaseManage {
       }
       // 如果在准备队列则移除队列
       prepareQueue.removeValue(downloadUrl);
-      // 停止更新
-      _stopDownloadProgress();
       return true;
     } catch (e) {
       LogTool.e('停止下载任务失败', error: e);

@@ -23,7 +23,7 @@ class M3U8Downloader extends Downloader {
   static const _m3u8IndexFilename = 'index.m3u8';
 
   // 下载并发数量
-  static const _m3u8ConcurrentLimit = 5;
+  static const _m3u8ConcurrentLimit = 10;
 
   @override
   Future<File?> start(
@@ -36,6 +36,7 @@ class M3U8Downloader extends Downloader {
     void Function()? done,
   }) async {
     try {
+      cancelToken?.whenCancel.then((_) => done?.call());
       // 解析索引文件并遍历要下载的资源集合
       final baseUri = Uri.parse(url);
       final downloads = await _parseM3U8File(baseUri);
@@ -58,6 +59,7 @@ class M3U8Downloader extends Downloader {
         if (runningTasks.length >= _m3u8ConcurrentLimit) {
           await Future.any(runningTasks);
         }
+        if (_isCanceled(cancelToken)) return null;
         // 下载文件并存储到本地
         final future = _doDownloadTask(
           downloads[filename] ?? '',
@@ -70,19 +72,10 @@ class M3U8Downloader extends Downloader {
           runningTasks.remove(future);
           count++;
         }));
-        // 如果被取消则直接返回done
-        if (cancelToken?.isCancelled ?? false) {
-          done?.call();
-          return null;
-        }
       }
       // 等待剩余任务的完成
       await Future.wait(runningTasks);
-      // 如果被取消则直接返回done
-      if (cancelToken?.isCancelled ?? false) {
-        done?.call();
-        return null;
-      }
+      if (_isCanceled(cancelToken)) return null;
       // 如果存在key则对视频进行合并
       if (downloads.containsKey(_m3u8KeyFilename) && playFile != null) {
         final outputFile = File('$savePath/$_m3u8MargeFilename');
@@ -90,13 +83,19 @@ class M3U8Downloader extends Downloader {
         playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
         if (playFile == null) throw Exception('视频合并失败');
       }
-      complete?.call(savePath);
+      if (!_isCanceled(cancelToken)) complete?.call(savePath);
       return playFile;
     } catch (e) {
       LogTool.e('m3u8视频下载失败', error: e);
       failed?.call(e as Exception);
     }
     return null;
+  }
+
+  // 判断是否已取消
+  bool _isCanceled(CancelToken? cancelToken) {
+    if (cancelToken == null) return false;
+    return cancelToken.isCancelled;
   }
 
   // 执行下载任务
