@@ -226,13 +226,17 @@ class DownloadManage extends BaseManage {
     return false;
   }
 
+  // 主动推送一次最新的下载进度
+  void pushLatestProgress() =>
+      _downloadProgress.add(_updateDownloadProgress(-1));
+
   // 下载进度流
   StreamSubscription<DownloadTask>? _downloadProgressStream;
 
   // 启动下载进度流
   void _startDownloadProgress() {
     if (_downloadProgressStream == null) {
-      _downloadProgress.add(_updateDownloadProgress(0));
+      pushLatestProgress();
       _downloadProgressStream = Stream.periodic(
         const Duration(seconds: 1),
         _updateDownloadProgress,

@@ -64,6 +64,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
       });
       // 请求通知权限
       PermissionTool.checkNotification(context);
+      // 主动推送一次最新的下载进度
+      download.pushLatestProgress();
     });
   }
 
