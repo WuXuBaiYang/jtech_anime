@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
+import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:jtech_anime/manage/download/base.dart';
 import 'package:jtech_anime/tool/log.dart';
@@ -18,6 +18,9 @@ class M3U8Downloader extends Downloader {
 
   // m3u8索引文件名
   static const _m3u8IndexFilename = 'index.m3u8';
+
+  // m3u8合并之后的文件名
+  static const _m3u8MargeFilename = 'index.mp4';
 
   @override
   Future<File?> start(
@@ -73,6 +76,13 @@ class M3U8Downloader extends Downloader {
             playFile = file;
           }
           count++;
+        }
+        // 如果存在key则对视频进行合并
+        if (downloads.containsKey(_m3u8KeyFilename) && playFile != null) {
+          final outputFile = File('$savePath/$_m3u8MargeFilename');
+          if (outputFile.existsSync()) outputFile.deleteSync();
+          playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
+          if (playFile == null) throw Exception('视频合并失败');
         }
         complete?.call(savePath);
         return playFile;
@@ -145,5 +155,23 @@ class M3U8Downloader extends Downloader {
       _m3u8IndexFilename: content,
       ...resources,
     };
+  }
+
+  // m3u8视频合并
+  Future<File?> _margeM3U8File2MP4(
+    String inputPath,
+    String outputPath, {
+    Function(Statistics statistics)? callback,
+  }) {
+    final args = '-allowed_extensions ALL '
+        '-protocol_whitelist "file,http,https,tls,tcp,crypto" '
+        '-i $inputPath -c copy';
+    return FFMpegHelper.instance.runSync(
+      statisticsCallback: callback,
+      FFMpegCommand(
+        args: [CustomArgument(args.split(' '))],
+        outputFilepath: outputPath,
+      ),
+    );
   }
 }
