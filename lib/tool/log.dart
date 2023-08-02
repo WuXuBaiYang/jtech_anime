@@ -17,7 +17,7 @@ class LogTool {
     StackTrace? stackTrace,
   }) =>
       _output(
-        level: Level.verbose,
+        level: Level.trace,
         message: message,
         error: error,
         stackTrace: stackTrace,
@@ -82,7 +82,7 @@ class LogTool {
     StackTrace? stackTrace,
   }) =>
       _output(
-        level: Level.wtf,
+        level: Level.fatal,
         message: message,
         error: error,
         stackTrace: stackTrace,
@@ -97,6 +97,6 @@ class LogTool {
   }) {
     if (!kDebugMode) return;
     _logger ??= Logger();
-    return _logger?.log(level, message, error, stackTrace);
+    return _logger?.log(level, message, error: error, stackTrace: stackTrace);
   }
 }

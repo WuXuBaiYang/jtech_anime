@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/download.dart';
@@ -163,12 +164,8 @@ class DownloadRecordList extends StatelessWidget {
   // 获取播放状态
   IconData _getPlayIconStatus(DownloadRecord item) {
     if (item.isComplete) return FontAwesomeIcons.circlePlay;
-    if (downloadTask?.isPrepared(item) ?? false) {
-      return FontAwesomeIcons.hourglassHalf;
-    }
-    if (downloadTask?.isDownloading(item) ?? false) {
-      return FontAwesomeIcons.pause;
-    }
+    if (download.inPrepareQueue(item)) return FontAwesomeIcons.hourglassHalf;
+    if (download.inDownloadQueue(item)) return FontAwesomeIcons.pause;
     return FontAwesomeIcons.play;
   }
 }

@@ -66,24 +66,29 @@ class DownloadManage extends BaseManage {
       _downloadCompleteCallbacks.add(callback);
 
   // 判断任务是否在队列中（下载/准备）
-  bool isInQueue(DownloadRecord record) =>
-      downloadQueue.contains(record.downloadUrl) ||
+  bool inQueue(DownloadRecord record) =>
+      inDownloadQueue(record) || inPrepareQueue(record);
+
+  // 判断任务是否正在下载队列
+  bool inDownloadQueue(DownloadRecord record) =>
+      downloadQueue.contains(record.downloadUrl);
+
+  // 判断任务是否正在准备队列
+  bool inPrepareQueue(DownloadRecord record) =>
       prepareQueue.contains(record.downloadUrl);
 
   // 切换一个任务的状态（如果在下载中或准备队列则暂停，否则开始）
   Future<bool> toggleTask(DownloadRecord record) =>
-      isInQueue(record) ? stopTask(record) : startTask(record);
+      inQueue(record) ? stopTask(record) : startTask(record);
 
   // 开始多条下载任务
   Future<List<bool>> startTasks(List<DownloadRecord> records) {
     // 判断下载队列的空余位置并将其余任务放到准备队列
     int remaining =
         records.length - (maxDownloadCount.value - downloadQueue.length);
-    if (remaining > 0) {
-      records.reversed.takeWhile((e) {
-        prepareQueue.putValue(e.downloadUrl, CancelToken());
-        return --remaining <= 0;
-      });
+    for (var e in records.reversed) {
+      if (remaining-- <= 0) break;
+      prepareQueue.putValue(e.downloadUrl, CancelToken());
     }
     return Future.wait(records.map(startTask));
   }
@@ -92,7 +97,7 @@ class DownloadManage extends BaseManage {
   Future<bool> startTask(DownloadRecord record) async {
     try {
       // 如果当前任务在下载队列或准备队列则直接返回true
-      if (isInQueue(record)) return true;
+      if (inQueue(record)) return true;
       // 创建缓存目录
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
@@ -204,9 +209,13 @@ class DownloadManage extends BaseManage {
     // 从下载队列与准备队列中移除下载任务
     downloadQueue.removeValue(downloadUrl);
     prepareQueue.removeValue(downloadUrl);
+    _stoppingBuffed.remove(downloadUrl);
     // 停止监听下载进度
     _stopDownloadProgress();
   }
+
+  // 停止中缓冲队列
+  final _stoppingBuffed = [];
 
   // 暂停多条下载任务
   Future<List<bool>> stopTasks(List<DownloadRecord> records) async =>
@@ -217,11 +226,15 @@ class DownloadManage extends BaseManage {
     try {
       final downloadUrl = record.downloadUrl;
       // 如果正在下载的任务则取消下载
-      final cancelToken = downloadQueue.getItem(downloadUrl);
-      cancelToken?.cancel('stopTask');
-      downloadQueue.removeValue(downloadUrl);
-      // 如果是在准备中的队列则移除准备队列
+      if (inDownloadQueue(record)) {
+        downloadQueue.getItem(downloadUrl)?.cancel('stopTask');
+        downloadQueue.removeValue(downloadUrl);
+        _stoppingBuffed.add(downloadUrl);
+      }
+      // 如果在准备队列则移除队列
       prepareQueue.removeValue(downloadUrl);
+      // 停止更新
+      _stopDownloadProgress();
       return true;
     } catch (e) {
       LogTool.e('停止下载任务失败', error: e);
@@ -252,7 +265,7 @@ class DownloadManage extends BaseManage {
       _downloadProgress.add(_updateDownloadProgress(-1));
 
   // 下载进度流
-  StreamSubscription<DownloadTask>? _downloadProgressStream;
+  StreamSubscription<DownloadTask?>? _downloadProgressStream;
 
   // 启动下载进度流
   void _startDownloadProgress() {
@@ -269,6 +282,7 @@ class DownloadManage extends BaseManage {
   void _stopDownloadProgress() {
     // 如果下载队列与准备队列都没有任务了，则可以销毁下载进度流
     if (downloadQueue.isEmpty && prepareQueue.isEmpty) {
+      notice.cancel(downloadProgressNoticeId);
       _downloadProgressStream?.cancel();
       _downloadProgressStream = null;
       _downloadProgress.add(null);
@@ -277,12 +291,14 @@ class DownloadManage extends BaseManage {
   }
 
   // 更新下载任务队列
-  DownloadTask _updateDownloadProgress(int count) {
+  DownloadTask? _updateDownloadProgress(int count) {
     // 如果缓冲队列为空则直接返回空任务
     if (_bufferQueue.isEmpty) return DownloadTask();
     final downloadingMap = Map<String, DownloadTaskItem>.from(
-        _bufferQueue.map((k, v) => MapEntry(k, v.copyWith())));
+        _bufferQueue.map((k, v) => MapEntry(k, v.copyWith()))
+          ..removeWhere((key, _) => _stoppingBuffed.contains(key)));
     _bufferQueue.forEach((_, v) => v.speed = 0);
+    if (downloadingMap.isEmpty) return null;
     // 计算总速度并返回
     double totalSpeed = 0, totalRatio = 0;
     for (var item in downloadingMap.values) {
@@ -293,6 +309,7 @@ class DownloadManage extends BaseManage {
     }
     // 总进度比值等于(下载任务+下载任务...)/(下载任务数+准备任务数)
     final totalCount = downloadQueue.length + prepareQueue.length;
+    if (totalCount <= 0) return null;
     totalRatio = totalRatio / totalCount;
     final progress = totalRatio * 100;
     // 推送消息

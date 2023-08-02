@@ -10,18 +10,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  logging: ^1.0.2
-  path_provider: ^2.0.11
-  dio: ^4.0.6
-  archive: ^3.3.5
+  logging: ^1.2.0
+  path_provider: ^2.0.15
+  dio: ^5.3.1
+  archive: ^3.3.7
   ffmpeg_kit_flutter_min_gpl: ^5.1.0
-  package_info_plus: ^3.0.2
-  path: ^1.8.2
+  package_info_plus: ^4.0.2
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^2.0.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

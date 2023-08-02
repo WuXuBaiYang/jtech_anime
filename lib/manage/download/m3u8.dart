@@ -23,7 +23,7 @@ class M3U8Downloader extends Downloader {
   static const _m3u8IndexFilename = 'index.m3u8';
 
   // 下载并发数量
-  static const _m3u8ConcurrentLimit = 10;
+  static const _m3u8ConcurrentLimit = 5;
 
   @override
   Future<File?> start(
@@ -43,35 +43,46 @@ class M3U8Downloader extends Downloader {
       // 将索引文件直接写入本地
       final content = downloads.remove(_m3u8IndexFilename);
       File? playFile = await _writeM3U8IndexFile(savePath, content);
-      // 剔除掉已经下载过的文件
-      downloads.removeWhere((k, _) => File('$savePath/$k').existsSync());
       // 限制并发数使用异步队列
       int count = 0, total = downloads.length;
+      // 剔除掉已经下载过的文件
+      downloads.removeWhere((k, _) {
+        final exists = File('$savePath/$k').existsSync();
+        if (exists) count++;
+        return exists;
+      });
       receiveProgress?.call(count, total, 0);
-      final runningTasks = <Completer<File?>>[];
+      final runningTasks = <Future>[];
       for (final filename in downloads.keys) {
+        // 判断是否达到最大并发数，达到则等待其中一个完成再继续
+        if (runningTasks.length >= _m3u8ConcurrentLimit) {
+          await Future.any(runningTasks);
+        }
         // 下载文件并存储到本地
         final future = _doDownloadTask(
           downloads[filename] ?? '',
           '$savePath/$filename',
           cancelToken: cancelToken,
           onReceiveProgress: (c, _, s) =>
-              receiveProgress?.call(count++, total, s),
+              receiveProgress?.call(count, total, s),
         );
-        runningTasks.add(Completer()..complete(future));
+        runningTasks.add(future.whenComplete(() {
+          runningTasks.remove(future);
+          count++;
+        }));
         // 如果被取消则直接返回done
         if (cancelToken?.isCancelled ?? false) {
           done?.call();
           return null;
         }
-        // 判断是否达到最大并发数，达到则等待其中一个完成再继续
-        if (runningTasks.length >= _m3u8ConcurrentLimit) {
-          await Future.any(runningTasks.map((e) => e.future));
-          runningTasks.removeWhere((e) => e.isCompleted);
-        }
       }
       // 等待剩余任务的完成
-      await Future.wait(runningTasks.map((e) => e.future));
+      await Future.wait(runningTasks);
+      // 如果被取消则直接返回done
+      if (cancelToken?.isCancelled ?? false) {
+        done?.call();
+        return null;
+      }
       // 如果存在key则对视频进行合并
       if (downloads.containsKey(_m3u8KeyFilename) && playFile != null) {
         final outputFile = File('$savePath/$_m3u8MargeFilename');
@@ -101,6 +112,7 @@ class M3U8Downloader extends Downloader {
       cancelToken: cancelToken,
       onReceiveProgress: onReceiveProgress,
     );
+    if (cancelToken?.isCancelled ?? false) return null;
     // 如果没有返回下载的文件则认为是异常
     if (result == null) throw Exception('下载文件返回为空');
     // 下载完成后去掉.tmp标记
