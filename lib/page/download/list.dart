@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
+import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/image.dart';
@@ -19,6 +20,9 @@ class DownloadRecordList extends StatelessWidget {
   // 下载记录列表
   final List<DownloadRecord> recordList;
 
+  // 下载任务进度
+  final DownloadTask? downloadTask;
+
   // 下载任务点击事件
   final DownloadTaskTapCallback? onTaskTap;
 
@@ -32,6 +36,7 @@ class DownloadRecordList extends StatelessWidget {
     super.key,
     required this.recordList,
     this.onTaskTap,
+    this.downloadTask,
     this.onTaskLongTap,
     this.onAnimeLongTap,
   });
@@ -104,17 +109,18 @@ class DownloadRecordList extends StatelessWidget {
 
   // 构建下载任务列表项
   Widget _buildDownloadTaskItem(DownloadRecord item) {
+    final valueColor = AlwaysStoppedAnimation(kPrimaryColor.withOpacity(0.15));
     const borderRadios = BorderRadius.horizontal(left: Radius.circular(8));
+    final taskItem = downloadTask?.getDownloadTaskItem(item);
     return ClipRRect(
       borderRadius: borderRadios,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          if (item.task != null && item.task!.total > 0)
+          if (taskItem != null)
             LinearProgressIndicator(
-              valueColor:
-                  AlwaysStoppedAnimation(kPrimaryColor.withOpacity(0.15)),
-              value: item.task!.progress / item.task!.total,
+              valueColor: valueColor,
+              value: taskItem.ratio,
               minHeight: 45,
             ),
           InkWell(
@@ -126,8 +132,8 @@ class DownloadRecordList extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(item.name, style: subTitleStyle),
                   const Spacer(),
-                  if (item.task != null && item.task!.downloading)
-                    Text('${FileTool.formatSize(item.task!.speed)}/s',
+                  if (taskItem != null)
+                    Text('${FileTool.formatSize(taskItem.speed)}/s',
                         style: subTitleStyle),
                   const SizedBox(width: 14),
                   if (item.isFail)
@@ -157,8 +163,11 @@ class DownloadRecordList extends StatelessWidget {
   // 获取播放状态
   IconData _getPlayIconStatus(DownloadRecord item) {
     if (item.isComplete) return FontAwesomeIcons.circlePlay;
-    if (item.task == null) return FontAwesomeIcons.play;
-    if (item.task!.downloading) return FontAwesomeIcons.pause;
-    return FontAwesomeIcons.hourglassHalf;
+    if (downloadTask != null) {
+      return downloadTask!.isPrepared(item)
+          ? FontAwesomeIcons.hourglassHalf
+          : FontAwesomeIcons.pause;
+    }
+    return FontAwesomeIcons.play;
   }
 }

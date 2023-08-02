@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -8,7 +9,7 @@ import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/download.dart';
+import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
@@ -18,10 +19,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 初始化视频播放器
+  await initMeeduPlayer(androidUseMediaKit: true, iosUseMediaKit: true);
+  // 初始化ffmpeg
+  await FFMpegHelper.instance.initialize();
   // 初始化各种manage
-  await initMeeduPlayer(
-    androidUseMediaKit: true,
-  ); // 视频播放器
   await router.init(); // 路由服务
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务

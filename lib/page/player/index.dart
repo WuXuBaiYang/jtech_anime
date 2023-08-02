@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart' as router;
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
+import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
@@ -428,11 +428,12 @@ class _PlayerLogic extends BaseLogic {
         final result = await parserHandle.getAnimeVideoCache([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         final playUrl = result.first.playUrl;
-        final downloadRecord = await db.getDownloadRecord(playUrl);
+        final downloadRecord = await db.getDownloadRecord(playUrl,
+            status: [DownloadRecordStatus.complete]);
         // 解析完成之后实现视频播放
         final dataSource = downloadRecord != null
             ? DataSource(
-                type: DataSourceType.file, file: File(downloadRecord.filePath))
+                type: DataSourceType.file, file: downloadRecord.playFile)
             : DataSource(type: DataSourceType.network, source: playUrl);
         final seekTo = playTheRecord && record != null
             ? Duration(milliseconds: record.progress)

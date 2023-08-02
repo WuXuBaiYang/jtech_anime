@@ -115,6 +115,10 @@ dependencies:
   # 通知栏消息
   flutter_local_notifications: ^15.1.0+1
 
+  # ffmpeg
+  ffmpeg_helper:
+    path: ./library/ffmpeg_helper
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5

@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/download.dart';
+import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';

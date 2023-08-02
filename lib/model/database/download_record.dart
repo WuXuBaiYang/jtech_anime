@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
+import 'dart:io';
 import 'package:isar/isar.dart';
-import 'package:jtech_anime/manage/download.dart';
-import 'package:jtech_anime/model/download.dart';
 
 part 'download_record.g.dart';
 
@@ -44,6 +42,9 @@ class DownloadRecord {
   // 保存地址
   String savePath = '';
 
+  // 播放文件地址
+  String playFilePath = '';
+
   // 更新时间
   DateTime updateTime = DateTime.now();
 
@@ -59,48 +60,14 @@ class DownloadRecord {
   @ignore
   bool get isFail => status == DownloadRecordStatus.fail;
 
-  // 下载任务
-  @ignore
-  DownloadTask? task;
-
   // 判断是否为m3u8文件
   @ignore
   bool get isM3U8 => downloadUrl.endsWith('.m3u8');
 
-  // 获取播放文件路径
+  // 获取播放文件
   @ignore
-  String get filePath =>
-      isM3U8 ? '$savePath/${DownloadManage.m3u8IndexFilename}' : savePath;
-
-  // 创建下载任务
-  DownloadRecord createTask(String savePath) {
-    task = DownloadTask(cancelKey: CancelToken());
-    this.savePath = savePath;
-    return this;
-  }
-
-  // 更新下载任务状态
-  DownloadRecord updateTaskStatus(bool downloading) {
-    if (task == null) return this;
-    return this
-      ..task = DownloadTask(
-        cancelKey: task!.cancelKey,
-        downloading: downloading,
-      );
-  }
-
-  // 更新下载任务信息
-  DownloadRecord updateTask(int progress, int total, int speed) {
-    if (task == null) return this;
-    return this
-      ..task = DownloadTask(
-        downloading: task!.downloading,
-        cancelKey: task!.cancelKey,
-        progress: progress,
-        total: total,
-        speed: speed,
-      );
-  }
+  File get playFile =>
+      File(playFilePath.isNotEmpty ? playFilePath : '$savePath/index.m3u8');
 
   DownloadRecord copyWith({
     Id? id,

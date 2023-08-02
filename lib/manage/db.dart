@@ -58,8 +58,17 @@ class DBManage extends BaseManage {
       });
 
   // 获取下载记录(根据番剧的播放地址，不是访问地址)
-  Future<DownloadRecord?> getDownloadRecord(String playUrl) =>
-      isar.downloadRecords.where().downloadUrlEqualTo(playUrl).findFirst();
+  Future<DownloadRecord?> getDownloadRecord(
+    String playUrl, {
+    // 按照下载状态过滤
+    List<DownloadRecordStatus> status = const [],
+  }) =>
+      isar.downloadRecords
+          .filter()
+          .downloadUrlEqualTo(playUrl)
+          .and()
+          .anyOf(status, (q, e) => q.statusEqualTo(e))
+          .findFirst();
 
   // 获取下载记录列表
   Future<List<DownloadRecord>> getDownloadRecordList(
