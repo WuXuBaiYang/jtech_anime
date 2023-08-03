@@ -27,7 +27,6 @@ abstract class Downloader {
     String savePath, {
     DownloaderProgressCallback? receiveProgress,
     CancelToken? cancelToken,
-    void Function()? done,
   }) async {
     final c = Completer<File?>();
     // 检查本地是否存在已存在文件并获取起始位置
@@ -59,7 +58,6 @@ abstract class Downloader {
       raf.writeFromSync(data);
     }, onDone: () {
       c.complete(saveFile);
-      done?.call();
       raf.close();
     }, onError: (e) {
       c.completeError(e);
