@@ -22,6 +22,9 @@ class Common {
 
   // 动画-错误
   static const String statusErrorAsset = 'assets/anime/status_error.json';
+
+  // 是否检查网络状态
+  static const String checkNetworkStatusKey = 'check_network_status';
 }
 
 /*

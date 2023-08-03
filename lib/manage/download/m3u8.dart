@@ -22,7 +22,7 @@ class M3U8Downloader extends Downloader {
   static const _m3u8IndexFilename = 'index.m3u8';
 
   // 下载并发数量
-  static const _m3u8ConcurrentLimit = 10;
+  static const _m3u8ConcurrentLimit = 3;
 
   @override
   Future<File?> start(

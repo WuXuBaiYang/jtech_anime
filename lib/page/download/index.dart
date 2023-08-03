@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/parser.dart';
@@ -18,6 +20,7 @@ import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 
@@ -55,6 +58,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 监听下载完成事件
       download.addDownloadCompleteListener((record) {
+        if (!mounted) return;
         // 移除下载列表
         logic.downloadingList.removeWhere((e) {
           return e.downloadUrl == record.downloadUrl;
@@ -111,7 +115,17 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
                         .getAnimeDownloadRecord(item, status: status)
                         .then((items) => _showDeleteDialog(
                             context, items, logic.downloadingList)),
-                    onTaskTap: download.toggleTask,
+                    onTaskTap: (record) async {
+                      if (download.inQueue(record)) {
+                        download.stopTask(record);
+                        return;
+                      }
+                      // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
+                      if (logic.checkNetwork.value &&
+                          await Tool.checkNetworkInMobile() &&
+                          !await _showNetworkStatusDialog(context)) return;
+                      download.startTask(record);
+                    },
                   ),
                 ),
               ],
@@ -141,7 +155,13 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
             color: kPrimaryColor,
           ),
           IconButton(
-            onPressed: () => download.startTasks(recordList),
+            onPressed: () async {
+              // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
+              if (logic.checkNetwork.value &&
+                  await Tool.checkNetworkInMobile() &&
+                  !await _showNetworkStatusDialog(context)) return;
+              download.startTasks(recordList);
+            },
             icon: const Icon(FontAwesomeIcons.play),
             color: kPrimaryColor,
           ),
@@ -212,6 +232,34 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
       ),
     );
   }
+
+  // 展示网络状态提示dialog
+  Future<bool> _showNetworkStatusDialog(BuildContext context) {
+    return MessageDialog.show<bool>(
+      context,
+      title: const Text('流量提醒'),
+      content: const Text('当前正在使用手机流量下载，是否继续？'),
+      actionLeft: TextButton(
+        child: const Text('不再提醒'),
+        onPressed: () {
+          cache.setBool(Common.checkNetworkStatusKey, false);
+          logic.checkNetwork.setValue(false);
+          router.pop(true);
+        },
+      ),
+      actionMiddle: TextButton(
+        child: const Text('取消'),
+        onPressed: () => router.pop(false),
+      ),
+      actionRight: TextButton(
+        child: const Text('继续下载'),
+        onPressed: () {
+          logic.checkNetwork.setValue(false);
+          router.pop(true);
+        },
+      ),
+    ).then((v) => v ?? false);
+  }
 }
 
 /*
@@ -225,6 +273,10 @@ class _DownloadLogic extends BaseLogic {
 
   // 已下载记录
   final downloadRecordList = ListValueChangeNotifier<DownloadRecord>.empty();
+
+  // 是否检查网络状态
+  final checkNetwork = ValueChangeNotifier<bool>(
+      cache.getBool(Common.checkNetworkStatusKey) ?? true);
 
   // 当前页码
   int _pageIndex = 1;
@@ -291,14 +343,13 @@ class _DownloadLogic extends BaseLogic {
 
   // 删除下载记录
   Future<void> removeDownloadRecord(List<DownloadRecord> items,
-      ListValueChangeNotifier<DownloadRecord> notifier) {
-    int i = 0;
-    return download.removeTasks(items).then((values) {
-      return items.map((e) => e.downloadUrl).where((e) => values[i++]).toList();
-    }).then((records) {
-      return notifier.removeWhere(
-        (e) => records.contains(e.downloadUrl),
-      );
-    });
+      ListValueChangeNotifier<DownloadRecord> notifier) async {
+    final results = await download.removeTasks(items);
+    for (int i = 0; i < results.length; i++) {
+      if (!results[i]) continue;
+      notifier.removeWhere((e) {
+        return e.downloadUrl == items[i].downloadUrl;
+      });
+    }
   }
 }

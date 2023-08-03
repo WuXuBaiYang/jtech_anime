@@ -97,18 +97,15 @@ class DownloadManage extends BaseManage {
   bool inStoppingBuffed(DownloadRecord record) =>
       _stoppingBuffed.contains(record.downloadUrl);
 
-  // 切换一个任务的状态（如果在下载中或准备队列则暂停，否则开始）
-  Future<bool> toggleTask(DownloadRecord record) =>
-      inQueue(record) ? stopTask(record) : startTask(record);
-
   // 开始多条下载任务
-  Future<List<bool>> startTasks(List<DownloadRecord> records) {
+  Future<List<bool>> startTasks(List<DownloadRecord> records) async {
     // 判断下载队列的空余位置并将其余任务放到准备队列
     final remaining = maxDownloadCount.value - downloadQueue.length;
     int count = records.length - remaining;
     for (var e in records.reversed) {
       if (count-- <= 0) break;
       prepareQueue.putValue(e.downloadUrl, CancelToken());
+      _updateDownloadRecord(e);
     }
     return Future.wait(records.map(startTask));
   }
@@ -137,9 +134,7 @@ class DownloadManage extends BaseManage {
     try {
       final downloadUrl = record.downloadUrl;
       // 更新下载记录的状态
-      await db.updateDownload(record
-        ..status = DownloadRecordStatus.download
-        ..updateTime = DateTime.now());
+      await _updateDownloadRecord(record);
       final cancelToken = CancelToken();
       // 如果下载队列达到上限则将任务添加到准备队列
       if (downloadQueue.length >= maxDownloadCount.value) {
@@ -177,10 +172,11 @@ class DownloadManage extends BaseManage {
       );
       // 如果播放入口文件不为空则标记状态为已完成
       if (playFile != null) {
-        await db.updateDownload(record
-          ..status = DownloadRecordStatus.complete
-          ..playFilePath = playFile.path
-          ..updateTime = DateTime.now());
+        await _updateDownloadRecord(
+          status: DownloadRecordStatus.complete,
+          playFilePath: playFile.path,
+          record,
+        );
         // 回调下载完成事件
         for (var callback in _downloadCompleteCallbacks) {
           try {
@@ -194,10 +190,11 @@ class DownloadManage extends BaseManage {
     } catch (e) {
       LogTool.e('任务下载失败', error: e);
       // 更新任务状态为异常
-      await db.updateDownload(record
-        ..status = DownloadRecordStatus.fail
-        ..updateTime = DateTime.now()
-        ..failText = e.toString());
+      await _updateDownloadRecord(
+        status: DownloadRecordStatus.fail,
+        failText: e.toString(),
+        record,
+      );
     } finally {
       // 从所有队列中移除该任务
       downloadQueue.removeValue(downloadUrl);
@@ -253,6 +250,20 @@ class DownloadManage extends BaseManage {
       LogTool.e('移除下载任务失败', error: e);
     }
     return false;
+  }
+
+  // 更新下载记录状态
+  Future<void> _updateDownloadRecord(
+    DownloadRecord record, {
+    DownloadRecordStatus status = DownloadRecordStatus.download,
+    String playFilePath = '',
+    String? failText,
+  }) {
+    return db.updateDownload(record
+      ..updateTime = DateTime.now()
+      ..playFilePath = playFilePath
+      ..failText = failText
+      ..status = status);
   }
 
   // 主动推送一次最新的下载进度

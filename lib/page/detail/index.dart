@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:isar/isar.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
@@ -147,9 +149,11 @@ class _AnimeDetailPageState
         const Spacer(),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () =>
-              DownloadSheet.show(context, animeInfo: logic.animeDetail.value)
-                  .whenComplete(() => logic.cacheController.refreshValue()),
+          onPressed: () => DownloadSheet.show(
+            context,
+            animeInfo: logic.animeDetail.value,
+            checkNetwork: logic.checkNetwork,
+          ).whenComplete(logic.cacheController.refreshValue),
         ),
       ],
     );
@@ -270,6 +274,10 @@ class _AnimeDetailLogic extends BaseLogic {
   // 缓存控制器
   final cacheController =
       CacheFutureBuilderController<Map<String, DownloadRecord>>();
+
+  // 是否检查网络状态
+  final checkNetwork = ValueChangeNotifier<bool>(
+      cache.getBool(Common.checkNetworkStatusKey) ?? true);
 
   @override
   void init() {

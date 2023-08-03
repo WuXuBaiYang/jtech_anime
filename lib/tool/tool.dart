@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -59,5 +60,11 @@ class Tool {
   static Future<String> get version async {
     final packageInfo = await PackageInfo.fromPlatform();
     return packageInfo.version;
+  }
+
+  // 检查当前网络是否处于流量状态
+  static Future<bool> checkNetworkInMobile() async {
+    final result = await Connectivity().checkConnectivity();
+    return result == ConnectivityResult.mobile;
   }
 }
