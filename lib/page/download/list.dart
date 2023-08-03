@@ -113,6 +113,11 @@ class DownloadRecordList extends StatelessWidget {
     final valueColor = AlwaysStoppedAnimation(kPrimaryColor.withOpacity(0.15));
     const borderRadios = BorderRadius.horizontal(left: Radius.circular(8));
     final taskItem = downloadTask?.getDownloadTaskItem(item);
+    final isStopping = download.inStoppingBuffed(item);
+    final isWaiting = download.inWaitingBuffed(item);
+    final statusIcon = !isWaiting
+        ? Icon(_getPlayIconStatus(item), color: kPrimaryColor)
+        : const CircularProgressIndicator();
     return ClipRRect(
       borderRadius: borderRadios,
       child: Stack(
@@ -146,15 +151,21 @@ class DownloadRecordList extends StatelessWidget {
                     ),
                   const SizedBox(width: 14),
                   IconButton(
-                    icon: Icon(_getPlayIconStatus(item), color: kPrimaryColor),
-                    onPressed: () => onTaskTap?.call(item),
+                    icon: statusIcon,
+                    onPressed: () {
+                      if (isStopping) return;
+                      onTaskTap?.call(item);
+                    },
                   ),
                   const SizedBox(width: 14),
                 ],
               ),
             ),
-            onTap: () => onTaskTap?.call(item),
             onLongPress: () => onTaskLongTap?.call(item),
+            onTap: () {
+              if (isStopping) return;
+              onTaskTap?.call(item);
+            },
           ),
         ],
       ),

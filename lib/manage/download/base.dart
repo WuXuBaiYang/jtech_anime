@@ -18,17 +18,14 @@ abstract class Downloader {
     String url,
     String savePath, {
     CancelToken? cancelToken,
-    void Function(int count, int total, int speed)? receiveProgress,
-    void Function(String savePath)? complete,
-    void Function(Exception)? failed,
-    void Function()? done,
+    DownloaderProgressCallback? receiveProgress,
   });
 
   // 文件下载（支持断点续传）
   Future<File?> download(
     String url,
     String savePath, {
-    DownloaderProgressCallback? onReceiveProgress,
+    DownloaderProgressCallback? receiveProgress,
     CancelToken? cancelToken,
     void Function()? done,
   }) async {
@@ -58,7 +55,7 @@ abstract class Downloader {
     final subscription = resp.data!.stream.listen((data) {
       final speed = data.length;
       final count = received += speed;
-      onReceiveProgress?.call(count, total, speed);
+      receiveProgress?.call(count, total, speed);
       raf.writeFromSync(data);
     }, onDone: () {
       c.complete(saveFile);
@@ -114,14 +111,9 @@ abstract class Downloader {
   Map<String, String> _getRange(int start, [int? end]) =>
       {'range': '$start-${end ?? ''}'};
 
-  // 合并url
-  String mergeUrl(String path, Uri baseUri) {
-    if (path.startsWith('http')) return path;
-    if (!path.startsWith('/')) {
-      final tmp = baseUri.path;
-      final index = tmp.lastIndexOf('/');
-      path = '${tmp.substring(0, index)}/$path';
-    }
-    return '${baseUri.scheme}://${baseUri.host}$path';
+  // 判断是否已取消
+  bool isCanceled(CancelToken? cancelToken) {
+    if (cancelToken == null) return false;
+    return cancelToken.isCancelled;
   }
 }

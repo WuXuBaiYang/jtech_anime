@@ -26,6 +26,9 @@ class DownloadManage extends BaseManage {
   // 下载进度通知id
   static const downloadProgressNoticeId = 9527;
 
+  // 番剧缓存目录
+  static const videoCachePath = 'video_cache';
+
   static final DownloadManage _instance = DownloadManage._internal();
 
   factory DownloadManage() => _instance;
@@ -43,20 +46,21 @@ class DownloadManage extends BaseManage {
   // 等待队列
   final prepareQueue = MapValueChangeNotifier<String, CancelToken>.empty();
 
-  // 番剧缓存目录
-  final videoCachePath = ValueChangeNotifier<String>('video_cache');
+  // 下载任务流
+  final _downloadProgressController =
+      StreamController<DownloadTask?>.broadcast();
 
   // 最大下载数
   final maxDownloadCount = ValueChangeNotifier<int>(3);
 
-  // 缓冲队列
-  final _bufferQueue = <String, DownloadTaskItem>{};
+  // 进度缓冲队列
+  final _progressBuffed = <String, DownloadTaskItem>{};
 
-  // 下载任务流
-  final _downloadProgress = StreamController<DownloadTask?>.broadcast();
+  // 开始缓冲队列
+  final _startingBuffed = <String>[];
 
-  // 获取下载任务流
-  Stream<DownloadTask?> get downloadProgress => _downloadProgress.stream;
+  // 停止缓冲队列
+  final _stoppingBuffed = <String>[];
 
   // 下载完成回调
   final List<DownloadCompleteCallback> _downloadCompleteCallbacks = [];
@@ -64,6 +68,10 @@ class DownloadManage extends BaseManage {
   // 添加下载完成回调
   void addDownloadCompleteListener(DownloadCompleteCallback callback) =>
       _downloadCompleteCallbacks.add(callback);
+
+  // 获取下载进度流
+  Stream<DownloadTask?> get downloadProgress =>
+      _downloadProgressController.stream;
 
   // 判断任务是否在队列中（下载/准备）
   bool inQueue(DownloadRecord record) =>
@@ -77,6 +85,18 @@ class DownloadManage extends BaseManage {
   bool inPrepareQueue(DownloadRecord record) =>
       prepareQueue.contains(record.downloadUrl);
 
+  // 判断任务是否处于等待状态(正在开始和正在结束)
+  bool inWaitingBuffed(DownloadRecord record) =>
+      inStartingBuffed(record) || inStoppingBuffed(record);
+
+  // 判断任务是否正在开始(从添加任务到第一次更新进度)
+  bool inStartingBuffed(DownloadRecord record) =>
+      _startingBuffed.contains(record.downloadUrl);
+
+  // 判断任务是否正在停止(从停止任务到任务完全停止)
+  bool inStoppingBuffed(DownloadRecord record) =>
+      _stoppingBuffed.contains(record.downloadUrl);
+
   // 切换一个任务的状态（如果在下载中或准备队列则暂停，否则开始）
   Future<bool> toggleTask(DownloadRecord record) =>
       inQueue(record) ? stopTask(record) : startTask(record);
@@ -84,10 +104,10 @@ class DownloadManage extends BaseManage {
   // 开始多条下载任务
   Future<List<bool>> startTasks(List<DownloadRecord> records) {
     // 判断下载队列的空余位置并将其余任务放到准备队列
-    int remaining =
-        records.length - (maxDownloadCount.value - downloadQueue.length);
+    final remaining = maxDownloadCount.value - downloadQueue.length;
+    int count = records.length - remaining;
     for (var e in records.reversed) {
-      if (remaining-- <= 0) break;
+      if (count-- <= 0) break;
       prepareQueue.putValue(e.downloadUrl, CancelToken());
     }
     return Future.wait(records.map(startTask));
@@ -101,8 +121,7 @@ class DownloadManage extends BaseManage {
       // 创建缓存目录
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
-          : await FileTool.getDirPath(
-              '${videoCachePath.value}/${Tool.md5(record.url)}',
+          : await FileTool.getDirPath('$videoCachePath/${Tool.md5(record.url)}',
               root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
@@ -128,6 +147,7 @@ class DownloadManage extends BaseManage {
         return true;
       }
       downloadQueue.putValue(downloadUrl, cancelToken);
+      _startingBuffed.add(downloadUrl);
       // 启动监听下载进度
       _startDownloadProgress();
       // 判断任务类型并开始下载
@@ -143,79 +163,51 @@ class DownloadManage extends BaseManage {
   // 启动下载任务
   Future<File?> _startDownloadTask(Downloader downloader, DownloadRecord record,
       {CancelToken? cancelToken}) async {
-    final playFile = await downloader.start(
-      record.downloadUrl,
-      record.savePath,
-      cancelToken: cancelToken,
-      done: () => _doneTask(record),
-      failed: (e) => _taskOnError(record, e),
-      complete: (_) => _updateTaskComplete(record),
-      receiveProgress: (count, total, speed) =>
-          _updateTaskProgress(record, count, total, speed),
-    );
-    // 更新下载记录的播放文件地址
-    if (playFile != null) {
-      db.updateDownload(record
-        ..playFilePath = playFile.path
-        ..updateTime = DateTime.now());
+    try {
+      final downloadUrl = record.downloadUrl;
+      final playFile = await downloader.start(
+        downloadUrl,
+        record.savePath,
+        cancelToken: cancelToken,
+        receiveProgress: (count, total, speed) {
+          // 如果缓存队列中存在任务则堆叠参数否则创建新任务
+          final task = _progressBuffed[downloadUrl] ?? DownloadTaskItem.zero();
+          _progressBuffed[downloadUrl] = task.stack(count, total, speed);
+        },
+      );
+      // 从所有队列中移除该任务
+      downloadQueue.removeValue(downloadUrl);
+      prepareQueue.removeValue(downloadUrl);
+      _startingBuffed.remove(downloadUrl);
+      _stoppingBuffed.remove(downloadUrl);
+      _stopDownloadProgress();
+      // 如果播放入口文件不为空则标记状态为已完成
+      if (playFile != null) {
+        await db.updateDownload(record
+          ..status = DownloadRecordStatus.complete
+          ..playFilePath = playFile.path
+          ..updateTime = DateTime.now());
+        // 回调下载完成事件
+        for (var callback in _downloadCompleteCallbacks) {
+          callback.call(record);
+        }
+      }
+      // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
+      if (prepareQueue.isNotEmpty) {
+        final nextTask = await db.getDownloadRecord(prepareQueue.keys.first);
+        if (nextTask != null) _resumeTask(nextTask);
+      }
+      return playFile;
+    } catch (e) {
+      LogTool.e('任务下载失败', error: e);
+      // 更新任务状态为异常
+      await db.updateDownload(record
+        ..status = DownloadRecordStatus.fail
+        ..updateTime = DateTime.now()
+        ..failText = e.toString());
     }
-    // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
-    if (prepareQueue.isNotEmpty) {
-      final nextTask = await db.getDownloadRecord(prepareQueue.keys.first);
-      if (nextTask != null) _resumeTask(nextTask);
-    } else {
-      notice.cancel(downloadProgressNoticeId);
-    }
-    return playFile;
+    return null;
   }
-
-  // 更新下载进度
-  void _updateTaskProgress(
-      DownloadRecord record, int count, int total, int speed) {
-    // 如果缓存队列中存在任务则堆叠参数否则创建新任务
-    final downloadUrl = record.downloadUrl;
-    final task = _bufferQueue[downloadUrl] ?? DownloadTaskItem.zero();
-    _bufferQueue[downloadUrl] = task.stack(count, total, speed);
-  }
-
-  // 更新下载任务为完成状态
-  void _updateTaskComplete(DownloadRecord record) async {
-    // 完成下载任务
-    _doneTask(record);
-    // 更新下载任务为已完成
-    db.updateDownload(record
-      ..status = DownloadRecordStatus.complete
-      ..updateTime = DateTime.now());
-    // 回调下载完成事件
-    for (var callback in _downloadCompleteCallbacks) {
-      callback.call(record);
-    }
-  }
-
-  // 下载任务异常处理
-  void _taskOnError(DownloadRecord record, Exception e) async {
-    // 完成下载任务
-    _doneTask(record);
-    // 更新状态到数据库
-    db.updateDownload(record
-      ..status = DownloadRecordStatus.fail
-      ..updateTime = DateTime.now()
-      ..failText = e.toString());
-  }
-
-  // 结束下载任务(下载完成/下载停止/下载异常)
-  void _doneTask(DownloadRecord record) {
-    final downloadUrl = record.downloadUrl;
-    // 从下载队列与准备队列中移除下载任务
-    downloadQueue.removeValue(downloadUrl);
-    prepareQueue.removeValue(downloadUrl);
-    _stoppingBuffed.remove(downloadUrl);
-    // 停止监听下载进度
-    _stopDownloadProgress();
-  }
-
-  // 停止中缓冲队列
-  final _stoppingBuffed = [];
 
   // 暂停多条下载任务
   Future<List<bool>> stopTasks(List<DownloadRecord> records) async =>
@@ -260,19 +252,19 @@ class DownloadManage extends BaseManage {
 
   // 主动推送一次最新的下载进度
   void pushLatestProgress() =>
-      _downloadProgress.add(_updateDownloadProgress(-1));
+      _downloadProgressController.add(_updateDownloadProgress(-1));
 
   // 下载进度流
-  StreamSubscription<DownloadTask?>? _downloadProgressStream;
+  StreamSubscription<DownloadTask?>? _downloadProgressPeriodic;
 
   // 启动下载进度流
   void _startDownloadProgress() {
-    if (_downloadProgressStream == null) {
+    if (_downloadProgressPeriodic == null) {
       pushLatestProgress();
-      _downloadProgressStream = Stream.periodic(
+      _downloadProgressPeriodic = Stream.periodic(
         const Duration(seconds: 1),
         _updateDownloadProgress,
-      ).listen(_downloadProgress.add);
+      ).listen(_downloadProgressController.add);
     }
   }
 
@@ -281,25 +273,28 @@ class DownloadManage extends BaseManage {
     // 如果下载队列与准备队列都没有任务了，则可以销毁下载进度流
     if (downloadQueue.isEmpty && prepareQueue.isEmpty) {
       notice.cancel(downloadProgressNoticeId);
-      _downloadProgressStream?.cancel();
-      _downloadProgressStream = null;
-      _downloadProgress.add(null);
-      _bufferQueue.clear();
+      _downloadProgressController.add(null);
+      _downloadProgressPeriodic?.cancel();
+      _downloadProgressPeriodic = null;
+      _progressBuffed.clear();
     }
   }
 
   // 更新下载任务队列
   DownloadTask? _updateDownloadProgress(int count) {
     // 如果缓冲队列为空则直接返回空任务
-    if (_bufferQueue.isEmpty) return DownloadTask();
+    if (_progressBuffed.isEmpty) return DownloadTask();
     final downloadingMap = Map<String, DownloadTaskItem>.from(
-        _bufferQueue.map((k, v) => MapEntry(k, v.copyWith()))
+        _progressBuffed.map((k, v) => MapEntry(k, v.copyWith()))
           ..removeWhere((key, _) => _stoppingBuffed.contains(key)));
-    _bufferQueue.forEach((_, v) => v.speed = 0);
+    _progressBuffed.forEach((_, v) => v.speed = 0);
     if (downloadingMap.isEmpty) return null;
     // 计算总速度并返回
     double totalSpeed = 0, totalRatio = 0;
-    for (var item in downloadingMap.values) {
+    for (var downloadUrl in downloadingMap.keys) {
+      final item = downloadingMap[downloadUrl];
+      _startingBuffed.remove(downloadUrl);
+      if (item == null) continue;
       totalSpeed += item.speed;
       if (item.total != 0 && item.count != 0) {
         totalRatio += item.count / item.total;
