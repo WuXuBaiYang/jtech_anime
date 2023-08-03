@@ -51,7 +51,7 @@ class DownloadManage extends BaseManage {
       StreamController<DownloadTask?>.broadcast();
 
   // 最大下载数
-  final maxDownloadCount = ValueChangeNotifier<int>(2);
+  final maxDownloadCount = ValueChangeNotifier<int>(3);
 
   // 进度缓冲队列
   final _progressBuffed = <String, DownloadTaskItem>{};
