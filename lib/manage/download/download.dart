@@ -300,10 +300,9 @@ class DownloadManage extends BaseManage {
   DownloadTask? _updateDownloadProgress(int count) {
     // 如果缓冲队列为空则直接返回空任务
     if (_progressBuffed.isEmpty) return DownloadTask();
-    final downloadingMap = Map<String, DownloadTaskItem>.from(
-        _progressBuffed.map((k, v) => MapEntry(k, v.copyWith()))
-          ..removeWhere((key, _) => _stoppingBuffed.contains(key)));
-    _progressBuffed.forEach((_, v) => v.speed = 0);
+    final downloadingMap = Map<String, DownloadTaskItem>.from(_progressBuffed
+      ..removeWhere((key, _) => _stoppingBuffed.contains(key)));
+    _progressBuffed.clear();
     if (downloadingMap.isEmpty) return null;
     // 计算总速度并返回
     double totalSpeed = 0, totalRatio = 0;

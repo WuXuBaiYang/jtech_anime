@@ -56,6 +56,7 @@ class M3U8Downloader extends Downloader {
         '$savePath/$filename',
         cancelToken: cancelToken,
         receiveProgress: (_, __, s) {
+          if (isCanceled(cancelToken)) return;
           receiveProgress?.call(count, total, s);
         },
       );
