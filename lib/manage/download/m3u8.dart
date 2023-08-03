@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/manage/download/base.dart';
 import 'package:path/path.dart';
 
@@ -21,9 +22,6 @@ class M3U8Downloader extends Downloader {
   // m3u8索引文件名
   static const _m3u8IndexFilename = 'index.m3u8';
 
-  // 下载并发数量
-  static const _m3u8ConcurrentLimit = 3;
-
   @override
   Future<File?> start(
     String url,
@@ -33,43 +31,27 @@ class M3U8Downloader extends Downloader {
   }) async {
     // 解析索引文件并遍历要下载的资源集合
     final baseUri = Uri.parse(url);
-    final downloads = await _parseM3U8File(baseUri);
-    if (downloads.isEmpty) throw Exception('m3u8文件解析失败，内容为空');
+    final downloadsMap = await _parseM3U8File(baseUri);
+    if (downloadsMap.isEmpty) throw Exception('m3u8文件解析失败，内容为空');
     // 将索引文件直接写入本地
-    final content = downloads.remove(_m3u8IndexFilename);
+    final content = downloadsMap.remove(_m3u8IndexFilename);
     File? playFile = await _writeM3U8IndexFile(savePath, content);
-    // 限制并发数使用异步队列
-    int count = 0, total = downloads.length;
-    downloads.removeWhere((k, _) => File('$savePath/$k').existsSync());
-    count = total - downloads.length;
-    receiveProgress?.call(count, total, 0);
-    final runningTasks = <Future>[];
-    for (final filename in downloads.keys) {
-      // 判断是否达到最大并发数，达到则等待其中一个完成再继续
-      if (runningTasks.length >= _m3u8ConcurrentLimit) {
-        await Future.any(runningTasks);
-      }
-      if (isCanceled(cancelToken)) return null;
-      // 下载文件并存储到本地
-      final future = _doDownloadTask(
-        downloads[filename] ?? '',
-        '$savePath/$filename',
-        cancelToken: cancelToken,
-        receiveProgress: (_, __, s) {
-          if (isCanceled(cancelToken)) return;
-          receiveProgress?.call(count, total, s);
-        },
-      );
-      runningTasks.add(future.whenComplete(() {
-        runningTasks.remove(future);
-        count++;
-      }));
-    }
-    // 等待剩余任务的完成
-    await Future.wait(runningTasks);
+    // 获取要下载的文件总量
+    final total = downloadsMap.length;
+    downloadsMap.removeWhere((k, _) => File('$savePath/$k').existsSync());
+    int initCode = total - downloadsMap.length;
+    final startIndex = savePath.indexOf(FileDirPath.videoCachePath);
+    await downloadBatch(
+      fileDir: savePath.substring(startIndex),
+      receiveProgress: (count, _, speed) =>
+          receiveProgress?.call(initCode + count, total, speed),
+      root: Common.videoCacheRoot,
+      cancelToken: cancelToken,
+      downloadsMap,
+    );
     if (isCanceled(cancelToken)) return null;
     // 如果存在key则对视频进行合并
-    if (downloads.containsKey(_m3u8KeyFilename) && playFile != null) {
+    if (downloadsMap.containsKey(_m3u8KeyFilename) && playFile != null) {
       final outputFile = File('$savePath/$_m3u8MargeFilename');
       if (outputFile.existsSync()) outputFile.deleteSync();
       playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
@@ -77,26 +59,6 @@ class M3U8Downloader extends Downloader {
     }
     if (isCanceled(cancelToken)) return null;
     return playFile;
-  }
-
-  // 执行下载任务
-  Future<File?> _doDownloadTask(
-    String downloadUrl,
-    String filePath, {
-    DownloaderProgressCallback? receiveProgress,
-    CancelToken? cancelToken,
-  }) async {
-    final result = await download(
-      downloadUrl,
-      '$filePath.tmp',
-      cancelToken: cancelToken,
-      receiveProgress: receiveProgress,
-    );
-    if (cancelToken?.isCancelled ?? false) return null;
-    // 如果没有返回下载的文件则认为是异常
-    if (result == null) throw Exception('下载文件返回为空');
-    // 下载完成后去掉.tmp标记
-    return result.rename(filePath);
   }
 
   // 解析m3u8文件并获取全部的下载记录

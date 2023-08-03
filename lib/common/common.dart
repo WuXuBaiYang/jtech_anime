@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:jtech_anime/tool/file.dart';
+
 /*
 * 静态资源/通用静态变量
 * @author wuxubaiyang
@@ -25,6 +27,9 @@ class Common {
 
   // 是否检查网络状态
   static const String checkNetworkStatusKey = 'check_network_status';
+
+  // 视频缓存根目录
+  static const FileDir videoCacheRoot = FileDir.applicationDocuments;
 }
 
 /*

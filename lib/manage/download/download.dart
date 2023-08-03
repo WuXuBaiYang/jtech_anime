@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/db.dart';
@@ -25,9 +26,6 @@ typedef DownloadCompleteCallback = void Function(DownloadRecord record);
 class DownloadManage extends BaseManage {
   // 下载进度通知id
   static const downloadProgressNoticeId = 9527;
-
-  // 番剧缓存目录
-  static const videoCachePath = 'video_cache';
 
   static final DownloadManage _instance = DownloadManage._internal();
 
@@ -118,8 +116,9 @@ class DownloadManage extends BaseManage {
       // 创建缓存目录
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
-          : await FileTool.getDirPath('$videoCachePath/${Tool.md5(record.url)}',
-              root: FileDir.applicationDocuments);
+          : await FileTool.getDirPath(
+              '${FileDirPath.videoCachePath}/${Tool.md5(record.url)}',
+              root: Common.videoCacheRoot);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
       return _resumeTask(record..savePath = savePath);
