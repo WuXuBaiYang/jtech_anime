@@ -163,8 +163,8 @@ class DownloadManage extends BaseManage {
   // 启动下载任务
   Future<File?> _startDownloadTask(Downloader downloader, DownloadRecord record,
       {CancelToken? cancelToken}) async {
+    final downloadUrl = record.downloadUrl;
     try {
-      final downloadUrl = record.downloadUrl;
       final playFile = await downloader.start(
         downloadUrl,
         record.savePath,
@@ -175,12 +175,6 @@ class DownloadManage extends BaseManage {
           _progressBuffed[downloadUrl] = task.stack(count, total, speed);
         },
       );
-      // 从所有队列中移除该任务
-      downloadQueue.removeValue(downloadUrl);
-      prepareQueue.removeValue(downloadUrl);
-      _startingBuffed.remove(downloadUrl);
-      _stoppingBuffed.remove(downloadUrl);
-      _stopDownloadProgress();
       // 如果播放入口文件不为空则标记状态为已完成
       if (playFile != null) {
         await db.updateDownload(record
@@ -192,11 +186,6 @@ class DownloadManage extends BaseManage {
           callback.call(record);
         }
       }
-      // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
-      if (prepareQueue.isNotEmpty) {
-        final nextTask = await db.getDownloadRecord(prepareQueue.keys.first);
-        if (nextTask != null) _resumeTask(nextTask);
-      }
       return playFile;
     } catch (e) {
       LogTool.e('任务下载失败', error: e);
@@ -205,6 +194,18 @@ class DownloadManage extends BaseManage {
         ..status = DownloadRecordStatus.fail
         ..updateTime = DateTime.now()
         ..failText = e.toString());
+    } finally {
+      // 从所有队列中移除该任务
+      downloadQueue.removeValue(downloadUrl);
+      prepareQueue.removeValue(downloadUrl);
+      _startingBuffed.remove(downloadUrl);
+      _stoppingBuffed.remove(downloadUrl);
+      _stopDownloadProgress();
+      // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
+      if (prepareQueue.isNotEmpty) {
+        final nextTask = await db.getDownloadRecord(prepareQueue.keys.first);
+        if (nextTask != null) _resumeTask(nextTask);
+      }
     }
     return null;
   }

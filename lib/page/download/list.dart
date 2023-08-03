@@ -117,7 +117,10 @@ class DownloadRecordList extends StatelessWidget {
     final isWaiting = download.inWaitingBuffed(item);
     final statusIcon = !isWaiting
         ? Icon(_getPlayIconStatus(item), color: kPrimaryColor)
-        : const CircularProgressIndicator();
+        : const SizedBox.square(
+            dimension: 30,
+            child: CircularProgressIndicator(),
+          );
     return ClipRRect(
       borderRadius: borderRadios,
       child: Stack(
