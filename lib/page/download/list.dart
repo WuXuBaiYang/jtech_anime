@@ -51,7 +51,7 @@ class DownloadRecordList extends StatelessWidget {
         ),
       );
     }
-    return ListView.builder(
+    return ListView.separated(
       itemCount: recordList.length,
       itemBuilder: (_, i) {
         final item = recordList[i];
@@ -59,10 +59,11 @@ class DownloadRecordList extends StatelessWidget {
           return _buildDownloadAnimeItem(item);
         }
         return Padding(
-          padding: const EdgeInsets.only(left: 82, bottom: 6),
+          padding: const EdgeInsets.only(left: 82),
           child: _buildDownloadTaskItem(item),
         );
       },
+      separatorBuilder: (_, __) => const SizedBox(height: 4),
     );
   }
 
@@ -118,7 +119,7 @@ class DownloadRecordList extends StatelessWidget {
     final statusIcon = !isWaiting
         ? Icon(_getPlayIconStatus(item), color: kPrimaryColor)
         : const SizedBox.square(
-            dimension: 30,
+            dimension: 24,
             child: CircularProgressIndicator(),
           );
     return ClipRRect(

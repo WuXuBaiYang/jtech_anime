@@ -183,7 +183,11 @@ class DownloadManage extends BaseManage {
           ..updateTime = DateTime.now());
         // 回调下载完成事件
         for (var callback in _downloadCompleteCallbacks) {
-          callback.call(record);
+          try {
+            callback.call(record);
+          } catch (e) {
+            LogTool.i('下载完成回调出现异常；', error: e);
+          }
         }
       }
       return playFile;
