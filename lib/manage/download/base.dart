@@ -61,11 +61,9 @@ abstract class Downloader {
       batchProgressCallback: (succeeded, __) => count = succeeded,
       taskProgressCallback: (updates) async {
         // 如果下载完成（progress==1）则对文件重命名
-        if (updates.progress >= 1) {
-          downloadTasks.remove(updates.task);
-          final filePath = await updates.task.filePath();
-          await File(filePath).rename(filePath.replaceAll('.tmp', ''));
-        }
+        _updateFileNameWhenComplete(updates).then((result) {
+          if (result) downloadTasks.remove(updates.task);
+        });
         final size = updates.expectedFileSize;
         if (size <= 0) return;
         final taskId = updates.task.taskId;
@@ -75,6 +73,14 @@ abstract class Downloader {
         lastProgressMap[taskId] = updates.progress;
       },
     );
+  }
+
+  // 下载完成后更新文件名
+  Future<bool> _updateFileNameWhenComplete(TaskProgressUpdate updates) async {
+    if (updates.progress < 1) return false;
+    final filePath = await updates.task.filePath();
+    await File(filePath).rename(filePath.replaceAll('.tmp', ''));
+    return true;
   }
 
   // 判断是否已取消
