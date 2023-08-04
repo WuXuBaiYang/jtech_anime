@@ -23,7 +23,7 @@ abstract class Downloader {
     DownloaderProgressCallback? receiveProgress,
   });
 
-  // 文件批量下载,传入<文件名,下载地址>（支持断点续传）
+  // 文件批量下载,传入<文件名,下载地址>{}
   Future<void> downloadBatch(
     Map<String, String> downloadMap, {
     DownloaderProgressCallback? receiveProgress,
@@ -32,18 +32,13 @@ abstract class Downloader {
     String fileDir = '',
   }) async {
     final downloader = FileDownloader();
-    final baseDir = {
-      FileDir.applicationDocuments: BaseDirectory.applicationDocuments,
-      FileDir.applicationSupport: BaseDirectory.applicationSupport,
-      FileDir.temporary: BaseDirectory.temporary,
-    }[root]!;
     int count = 0, total = downloadMap.length;
     // 封装下载任务
     final downloadTasks = downloadMap.keys
         .map((filename) => DownloadTask(
+              baseDirectory: BaseDirectory.values[root.index],
               url: downloadMap[filename] ?? '',
               filename: '$filename.tmp',
-              baseDirectory: baseDir,
               requiresWiFi: false,
               directory: fileDir,
               allowPause: true,
