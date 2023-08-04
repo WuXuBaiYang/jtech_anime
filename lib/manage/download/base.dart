@@ -90,7 +90,7 @@ abstract class Downloader {
           receiveProgress?.call(count, total, speed.toInt());
           lastProgressMap[taskId] = updates.progress;
         },
-      ).then((_) {
+      ).whenComplete(() {
         if (completer.isCompleted) return;
         completer.complete();
       });
