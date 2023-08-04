@@ -196,9 +196,12 @@ class DownloadManage extends BaseManage {
       _stoppingBuffed.remove(downloadUrl);
       _stopDownloadProgress();
       // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
-      if (prepareQueue.isNotEmpty) {
+      if (prepareQueue.isNotEmpty &&
+          downloadQueue.length < maxDownloadCount.value) {
         final nextTask = await db.getDownloadRecord(prepareQueue.keys.first);
-        if (nextTask != null) _resumeTask(nextTask);
+        if (nextTask != null && await _resumeTask(nextTask)) {
+          prepareQueue.removeValue(nextTask.downloadUrl);
+        }
       }
     }
     return null;
