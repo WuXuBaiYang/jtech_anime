@@ -100,7 +100,7 @@ class DownloadManage extends BaseManage {
     // 判断下载队列的空余位置并将其余任务放到准备队列
     final remaining = maxDownloadCount.value - downloadQueue.length;
     int count = records.length - remaining;
-    for (var e in records) {
+    for (var e in records.reversed) {
       if (count-- <= 0) break;
       prepareQueue.putValue(e.downloadUrl, CancelToken());
       _updateDownloadRecord(e);
@@ -236,10 +236,12 @@ class DownloadManage extends BaseManage {
   Future<bool> removeTask(DownloadRecord record) async {
     try {
       // 停止下载任务
-      await stopTask(record);
+      stopTask(record);
       // 从数据库中移除本条记录并删除本地缓存
-      final result = await db.removeDownloadRecord(record.id);
-      if (result) return FileTool.clearDir(record.savePath);
+      if (!await db.removeDownloadRecord(record.id)) return false;
+      // 清空本地缓存目录
+      FileTool.clearDir(record.savePath);
+      return true;
     } catch (e) {
       LogTool.e('移除下载任务失败', error: e);
     }

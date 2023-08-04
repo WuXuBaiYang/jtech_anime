@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -32,7 +33,7 @@ void main() async {
   await notice.init(); // 消息通知
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
-    await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
+    AndroidInAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarIconBrightness: Brightness.light,
       statusBarColor: Colors.transparent,

@@ -45,17 +45,20 @@ abstract class Downloader {
               baseDirectory: baseDir,
               requiresWiFi: false,
               directory: fileDir,
-              allowPause: false,
+              allowPause: true,
             ))
         .toList();
     // 监听任务销毁状态
     cancelToken?.whenCancel.whenComplete(() {
+      // 遍历任务队列，先暂停再销毁
       for (var e in downloadTasks) {
-        downloader.cancelTaskWithId(e.taskId);
+        downloader.pause(e).then((_) {
+          downloader.cancelTaskWithId(e.taskId);
+        });
       }
     });
-    final lastProgressMap = {};
     // 启动任务批量下载
+    final lastProgressMap = {};
     await downloader.downloadBatch(
       downloadTasks,
       batchProgressCallback: (succeeded, __) => count = succeeded,
