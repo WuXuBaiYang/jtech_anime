@@ -40,11 +40,11 @@ class M3U8Downloader extends Downloader {
     final total = downloadsMap.length;
     downloadsMap.removeWhere((k, _) => File('$savePath/$k').existsSync());
     final startIndex = savePath.indexOf(FileDirPath.videoCachePath);
-    int initCode = total - downloadsMap.length;
+    int initCount = total - downloadsMap.length;
     await downloadBatch(
       receiveProgress: (count, _, speed) {
         if (isCanceled(cancelToken)) return;
-        receiveProgress?.call(initCode + count, total, speed);
+        receiveProgress?.call(initCount + count, total, speed);
       },
       fileDir: savePath.substring(startIndex),
       root: Common.videoCacheRoot,
