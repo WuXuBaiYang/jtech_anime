@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/tool/file.dart';
@@ -49,31 +50,43 @@ abstract class Downloader {
             ))
         .toList();
     // 监听任务销毁状态
+    List<DownloadTask> batchTasks = [];
     cancelToken?.whenCancel.whenComplete(() {
       // 遍历任务队列，先暂停再销毁
-      for (var e in downloadTasks) {
-        downloader.pause(e).then((_) {
-          downloader.cancelTaskWithId(e.taskId);
-        });
-      }
+      final taskIds = batchTasks.map((e) => e.taskId).toList();
+      downloader.cancelTasksWithIds(taskIds);
     });
     // 启动任务批量下载
-    final lastProgressMap = {};
-    await downloader.downloadBatch(
-      downloadTasks,
-      batchProgressCallback: (succeeded, __) => count = succeeded,
-      taskProgressCallback: (updates) {
-        // 如果下载完成（progress==1）则对文件重命名
-        _updateFileNameWhenComplete(updates);
-        final size = updates.expectedFileSize;
-        if (size <= 0) return;
-        final taskId = updates.task.taskId;
-        final lastProgress = lastProgressMap[taskId] ?? 0;
-        final speed = size * (updates.progress - lastProgress);
-        receiveProgress?.call(count, total, speed.toInt());
-        lastProgressMap[taskId] = updates.progress;
-      },
-    );
+    const singleBatchSize = 30;
+    final length = downloadTasks.length;
+    final groups = (length / singleBatchSize).ceil();
+    for (int i = 0; i < groups; i++) {
+      // 分批获取下载任务队列
+      final startIndex = i * singleBatchSize;
+      final endIndex = min(startIndex + singleBatchSize, length);
+      batchTasks = downloadTasks.sublist(startIndex, endIndex);
+      final lastProgressMap = {};
+      int tempCount = 0;
+      // 启动下载任务
+      await downloader.downloadBatch(
+        batchTasks,
+        batchProgressCallback: (succeeded, __) => tempCount = succeeded,
+        taskProgressCallback: (updates) {
+          // 如果下载完成（progress==1）则对文件重命名
+          _updateFileNameWhenComplete(updates);
+          final size = updates.expectedFileSize;
+          if (size <= 0) return;
+          final taskId = updates.task.taskId;
+          final lastProgress = lastProgressMap[taskId] ?? 0;
+          final speed = size * (updates.progress - lastProgress);
+          receiveProgress?.call(tempCount + count, total, speed.toInt());
+          lastProgressMap[taskId] = updates.progress;
+        },
+      );
+      count += tempCount;
+      // 判断是否已取消，已取消的话则终止循环
+      if (isCanceled(cancelToken)) break;
+    }
   }
 
   // 下载完成后更新文件名
