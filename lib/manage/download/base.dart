@@ -45,7 +45,7 @@ abstract class Downloader {
               baseDirectory: baseDir,
               requiresWiFi: false,
               directory: fileDir,
-              allowPause: true,
+              allowPause: false,
             ))
         .toList();
     // 监听任务销毁状态
@@ -59,11 +59,9 @@ abstract class Downloader {
     await downloader.downloadBatch(
       downloadTasks,
       batchProgressCallback: (succeeded, __) => count = succeeded,
-      taskProgressCallback: (updates) async {
+      taskProgressCallback: (updates) {
         // 如果下载完成（progress==1）则对文件重命名
-        _updateFileNameWhenComplete(updates).then((result) {
-          if (result) downloadTasks.remove(updates.task);
-        });
+        _updateFileNameWhenComplete(updates);
         final size = updates.expectedFileSize;
         if (size <= 0) return;
         final taskId = updates.task.taskId;

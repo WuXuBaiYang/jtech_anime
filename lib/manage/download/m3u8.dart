@@ -39,12 +39,14 @@ class M3U8Downloader extends Downloader {
     // 获取要下载的文件总量
     final total = downloadsMap.length;
     downloadsMap.removeWhere((k, _) => File('$savePath/$k').existsSync());
-    int initCode = total - downloadsMap.length;
     final startIndex = savePath.indexOf(FileDirPath.videoCachePath);
+    int initCode = total - downloadsMap.length;
     await downloadBatch(
+      receiveProgress: (count, _, speed) {
+        if (isCanceled(cancelToken)) return;
+        receiveProgress?.call(initCode + count, total, speed);
+      },
       fileDir: savePath.substring(startIndex),
-      receiveProgress: (count, _, speed) =>
-          receiveProgress?.call(initCode + count, total, speed),
       root: Common.videoCacheRoot,
       cancelToken: cancelToken,
       downloadsMap,

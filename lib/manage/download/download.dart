@@ -177,13 +177,7 @@ class DownloadManage extends BaseManage {
           record,
         );
         // 回调下载完成事件
-        for (var callback in _downloadCompleteCallbacks) {
-          try {
-            callback.call(record);
-          } catch (e) {
-            LogTool.i('下载完成回调出现异常；', error: e);
-          }
-        }
+        _doCompleteCallbacks(record);
       }
       return playFile;
     } catch (e) {
@@ -222,6 +216,7 @@ class DownloadManage extends BaseManage {
       if (inDownloadQueue(record)) {
         downloadQueue.getItem(downloadUrl)?.cancel('stopTask');
         downloadQueue.removeValue(downloadUrl);
+        _progressBuffed.remove(downloadUrl);
         _stoppingBuffed.add(downloadUrl);
       }
       // 如果在准备队列则移除队列
@@ -335,6 +330,17 @@ class DownloadManage extends BaseManage {
       totalRatio: totalRatio,
       times: count,
     );
+  }
+
+  // 完成回调
+  void _doCompleteCallbacks(DownloadRecord record) {
+    for (var callback in _downloadCompleteCallbacks) {
+      try {
+        callback.call(record);
+      } catch (e) {
+        LogTool.i('下载完成回调出现异常；', error: e);
+      }
+    }
   }
 }
 

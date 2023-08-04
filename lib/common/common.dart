@@ -39,11 +39,11 @@ class Common {
 */
 class FileDirPath {
   // 图片缓存路径
-  static const String imageCachePath = 'imageCache';
+  static const String imageCachePath = 'image_cache';
 
   // 视频缓存路径
-  static const String videoCachePath = 'videoCache';
+  static const String videoCachePath = 'video_cache';
 
   // 音频缓存路径
-  static const String audioCachePath = 'audioCache';
+  static const String audioCachePath = 'audio_cache';
 }
