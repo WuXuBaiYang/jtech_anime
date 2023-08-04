@@ -45,51 +45,59 @@ abstract class Downloader {
             ))
         .toList();
     // 监听任务销毁状态
-    List<DownloadTask> batchTasks = [];
+    final taskIds = <String>[];
     cancelToken?.whenCancel.whenComplete(() {
-      // 遍历任务队列，先暂停再销毁
-      final taskIds = batchTasks.map((e) => e.taskId).toList();
       downloader.cancelTasksWithIds(taskIds);
     });
     // 启动任务批量下载
-    const singleBatchSize = 30;
-    final length = downloadTasks.length;
+    final ratio = 0.8, length = downloadTasks.length;
+    const singleBatchSize = 30, lastProgressMap = {};
     final groups = (length / singleBatchSize).ceil();
     for (int i = 0; i < groups; i++) {
+      final completer = Completer();
       // 分批获取下载任务队列
       final startIndex = i * singleBatchSize;
       final endIndex = min(startIndex + singleBatchSize, length);
-      batchTasks = downloadTasks.sublist(startIndex, endIndex);
-      final lastProgressMap = {};
-      int tempCount = 0;
       // 启动下载任务
-      await downloader.downloadBatch(
-        batchTasks,
-        batchProgressCallback: (succeeded, __) => tempCount = succeeded,
+      downloader.downloadBatch(
+        downloadTasks.sublist(startIndex, endIndex)
+          ..forEach((e) => taskIds.add(e.taskId)),
+        batchProgressCallback: (int succeeded, int failed) {
+          // 当前批任务完成超过80%的时候，则结束等待，直接开启下一个批任务
+          final count = succeeded + failed;
+          if (count < singleBatchSize * ratio) return;
+          if (completer.isCompleted) return;
+          completer.complete();
+        },
+        taskStatusCallback: (update) async {
+          // 移除结束的任务id
+          if (update.status.isNotFinalState) return;
+          taskIds.remove(update.task.taskId);
+          // 如果是已完成则重命名文件
+          if (update.status != TaskStatus.complete) return;
+          final filePath = await update.task.filePath();
+          await File(filePath).rename(filePath.replaceAll('.tmp', ''));
+          // 已完成状态则数量+1
+          count += 1;
+        },
         taskProgressCallback: (updates) {
-          // 如果下载完成（progress==1）则对文件重命名
-          _updateFileNameWhenComplete(updates);
-          final size = updates.expectedFileSize;
-          if (size <= 0) return;
+          // 更新任务进度
+          if (updates.expectedFileSize <= 0) return;
           final taskId = updates.task.taskId;
           final lastProgress = lastProgressMap[taskId] ?? 0;
-          final speed = size * (updates.progress - lastProgress);
-          receiveProgress?.call(tempCount + count, total, speed.toInt());
+          final speed =
+              updates.expectedFileSize * (updates.progress - lastProgress);
+          receiveProgress?.call(count, total, speed.toInt());
           lastProgressMap[taskId] = updates.progress;
         },
-      );
-      count += tempCount;
+      ).then((_) {
+        if (completer.isCompleted) return;
+        completer.complete();
+      });
+      await completer.future;
       // 判断是否已取消，已取消的话则终止循环
       if (isCanceled(cancelToken)) break;
     }
-  }
-
-  // 下载完成后更新文件名
-  Future<bool> _updateFileNameWhenComplete(TaskProgressUpdate updates) async {
-    if (updates.progress < 1) return false;
-    final filePath = await updates.task.filePath();
-    await File(filePath).rename(filePath.replaceAll('.tmp', ''));
-    return true;
   }
 
   // 判断是否已取消
