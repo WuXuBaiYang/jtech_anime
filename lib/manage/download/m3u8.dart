@@ -5,6 +5,7 @@ import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/manage/download/base.dart';
+import 'package:jtech_anime/tool/file.dart';
 import 'package:path/path.dart';
 
 /*
@@ -22,6 +23,9 @@ class M3U8Downloader extends Downloader {
   // m3u8索引文件名
   static const _m3u8IndexFilename = 'index.m3u8';
 
+  // m3u8缓存路径名
+  static const _m3u8CachePath = 'cache';
+
   @override
   Future<File?> start(
     String url,
@@ -29,37 +33,39 @@ class M3U8Downloader extends Downloader {
     CancelToken? cancelToken,
     DownloaderProgressCallback? receiveProgress,
   }) async {
+    final cacheDir = Directory('$savePath/$_m3u8CachePath/');
+    if (!cacheDir.existsSync()) cacheDir.createSync(recursive: true);
     // 解析索引文件并遍历要下载的资源集合
     final baseUri = Uri.parse(url);
     final downloadsMap = await _parseM3U8File(baseUri);
     if (downloadsMap.isEmpty) throw Exception('m3u8文件解析失败，内容为空');
     // 将索引文件直接写入本地
     final content = downloadsMap.remove(_m3u8IndexFilename);
-    File? playFile = await _writeM3U8IndexFile(savePath, content);
+    File? playFile = await _writeM3U8IndexFile(cacheDir.path, content);
     // 获取要下载的文件总量
     final total = downloadsMap.length;
-    downloadsMap.removeWhere((k, _) => File('$savePath/$k').existsSync());
-    final startIndex = savePath.indexOf(FileDirPath.videoCachePath);
+    downloadsMap
+        .removeWhere((k, _) => File('${cacheDir.path}/$k').existsSync());
+    final startIndex = cacheDir.path.indexOf(FileDirPath.videoCachePath);
     int initCount = total - downloadsMap.length;
     await downloadBatch(
       receiveProgress: (count, _, speed) {
         if (isCanceled(cancelToken)) return;
         receiveProgress?.call(initCount + count, total, speed);
       },
-      fileDir: savePath.substring(startIndex),
+      fileDir: cacheDir.path.substring(startIndex),
       root: Common.videoCacheRoot,
       cancelToken: cancelToken,
       downloadsMap,
     );
-    if (isCanceled(cancelToken)) return null;
-    // 如果存在key则对视频进行合并
-    if (downloadsMap.containsKey(_m3u8KeyFilename) && playFile != null) {
-      final outputFile = File('$savePath/$_m3u8MargeFilename');
-      if (outputFile.existsSync()) outputFile.deleteSync();
-      playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
-      if (playFile == null) throw Exception('视频合并失败');
-    }
-    if (isCanceled(cancelToken)) return null;
+    if (isCanceled(cancelToken) || playFile == null) return null;
+    // 对视频进行合并
+    final outputFile = File('$savePath/$_m3u8MargeFilename');
+    if (outputFile.existsSync()) outputFile.deleteSync();
+    playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
+    if (playFile == null) throw Exception('视频合并失败');
+    // 清空缓存目录
+    FileTool.clearDir(cacheDir.path);
     return playFile;
   }
 

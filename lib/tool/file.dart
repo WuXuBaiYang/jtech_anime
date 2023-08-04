@@ -85,8 +85,8 @@ class FileTool {
 * @Time 2022/9/9 17:41
 */
 enum FileDir {
-  temporary,
   applicationDocuments,
+  temporary,
   applicationSupport,
 }
 
