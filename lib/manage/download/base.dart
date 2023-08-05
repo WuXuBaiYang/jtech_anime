@@ -1,7 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
+import 'dart:ui';
+import 'package:background_downloader/background_downloader.dart';
 import 'package:dio/dio.dart';
-import 'package:jtech_anime/tool/log.dart';
+import 'package:jtech_anime/tool/file.dart';
+
+// 下载进度回调
+typedef DownloaderProgressCallback = void Function(
+    int count, int total, int speed);
 
 /*
 * 下载器基类
@@ -14,108 +21,136 @@ abstract class Downloader {
     String url,
     String savePath, {
     CancelToken? cancelToken,
-    void Function(int count, int total, int speed)? receiveProgress,
-    void Function(String savePath)? complete,
-    void Function(Exception)? failed,
-    void Function()? done,
+    DownloaderProgressCallback? receiveProgress,
   });
 
-  // 文件下载（支持断点续传）
-  Future<File?> download(
-    String url,
-    String savePath, {
-    ProgressCallback? onReceiveProgress,
+  // 文件批量下载,传入<文件名,下载地址>{}
+  Future<void> downloadBatch(
+    Map<String, String> downloadMap, {
+    DownloaderProgressCallback? receiveProgress,
+    FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
-    void Function()? done,
+    String fileDir = '',
+    int retries = 3,
   }) async {
-    final c = Completer<File?>();
-    // 检查本地是否存在已存在文件并获取起始位置
-    int downloadStart = 0;
-    File saveFile = File(savePath);
-    final canPause = await _supportPause(url);
-    if (canPause && await saveFile.exists()) {
-      downloadStart = saveFile.lengthSync();
-    }
-    // 开始下载
-    final options = Options(
-      responseType: ResponseType.stream,
-      headers: {
-        if (canPause) ..._getRange(downloadStart),
-      },
-      followRedirects: false,
+    final downloader = FileDownloader();
+    int count = 0, total = downloadMap.length;
+    // 封装下载任务
+    final downloadTasks = _genDownloadBatchTasks(
+      baseDirectory: BaseDirectory.values[root.index],
+      retries: retries,
+      fileDir: fileDir,
+      downloadMap,
     );
-    final resp = await Dio().get<ResponseBody>(url, options: options);
-    int received = downloadStart;
-    int total = await _getContentLength(resp);
-    // 监听下载流并执行写入、完成、异常等回调
-    final raf = saveFile.openSync(
-      mode: canPause ? FileMode.append : FileMode.write,
-    );
-    final subscription = resp.data!.stream.listen((data) {
-      onReceiveProgress?.call(received += data.length, total);
-      raf.writeFromSync(data);
-    }, onDone: () {
-      c.complete(saveFile);
-      done?.call();
-      raf.close();
-    }, onError: (e) {
-      c.completeError(e);
-      raf.close();
-    }, cancelOnError: true);
-    // 如果执行的cancel事件则终止文件流
-    cancelToken?.whenCancel.then((_) async {
-      await subscription.cancel();
-      await raf.close();
-      c.complete();
+    // 监听任务销毁状态
+    final taskIds = <String>[];
+    cancelToken?.whenCancel.whenComplete(() {
+      downloader.cancelTasksWithIds(taskIds);
     });
-    return c.future;
+    // 启动任务批量下载
+    final singleBatchSize = 30, length = downloadTasks.length;
+    final groups = (length / singleBatchSize).ceil();
+    final batchFutures = <Future>[];
+    for (int i = 0; i < groups; i++) {
+      final completer = Completer();
+      // 分批获取下载任务队列
+      final startIndex = i * singleBatchSize;
+      final endIndex = min(startIndex + singleBatchSize, length);
+      final batchTasks = downloadTasks.sublist(startIndex, endIndex)
+        ..forEach((e) => taskIds.add(e.taskId));
+      // 启动下载任务
+      batchFutures.add(
+        _doDownloadBatch(downloader, batchTasks,
+            singleBatchSize: singleBatchSize, statusCallback: (status, task) {
+          // 如果返回状态，已结束则移除任务，如果任务已结束则计数+1
+          if (status.isNotFinalState) return;
+          taskIds.remove(task.taskId);
+          if (status != TaskStatus.complete) return;
+          count += 1;
+        }, speedCallback: (speed) {
+          receiveProgress?.call(count, total, speed);
+        }, whenCompleted: () {
+          if (completer.isCompleted) return;
+          completer.complete();
+        }),
+      );
+      await completer.future;
+      // 判断是否已取消，已取消的话则终止循环
+      if (isCanceled(cancelToken)) return;
+    }
+    await Future.wait(batchFutures);
   }
 
-  // 获取下载文件大小
-  Future<int> _getContentLength(Response response) async {
-    try {
-      final contentLength =
-          response.headers.value(HttpHeaders.contentLengthHeader);
-      if (contentLength == null) return 0;
-      return int.tryParse(contentLength) ?? 0;
-    } catch (e) {
-      LogTool.e('获取远程文件大小失败', error: e);
-    }
-    return 0;
+  // 执行批量下载
+  Future<Batch> _doDownloadBatch(
+    FileDownloader downloader,
+    List<DownloadTask> downloadTasks, {
+    void Function(TaskStatus status, Task task)? statusCallback,
+    void Function(int speed)? speedCallback,
+    VoidCallback? whenCompleted,
+    int singleBatchSize = 0,
+    double ratio = 0.5,
+  }) async {
+    final lastProgressMap = {};
+    final waitFileRename = <Future>[];
+    final batchResult = await downloader.downloadBatch(
+      downloadTasks,
+      batchProgressCallback: (int succeeded, int failed) {
+        // 当前批次任务完成到 {ratio} 比例的时候则完成
+        final count = succeeded + failed;
+        if (count < singleBatchSize * ratio) return;
+        whenCompleted?.call();
+      },
+      taskStatusCallback: (update) {
+        statusCallback?.call(update.status, update.task);
+        // 如果是已完成则重命名文件
+        if (update.status != TaskStatus.complete) return;
+        waitFileRename.add(Future(() async {
+          final filePath = await update.task.filePath();
+          await File(filePath).rename(filePath.replaceAll('.tmp', ''));
+        }));
+      },
+      taskProgressCallback: (updates) {
+        // 更新任务进度
+        if (updates.expectedFileSize <= 0) return;
+        final taskId = updates.task.taskId;
+        final lastProgress = lastProgressMap[taskId] ?? 0;
+        final downloadSpeed =
+            updates.expectedFileSize * (updates.progress - lastProgress);
+        lastProgressMap[taskId] = updates.progress;
+        speedCallback?.call(downloadSpeed.toInt());
+      },
+    );
+    await Future.wait(waitFileRename);
+    whenCompleted?.call();
+    return batchResult;
   }
 
-  // 判断是否支持断点续传
-  Future<bool> _supportPause(String url) async {
-    return false;
-    try {
-      final options = Options(headers: _getRange(0, 1024));
-      final resp = await Dio().get(url, options: options);
-      if (resp.statusCode == 200) {
-        final headers = resp.headers.map;
-        return [
-          HttpHeaders.rangeHeader,
-          HttpHeaders.acceptRangesHeader,
-          HttpHeaders.contentRangeHeader,
-        ].any(headers.containsKey);
-      }
-    } catch (e) {
-      LogTool.e('检查断点续传失败', error: e);
-    }
-    return false;
-  }
+  // 生成下载任务
+  List<DownloadTask> _genDownloadBatchTasks(
+    Map<String, String> downloadMap, {
+    BaseDirectory baseDirectory = BaseDirectory.applicationDocuments,
+    bool requiresWiFi = false,
+    String tmpSuffix = '.tmp',
+    bool allowPause = true,
+    String fileDir = '',
+    int retries = 0,
+  }) =>
+      downloadMap.keys.map((filename) {
+        return DownloadTask(
+          url: downloadMap[filename] ?? '',
+          filename: '$filename$tmpSuffix',
+          baseDirectory: baseDirectory,
+          requiresWiFi: requiresWiFi,
+          allowPause: allowPause,
+          directory: fileDir,
+          retries: retries,
+        );
+      }).toList();
 
-  // 生成range头部
-  Map<String, String> _getRange(int start, [int? end]) =>
-      {'range': '$start-${end ?? ''}'};
-
-  // 合并url
-  String mergeUrl(String path, Uri baseUri) {
-    if (path.startsWith('http')) return path;
-    if (!path.startsWith('/')) {
-      final tmp = baseUri.path;
-      final index = tmp.lastIndexOf('/');
-      path = '${tmp.substring(0, index)}/$path';
-    }
-    return '${baseUri.scheme}://${baseUri.host}$path';
+  // 判断是否已取消
+  bool isCanceled(CancelToken? cancelToken) {
+    if (cancelToken == null) return false;
+    return cancelToken.isCancelled;
   }
 }

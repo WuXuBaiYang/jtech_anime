@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/download.dart';
@@ -50,7 +51,7 @@ class DownloadRecordList extends StatelessWidget {
         ),
       );
     }
-    return ListView.builder(
+    return ListView.separated(
       itemCount: recordList.length,
       itemBuilder: (_, i) {
         final item = recordList[i];
@@ -58,10 +59,11 @@ class DownloadRecordList extends StatelessWidget {
           return _buildDownloadAnimeItem(item);
         }
         return Padding(
-          padding: const EdgeInsets.only(left: 82, bottom: 6),
+          padding: const EdgeInsets.only(left: 82),
           child: _buildDownloadTaskItem(item),
         );
       },
+      separatorBuilder: (_, __) => const SizedBox(height: 4),
     );
   }
 
@@ -112,6 +114,14 @@ class DownloadRecordList extends StatelessWidget {
     final valueColor = AlwaysStoppedAnimation(kPrimaryColor.withOpacity(0.15));
     const borderRadios = BorderRadius.horizontal(left: Radius.circular(8));
     final taskItem = downloadTask?.getDownloadTaskItem(item);
+    final isStopping = download.inStoppingBuffed(item);
+    final isWaiting = download.inWaitingBuffed(item);
+    final statusIcon = !isWaiting
+        ? Icon(_getPlayIconStatus(item), color: kPrimaryColor)
+        : const SizedBox.square(
+            dimension: 24,
+            child: CircularProgressIndicator(),
+          );
     return ClipRRect(
       borderRadius: borderRadios,
       child: Stack(
@@ -145,15 +155,21 @@ class DownloadRecordList extends StatelessWidget {
                     ),
                   const SizedBox(width: 14),
                   IconButton(
-                    icon: Icon(_getPlayIconStatus(item), color: kPrimaryColor),
-                    onPressed: () => onTaskTap?.call(item),
+                    icon: statusIcon,
+                    onPressed: () {
+                      if (isStopping) return;
+                      onTaskTap?.call(item);
+                    },
                   ),
                   const SizedBox(width: 14),
                 ],
               ),
             ),
-            onTap: () => onTaskTap?.call(item),
             onLongPress: () => onTaskLongTap?.call(item),
+            onTap: () {
+              if (isStopping) return;
+              onTaskTap?.call(item);
+            },
           ),
         ],
       ),
@@ -163,11 +179,8 @@ class DownloadRecordList extends StatelessWidget {
   // 获取播放状态
   IconData _getPlayIconStatus(DownloadRecord item) {
     if (item.isComplete) return FontAwesomeIcons.circlePlay;
-    if (downloadTask != null) {
-      return downloadTask!.isPrepared(item)
-          ? FontAwesomeIcons.hourglassHalf
-          : FontAwesomeIcons.pause;
-    }
+    if (download.inPrepareQueue(item)) return FontAwesomeIcons.hourglassHalf;
+    if (download.inDownloadQueue(item)) return FontAwesomeIcons.pause;
     return FontAwesomeIcons.play;
   }
 }

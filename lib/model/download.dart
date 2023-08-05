@@ -17,12 +17,6 @@ class DownloadTask extends BaseModel {
   final int times;
 
   // 下载队列
-  final List<String> downloadingList;
-
-  // 准备队列
-  final List<String> prepareList;
-
-  // 下载队列
   final Map<String, DownloadTaskItem> downloadingMap;
 
   DownloadTask({
@@ -30,26 +24,16 @@ class DownloadTask extends BaseModel {
     this.totalSpeed = 0,
     this.totalRatio = 0,
     this.downloadingMap = const {},
-    this.downloadingList = const [],
-    this.prepareList = const [],
   });
 
   // 根据任务获取对应的下载状态
   DownloadTaskItem? getDownloadTaskItem(DownloadRecord record) {
     // 如果存在下载任务则返回，如果在队列中则返回空，否则返回null
     return downloadingMap[record.downloadUrl] ??
-        (isDownloading(record) || isPrepared(record)
+        (downloadingMap.containsKey(record.downloadUrl)
             ? DownloadTaskItem.zero()
             : null);
   }
-
-  // 判断任务是否为下载中
-  bool isDownloading(DownloadRecord record) =>
-      downloadingList.contains(record.downloadUrl);
-
-  // 判断任务是否为准备中
-  bool isPrepared(DownloadRecord record) =>
-      prepareList.contains(record.downloadUrl);
 }
 
 /*

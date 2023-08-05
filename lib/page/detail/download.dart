@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/parser.dart';
@@ -12,7 +14,9 @@ import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/message_dialog.dart';
 
 /*
 * 资源下载弹窗
@@ -20,19 +24,32 @@ import 'package:jtech_anime/widget/future_builder.dart';
 * @Time 2023/7/22 11:19
 */
 class DownloadSheet extends StatefulWidget {
+  // 是否检查网络状态
+  final ValueChangeNotifier<bool> checkNetwork;
+
   // 番剧信息
   final AnimeModel animeInfo;
 
-  const DownloadSheet({super.key, required this.animeInfo});
+  const DownloadSheet({
+    super.key,
+    required this.animeInfo,
+    required this.checkNetwork,
+  });
 
-  static Future<void> show(BuildContext context,
-      {required AnimeModel animeInfo}) {
+  static Future<void> show(
+    BuildContext context, {
+    required AnimeModel animeInfo,
+    required ValueChangeNotifier<bool> checkNetwork,
+  }) {
     PermissionTool.checkNotification(context);
     return showModalBottomSheet(
       clipBehavior: Clip.hardEdge,
       context: context,
       builder: (_) {
-        return DownloadSheet(animeInfo: animeInfo);
+        return DownloadSheet(
+          animeInfo: animeInfo,
+          checkNetwork: checkNetwork,
+        );
       },
     );
   }
@@ -72,7 +89,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
                   ?.then((_) => cacheController.refreshValue()),
               child: const Text('缓存管理'),
             ),
-            _buildSubmitButton()
+            _buildSubmitButton(context),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -85,7 +102,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   }
 
   // 构建提交按钮
-  Widget _buildSubmitButton() {
+  Widget _buildSubmitButton(BuildContext context) {
     return ValueListenableBuilder<List<ResourceItemModel>>(
       valueListenable: selectResources,
       builder: (_, selectList, __) {
@@ -100,7 +117,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
               ),
             IconButton(
               icon: const Icon(FontAwesomeIcons.check),
-              onPressed: selectList.isNotEmpty ? _addDownloadTask : null,
+              onPressed: selectList.isNotEmpty
+                  ? () => _addDownloadTask(context)
+                  : null,
             ),
           ],
         );
@@ -189,37 +208,74 @@ class _DownloadSheetState extends State<DownloadSheet> {
     ).then((v) => v.asMap().map((_, v) => MapEntry(v.resUrl, v)));
   }
 
+  // 展示网络状态提示dialog
+  Future<bool> _showNetworkStatusDialog(BuildContext context) {
+    return MessageDialog.show<bool>(
+      context,
+      title: const Text('流量提醒'),
+      content: const Text('当前正在使用手机流量下载，是否继续？'),
+      actionLeft: TextButton(
+        child: const Text('不再提醒'),
+        onPressed: () {
+          cache.setBool(Common.checkNetworkStatusKey, false);
+          widget.checkNetwork.setValue(false);
+          router.pop(true);
+        },
+      ),
+      actionMiddle: TextButton(
+        child: const Text('取消'),
+        onPressed: () => router.pop(false),
+      ),
+      actionRight: TextButton(
+        child: const Text('继续下载'),
+        onPressed: () {
+          widget.checkNetwork.setValue(false);
+          router.pop(true);
+        },
+      ),
+    ).then((v) => v ?? false);
+  }
+
   // 添加下载任务
-  void _addDownloadTask() {
-    final title =
-        ValueChangeNotifier<String>('正在解析(1/${selectResources.length})');
-    Loading.show<void>(
+  Future<void> _addDownloadTask(BuildContext context) async {
+    // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
+    if (widget.checkNetwork.value &&
+        await Tool.checkNetworkInMobile() &&
+        !await _showNetworkStatusDialog(context)) return;
+    final title = ValueChangeNotifier<String>('');
+    title.setValue('正在解析(1/${selectResources.length})');
+    return Loading.show<void>(
       title: title,
-      loadFuture: parserHandle
-          // 获取视频缓存
-          .getAnimeVideoCache(
-            selectResources.value,
-            progress: (count, total) {
-              title.setValue('正在解析($count/$total)');
-            },
-          )
-          // 将视频缓存封装为下载记录结构
-          .then((videoCaches) => videoCaches
-              .map((e) => DownloadRecord()
-                ..title = widget.animeInfo.name
-                ..cover = widget.animeInfo.cover
-                ..url = widget.animeInfo.url
-                ..source = parserHandle.currentSource
-                ..resUrl = e.url
-                ..downloadUrl = e.playUrl
-                ..name = e.item?.name ?? '')
-              .toList())
-          // 使用下载记录启动下载
-          .then(download.startTasks),
-    )?.whenComplete(() {
-      SnackTool.showMessage(message: '已添加到下载队列');
-      cacheController.refreshValue();
-      selectResources.setValue([]);
-    });
+      loadFuture: Future(() async {
+        // 获取视频缓存
+        final videoCaches = await parserHandle.getAnimeVideoCache(
+          progress: (count, total) => title.setValue('正在解析($count/$total)'),
+          selectResources.value,
+        );
+        // 将视频缓存封装为下载记录结构
+        final downloadRecords = videoCaches
+            .map((e) => DownloadRecord()
+              ..title = widget.animeInfo.name
+              ..cover = widget.animeInfo.cover
+              ..url = widget.animeInfo.url
+              ..source = parserHandle.currentSource
+              ..resUrl = e.url
+              ..downloadUrl = e.playUrl
+              ..name = e.item?.name ?? '')
+            .toList();
+        // 使用下载记录启动下载
+        final results = await download.startTasks(downloadRecords);
+        // 反馈下载结果
+        final successCount = results.where((e) => e).length;
+        final failCount = results.length - successCount;
+        final message = successCount <= 0
+            ? '未能成功添加下载任务'
+            : '已成功添加 $successCount 条任务'
+                '${failCount > 0 ? '，失败 $failCount 条' : ''}';
+        SnackTool.showMessage(message: message);
+        cacheController.refreshValue();
+        selectResources.setValue([]);
+      }),
+    );
   }
 }

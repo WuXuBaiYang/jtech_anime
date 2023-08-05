@@ -47,8 +47,8 @@ class ParserHandleManage extends BaseManage with ParserHandle {
   }
 
   @override
-  Future<AnimeModel> getAnimeDetail(String url) =>
-      _currentHandler.getAnimeDetail(url);
+  Future<AnimeModel> getAnimeDetail(String url, {bool useCache = true}) =>
+      _currentHandler.getAnimeDetail(url, useCache: useCache);
 
   @override
   Future<List<VideoCache>> getAnimeVideoCache(List<ResourceItemModel> items,

@@ -42,7 +42,7 @@ abstract mixin class ParserHandle {
       {Map<String, dynamic> params = const {}});
 
   // 获取视频详情
-  Future<AnimeModel> getAnimeDetail(String url);
+  Future<AnimeModel> getAnimeDetail(String url, {bool useCache = true});
 
   // 获取视频播放地址
   Future<List<VideoCache>> getAnimeVideoCache(List<ResourceItemModel> items,

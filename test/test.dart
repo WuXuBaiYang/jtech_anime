@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jtech_anime/common/common.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test('test', () async {
-    final m = {1: 'a', 2: 'b', 3: 'c'};
-    final a = Map.from(m);
-    m.clear();
-    print(a);
+    final savePath =
+        'a/c.b.cd/flutter_app/${FileDirPath.videoCachePath}/ijioasjdoih1o23io';
+    print(savePath.substring(savePath.indexOf(FileDirPath.videoCachePath)));
   });
 }

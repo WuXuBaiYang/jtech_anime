@@ -333,6 +333,46 @@ class _PlayerLogic extends BaseLogic {
     });
   }
 
+  // 选择资源/视频
+  Future<void> changeVideo(ResourceItemModel item,
+      [bool playTheRecord = true]) async {
+    if (isLoading) return;
+    final resources = animeInfo.value.resources;
+    if (resources.isEmpty) return;
+    return Loading.show(loadFuture: Future(() async {
+      try {
+        loading.setValue(true);
+        resourceInfo.setValue(item);
+        nextResourceInfo.setValue(_findNextResourceItem(item));
+        // 暂停现有播放器
+        await controller.pause();
+        // 根据当前资源获取播放记录
+        final record = await db.getPlayRecord(animeInfo.value.url);
+        // 根据资源与视频下标切换视频播放地址
+        final result = await parserHandle.getAnimeVideoCache([item]);
+        if (result.isEmpty) throw Exception('视频地址解析失败');
+        final playUrl = result.first.playUrl;
+        final downloadRecord = await db.getDownloadRecord(playUrl,
+            status: [DownloadRecordStatus.complete]);
+        // 解析完成之后实现视频播放
+        final dataSource = downloadRecord != null
+            ? DataSource(
+                type: DataSourceType.file, file: downloadRecord.playFile)
+            : DataSource(type: DataSourceType.network, source: playUrl);
+        final seekTo = playTheRecord && record != null
+            ? Duration(milliseconds: record.progress)
+            : Duration.zero;
+        await controller.setDataSource(dataSource, seekTo: seekTo);
+        if (!playTheRecord) playRecord.setValue(record);
+      } catch (e) {
+        SnackTool.showMessage(message: '获取播放地址失败，请重试~');
+        rethrow;
+      } finally {
+        loading.setValue(false);
+      }
+    }));
+  }
+
   // 创建视频播放器控制器
   static MeeduPlayerController _createVideoController() {
     const errorText = '视频加载失败，请重试~';
@@ -407,46 +447,6 @@ class _PlayerLogic extends BaseLogic {
     await controller.seekTo(Duration(
       milliseconds: record.progress,
     ));
-  }
-
-  // 选择资源/视频
-  Future<void> changeVideo(ResourceItemModel item,
-      [bool playTheRecord = true]) async {
-    if (isLoading) return;
-    final resources = animeInfo.value.resources;
-    if (resources.isEmpty) return;
-    return Loading.show(loadFuture: Future(() async {
-      try {
-        loading.setValue(true);
-        resourceInfo.setValue(item);
-        nextResourceInfo.setValue(_findNextResourceItem(item));
-        // 暂停现有播放器
-        await controller.pause();
-        // 根据当前资源获取播放记录
-        final record = await db.getPlayRecord(animeInfo.value.url);
-        // 根据资源与视频下标切换视频播放地址
-        final result = await parserHandle.getAnimeVideoCache([item]);
-        if (result.isEmpty) throw Exception('视频地址解析失败');
-        final playUrl = result.first.playUrl;
-        final downloadRecord = await db.getDownloadRecord(playUrl,
-            status: [DownloadRecordStatus.complete]);
-        // 解析完成之后实现视频播放
-        final dataSource = downloadRecord != null
-            ? DataSource(
-                type: DataSourceType.file, file: downloadRecord.playFile)
-            : DataSource(type: DataSourceType.network, source: playUrl);
-        final seekTo = playTheRecord && record != null
-            ? Duration(milliseconds: record.progress)
-            : Duration.zero;
-        await controller.setDataSource(dataSource, seekTo: seekTo);
-        if (!playTheRecord) playRecord.setValue(record);
-      } catch (e) {
-        SnackTool.showMessage(message: '获取播放地址失败，请重试~');
-        rethrow;
-      } finally {
-        loading.setValue(false);
-      }
-    }));
   }
 
   // 获取列表中的下一个资源

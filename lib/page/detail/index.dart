@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:isar/isar.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
@@ -82,6 +84,20 @@ class _AnimeDetailPageState
             child: Text(item.name),
           ),
           actions: [
+            ValueListenableBuilder(
+              valueListenable: logic.loading,
+              builder: (_, isLoading, __) {
+                return IconButton(
+                  color: kPrimaryColor,
+                  icon: isLoading
+                      ? const SizedBox.square(
+                          dimension: 20, child: CircularProgressIndicator())
+                      : const Icon(FontAwesomeIcons.arrowsRotate),
+                  onPressed: () => Loading.show(
+                      loadFuture: logic.loadAnimeDetail(useCache: false)),
+                );
+              },
+            ),
             ValueListenableBuilder<Collect?>(
               valueListenable: logic.collectInfo,
               builder: (_, collect, __) {
@@ -147,9 +163,11 @@ class _AnimeDetailPageState
         const Spacer(),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () =>
-              DownloadSheet.show(context, animeInfo: logic.animeDetail.value)
-                  .whenComplete(() => logic.cacheController.refreshValue()),
+          onPressed: () => DownloadSheet.show(
+            context,
+            animeInfo: logic.animeDetail.value,
+            checkNetwork: logic.checkNetwork,
+          ).whenComplete(logic.cacheController.refreshValue),
         ),
       ],
     );
@@ -271,6 +289,10 @@ class _AnimeDetailLogic extends BaseLogic {
   final cacheController =
       CacheFutureBuilderController<Map<String, DownloadRecord>>();
 
+  // 是否检查网络状态
+  final checkNetwork = ValueChangeNotifier<bool>(
+      cache.getBool(Common.checkNetworkStatusKey) ?? true);
+
   @override
   void init() {
     super.init();
@@ -356,7 +378,7 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 加载番剧详情
-  Future<void> loadAnimeDetail() async {
+  Future<void> loadAnimeDetail({bool useCache = true}) async {
     if (isLoading) return;
     final animeUrl = animeDetail.value.url;
     if (animeUrl.isEmpty) return;
@@ -365,8 +387,11 @@ class _AnimeDetailLogic extends BaseLogic {
       // 获取播放记录
       final record = await db.getPlayRecord(animeUrl);
       playRecord.setValue(record);
-      // 获取番剧详细信息
-      final result = await parserHandle.getAnimeDetail(animeUrl);
+      // 获取番剧详细信息，是否使用缓存加载
+      final result = await parserHandle.getAnimeDetail(
+        useCache: useCache,
+        animeUrl,
+      );
       animeDetail.setValue(result);
       // 根据番剧信息添加收藏信息
       final collect = await db.getCollect(animeUrl);

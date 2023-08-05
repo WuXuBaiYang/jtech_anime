@@ -100,4 +100,4 @@ class DownloadRecord {
         ..updateTime = updateTime ?? this.updateTime;
 }
 
-enum DownloadRecordStatus { download, fail, complete }
+enum DownloadRecordStatus { download, complete, fail }

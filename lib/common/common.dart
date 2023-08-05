@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:jtech_anime/tool/file.dart';
+
 /*
 * 静态资源/通用静态变量
 * @author wuxubaiyang
@@ -22,6 +24,12 @@ class Common {
 
   // 动画-错误
   static const String statusErrorAsset = 'assets/anime/status_error.json';
+
+  // 是否检查网络状态
+  static const String checkNetworkStatusKey = 'check_network_status';
+
+  // 视频缓存根目录
+  static const FileDir videoCacheRoot = FileDir.applicationDocuments;
 }
 
 /*
@@ -31,11 +39,11 @@ class Common {
 */
 class FileDirPath {
   // 图片缓存路径
-  static const String imageCachePath = 'imageCache';
+  static const String imageCachePath = 'image_cache';
 
   // 视频缓存路径
-  static const String videoCachePath = 'videoCache';
+  static const String videoCachePath = 'video_cache';
 
   // 音频缓存路径
-  static const String audioCachePath = 'audioCache';
+  static const String audioCachePath = 'audio_cache';
 }
