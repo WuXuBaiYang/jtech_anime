@@ -43,7 +43,7 @@ abstract class Downloader {
       downloader.cancelTasksWithIds(taskIds);
     });
     // 启动任务批量下载
-    final singleBatchSize = 50, length = downloadTasks.length;
+    final singleBatchSize = 30, length = downloadTasks.length;
     final groups = (length / singleBatchSize).ceil();
     for (int i = 0; i < groups; i++) {
       final completer = Completer();
@@ -79,8 +79,8 @@ abstract class Downloader {
     void Function(TaskStatus status, Task task)? statusCallback,
     void Function(int speed)? speedCallback,
     VoidCallback? whenCompleted,
-    int singleBatchSize = 50,
-    double ratio = 0.7,
+    int singleBatchSize = 0,
+    double ratio = 0.5,
   }) async {
     final lastProgressMap = {};
     await downloader.downloadBatch(
