@@ -44,8 +44,11 @@ class M3U8Downloader extends Downloader {
     File? playFile = await _writeM3U8IndexFile(cacheDir.path, content);
     // 获取要下载的文件总量
     final total = downloadsMap.length;
-    downloadsMap
-        .removeWhere((k, _) => File('${cacheDir.path}/$k').existsSync());
+    final fileList = <File>[];
+    downloadsMap.removeWhere((k, _) {
+      fileList.add(File('${cacheDir.path}/$k'));
+      return fileList.last.existsSync();
+    });
     final startIndex = cacheDir.path.indexOf(FileDirPath.videoCachePath);
     int initCount = total - downloadsMap.length;
     await downloadBatch(
@@ -60,6 +63,7 @@ class M3U8Downloader extends Downloader {
     );
     if (isCanceled(cancelToken) || playFile == null) return null;
     // 对视频进行合并(先校验文件的完整性)
+    if (!_checkFileListComplete(fileList)) throw Exception('文件缺失或下载失败');
     final outputFile = File('$savePath/$_m3u8MargeFilename');
     if (outputFile.existsSync()) outputFile.deleteSync();
     playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
@@ -67,6 +71,14 @@ class M3U8Downloader extends Downloader {
     // 清空缓存目录
     FileTool.clearDir(cacheDir.path);
     return playFile;
+  }
+
+  // 检查文件完整性
+  bool _checkFileListComplete(List<File> fileList) {
+    for (var e in fileList) {
+      if (!e.existsSync()) return false;
+    }
+    return true;
   }
 
   // 解析m3u8文件并获取全部的下载记录
