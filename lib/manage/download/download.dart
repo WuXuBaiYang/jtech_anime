@@ -97,15 +97,13 @@ class DownloadManage extends BaseManage {
 
   // 开始多条下载任务
   Future<List<bool>> startTasks(List<DownloadRecord> records) async {
-    // 判断下载队列的空余位置并将其余任务放到准备队列
-    final remaining = maxDownloadCount.value - downloadQueue.length;
-    int count = records.length - remaining;
-    for (var e in records.reversed) {
-      if (count-- <= 0) break;
-      prepareQueue.putValue(e.downloadUrl, CancelToken());
-      _updateDownloadRecord(e);
+    // 不使用Future.wait是因为wait是同时执行所有方法
+    // 所以在判断是否放入准备队列上存在问题
+    final results = <bool>[];
+    for (var e in records) {
+      results.add(await startTask(e));
     }
-    return Future.wait(records.map(startTask));
+    return results;
   }
 
   // 启动一个下载任务

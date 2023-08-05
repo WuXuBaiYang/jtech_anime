@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/parser.dart';
+import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/filter.dart';
@@ -10,6 +11,7 @@ import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/model/database/video_cache.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:html/parser.dart';
+import 'package:jtech_anime/tool/tool.dart';
 
 /*
 * 樱花动漫网页解析器
@@ -22,6 +24,9 @@ class YHDMZParserHandle extends ParserHandle {
 
   // 分页下标
   int _pageIndex = 0, _searchPageIndex = 0;
+
+  // 缓存视频详情key
+  final String _cacheAnimeDetailKey = 'cache_anime_detail_';
 
   @override
   Future<List<List<TimeTableItemModel>>> loadAnimeTimeTable() async {
@@ -126,11 +131,17 @@ class YHDMZParserHandle extends ParserHandle {
   }
 
   @override
-  Future<AnimeModel> getAnimeDetail(String url) async {
+  Future<AnimeModel> getAnimeDetail(String url, {bool useCache = true}) async {
     try {
+      final cacheKey = '$_cacheAnimeDetailKey${Tool.md5(url)}';
+      Map? cacheData = cache.getJson(cacheKey);
+      if (useCache && cacheData != null) return AnimeModel.from(cacheData);
       final resp = await Dio().get(url, options: _options);
       if (resp.statusCode == 200) {
-        return AnimeModel.from(_parseAnimeInfo(resp.data, url));
+        cacheData = _parseAnimeInfo(resp.data, url);
+        await cache.setJsonMap(cacheKey, cacheData,
+            expiration: const Duration(days: 1));
+        return AnimeModel.from(cacheData);
       } else {
         throw Exception('樱花动漫z番剧详情获取失败：${resp.statusCode}');
       }

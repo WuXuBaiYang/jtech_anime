@@ -49,7 +49,7 @@ class AnimeModel extends BaseModel {
       : name = obj['name'] ?? '',
         cover = obj['cover'] ?? '',
         status = obj['status'] ?? '',
-        types = (obj['types'] ?? <String>[]) as List<String>,
+        types = (obj['types'] ?? []).map<String>((e) => '$e').toList(),
         region = obj['region'] ?? '',
         intro = obj['intro'] ?? '',
         updateTime = obj['updateTime'] ?? '',
