@@ -31,12 +31,17 @@ abstract class Downloader {
     FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
     String fileDir = '',
+    int retries = 3,
   }) async {
     final downloader = FileDownloader();
     int count = 0, total = downloadMap.length;
     // 封装下载任务
-    final downloadTasks = _genDownloadTasks(downloadMap,
-        baseDirectory: BaseDirectory.values[root.index], fileDir: fileDir);
+    final downloadTasks = _genDownloadBatchTasks(
+      baseDirectory: BaseDirectory.values[root.index],
+      retries: retries,
+      fileDir: fileDir,
+      downloadMap,
+    );
     // 监听任务销毁状态
     final taskIds = <String>[];
     cancelToken?.whenCancel.whenComplete(() {
@@ -45,6 +50,7 @@ abstract class Downloader {
     // 启动任务批量下载
     final singleBatchSize = 30, length = downloadTasks.length;
     final groups = (length / singleBatchSize).ceil();
+    final batchFutures = <Future>[];
     for (int i = 0; i < groups; i++) {
       final completer = Completer();
       // 分批获取下载任务队列
@@ -53,27 +59,30 @@ abstract class Downloader {
       final batchTasks = downloadTasks.sublist(startIndex, endIndex)
         ..forEach((e) => taskIds.add(e.taskId));
       // 启动下载任务
-      _doDownloadBatch(downloader, batchTasks, singleBatchSize: singleBatchSize,
-          statusCallback: (status, task) {
-        // 如果返回状态，已结束则移除任务，如果任务已结束则计数+1
-        if (status.isNotFinalState) return;
-        taskIds.remove(task.taskId);
-        if (status != TaskStatus.complete) return;
-        count += 1;
-      }, speedCallback: (speed) {
-        receiveProgress?.call(count, total, speed);
-      }, whenCompleted: () {
-        if (completer.isCompleted) return;
-        completer.complete();
-      });
+      batchFutures.add(
+        _doDownloadBatch(downloader, batchTasks,
+            singleBatchSize: singleBatchSize, statusCallback: (status, task) {
+          // 如果返回状态，已结束则移除任务，如果任务已结束则计数+1
+          if (status.isNotFinalState) return;
+          taskIds.remove(task.taskId);
+          if (status != TaskStatus.complete) return;
+          count += 1;
+        }, speedCallback: (speed) {
+          receiveProgress?.call(count, total, speed);
+        }, whenCompleted: () {
+          if (completer.isCompleted) return;
+          completer.complete();
+        }),
+      );
       await completer.future;
       // 判断是否已取消，已取消的话则终止循环
-      if (isCanceled(cancelToken)) break;
+      if (isCanceled(cancelToken)) return;
     }
+    await Future.wait(batchFutures);
   }
 
   // 执行批量下载
-  Future<void> _doDownloadBatch(
+  Future<Batch> _doDownloadBatch(
     FileDownloader downloader,
     List<DownloadTask> downloadTasks, {
     void Function(TaskStatus status, Task task)? statusCallback,
@@ -83,7 +92,8 @@ abstract class Downloader {
     double ratio = 0.5,
   }) async {
     final lastProgressMap = {};
-    await downloader.downloadBatch(
+    final waitFileRename = <Future>[];
+    final batchResult = await downloader.downloadBatch(
       downloadTasks,
       batchProgressCallback: (int succeeded, int failed) {
         // 当前批次任务完成到 {ratio} 比例的时候则完成
@@ -95,8 +105,10 @@ abstract class Downloader {
         statusCallback?.call(update.status, update.task);
         // 如果是已完成则重命名文件
         if (update.status != TaskStatus.complete) return;
-        final filePath = await update.task.filePath();
-        await File(filePath).rename(filePath.replaceAll('.tmp', ''));
+        waitFileRename.add(Future(() async {
+          final filePath = await update.task.filePath();
+          await File(filePath).rename(filePath.replaceAll('.tmp', ''));
+        }));
       },
       taskProgressCallback: (updates) {
         // 更新任务进度
@@ -109,17 +121,20 @@ abstract class Downloader {
         speedCallback?.call(downloadSpeed.toInt());
       },
     );
+    await Future.wait(waitFileRename);
     whenCompleted?.call();
+    return batchResult;
   }
 
   // 生成下载任务
-  List<DownloadTask> _genDownloadTasks(
+  List<DownloadTask> _genDownloadBatchTasks(
     Map<String, String> downloadMap, {
     BaseDirectory baseDirectory = BaseDirectory.applicationDocuments,
     bool requiresWiFi = false,
     String tmpSuffix = '.tmp',
     bool allowPause = true,
     String fileDir = '',
+    int retries = 0,
   }) =>
       downloadMap.keys.map((filename) {
         return DownloadTask(
@@ -129,6 +144,7 @@ abstract class Downloader {
           requiresWiFi: requiresWiFi,
           allowPause: allowPause,
           directory: fileDir,
+          retries: retries,
         );
       }).toList();
 
