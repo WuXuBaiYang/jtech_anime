@@ -59,7 +59,7 @@ class M3U8Downloader extends Downloader {
       downloadsMap,
     );
     if (isCanceled(cancelToken) || playFile == null) return null;
-    // 对视频进行合并
+    // 对视频进行合并(先校验文件的完整性)
     final outputFile = File('$savePath/$_m3u8MargeFilename');
     if (outputFile.existsSync()) outputFile.deleteSync();
     playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);

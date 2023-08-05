@@ -43,21 +43,18 @@ abstract class Downloader {
       downloader.cancelTasksWithIds(taskIds);
     });
     // 启动任务批量下载
-    final singleBatchSize = 30, length = downloadTasks.length;
+    final singleBatchSize = 50, length = downloadTasks.length;
     final groups = (length / singleBatchSize).ceil();
     for (int i = 0; i < groups; i++) {
       final completer = Completer();
       // 分批获取下载任务队列
       final startIndex = i * singleBatchSize;
       final endIndex = min(startIndex + singleBatchSize, length);
-      final failStatus = [TaskStatus.failed, TaskStatus.notFound];
       final batchTasks = downloadTasks.sublist(startIndex, endIndex)
         ..forEach((e) => taskIds.add(e.taskId));
       // 启动下载任务
       _doDownloadBatch(downloader, batchTasks, singleBatchSize: singleBatchSize,
           statusCallback: (status, task) {
-        // 如果存在异常则直接抛出
-        if (failStatus.contains(status)) return completer.completeError('下载失败');
         // 如果返回状态，已结束则移除任务，如果任务已结束则计数+1
         if (status.isNotFinalState) return;
         taskIds.remove(task.taskId);
@@ -75,26 +72,6 @@ abstract class Downloader {
     }
   }
 
-  // 生成下载任务
-  List<DownloadTask> _genDownloadTasks(
-    Map<String, String> downloadMap, {
-    BaseDirectory baseDirectory = BaseDirectory.applicationDocuments,
-    bool requiresWiFi = false,
-    String tmpSuffix = '.tmp',
-    bool allowPause = true,
-    String fileDir = '',
-  }) =>
-      downloadMap.keys.map((filename) {
-        return DownloadTask(
-          url: downloadMap[filename] ?? '',
-          filename: '$filename$tmpSuffix',
-          baseDirectory: baseDirectory,
-          requiresWiFi: requiresWiFi,
-          allowPause: allowPause,
-          directory: fileDir,
-        );
-      }).toList();
-
   // 执行批量下载
   Future<void> _doDownloadBatch(
     FileDownloader downloader,
@@ -102,7 +79,7 @@ abstract class Downloader {
     void Function(TaskStatus status, Task task)? statusCallback,
     void Function(int speed)? speedCallback,
     VoidCallback? whenCompleted,
-    int singleBatchSize = 30,
+    int singleBatchSize = 50,
     double ratio = 0.7,
   }) async {
     final lastProgressMap = {};
@@ -134,6 +111,26 @@ abstract class Downloader {
     );
     whenCompleted?.call();
   }
+
+  // 生成下载任务
+  List<DownloadTask> _genDownloadTasks(
+    Map<String, String> downloadMap, {
+    BaseDirectory baseDirectory = BaseDirectory.applicationDocuments,
+    bool requiresWiFi = false,
+    String tmpSuffix = '.tmp',
+    bool allowPause = true,
+    String fileDir = '',
+  }) =>
+      downloadMap.keys.map((filename) {
+        return DownloadTask(
+          url: downloadMap[filename] ?? '',
+          filename: '$filename$tmpSuffix',
+          baseDirectory: baseDirectory,
+          requiresWiFi: requiresWiFi,
+          allowPause: allowPause,
+          directory: fileDir,
+        );
+      }).toList();
 
   // 判断是否已取消
   bool isCanceled(CancelToken? cancelToken) {

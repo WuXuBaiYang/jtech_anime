@@ -181,6 +181,7 @@ class DownloadManage extends BaseManage {
       }
       return playFile;
     } catch (e) {
+      cancelToken?.cancel();
       LogTool.e('任务下载失败', error: e);
       // 更新任务状态为异常
       await _updateDownloadRecord(
@@ -192,6 +193,7 @@ class DownloadManage extends BaseManage {
       // 从所有队列中移除该任务
       downloadQueue.removeValue(downloadUrl);
       prepareQueue.removeValue(downloadUrl);
+      _progressBuffed.remove(downloadUrl);
       _startingBuffed.remove(downloadUrl);
       _stoppingBuffed.remove(downloadUrl);
       _stopDownloadProgress();
