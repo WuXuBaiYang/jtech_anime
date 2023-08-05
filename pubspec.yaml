@@ -93,7 +93,7 @@ dependencies:
 
   # 视频播放器
   flutter_meedu_videoplayer: ^4.2.21
-  #  media_kit_libs_android_video: ^1.3.0
+  media_kit_libs_android_video: ^1.3.0
   #  media_kit_libs_macos_video: ^1.0.5
   #  media_kit_libs_windows_video: ^1.0.2
 

@@ -24,7 +24,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 初始化视频播放器
-  await initMeeduPlayer();
+  await initMeeduPlayer(androidUseMediaKit: false);
   // 初始化ffmpeg
   await FFMpegHelper.instance.initialize();
   // 初始化各种manage

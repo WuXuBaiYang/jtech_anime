@@ -101,7 +101,7 @@ abstract class Downloader {
         if (count < singleBatchSize * ratio) return;
         whenCompleted?.call();
       },
-      taskStatusCallback: (update) async {
+      taskStatusCallback: (update) {
         statusCallback?.call(update.status, update.task);
         // 如果是已完成则重命名文件
         if (update.status != TaskStatus.complete) return;
