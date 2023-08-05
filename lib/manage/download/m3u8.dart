@@ -63,7 +63,7 @@ class M3U8Downloader extends Downloader {
     );
     if (isCanceled(cancelToken) || playFile == null) return null;
     // 对视频进行合并(先校验文件的完整性)
-    if (!_checkFileListComplete(fileList)) throw Exception('文件缺失或下载失败');
+    if (!_checkFileCompleted(fileList)) throw Exception('文件缺失或下载失败');
     final outputFile = File('$savePath/$_m3u8MargeFilename');
     if (outputFile.existsSync()) outputFile.deleteSync();
     playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
@@ -74,7 +74,7 @@ class M3U8Downloader extends Downloader {
   }
 
   // 检查文件完整性
-  bool _checkFileListComplete(List<File> fileList) {
+  bool _checkFileCompleted(List<File> fileList) {
     for (var e in fileList) {
       if (!e.existsSync()) return false;
     }
