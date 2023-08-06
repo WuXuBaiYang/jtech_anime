@@ -46,8 +46,10 @@ class M3U8Downloader extends Downloader {
     final total = downloadsMap.length;
     final fileList = <File>[];
     downloadsMap.removeWhere((k, _) {
-      fileList.add(File('${cacheDir.path}/$k'));
-      return fileList.last.existsSync();
+      final file = File('${cacheDir.path}/$k');
+      if (file.existsSync()) return true;
+      fileList.add(file);
+      return false;
     });
     final startIndex = cacheDir.path.indexOf(FileDirPath.videoCachePath);
     int initCount = total - downloadsMap.length;
