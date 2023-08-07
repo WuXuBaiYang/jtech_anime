@@ -41,7 +41,11 @@ class AnimeDetailPage extends StatefulWidget {
 * @Time 2023/7/12 9:07
 */
 class _AnimeDetailPageState
-    extends LogicState<AnimeDetailPage, _AnimeDetailLogic> {
+    extends LogicState<AnimeDetailPage, _AnimeDetailLogic>
+    with SingleTickerProviderStateMixin {
+  // tab控制器
+  TabController? tabController;
+
   @override
   _AnimeDetailLogic initLogic() => _AnimeDetailLogic();
 
@@ -51,15 +55,16 @@ class _AnimeDetailPageState
       body: ValueListenableBuilder<AnimeModel>(
         valueListenable: logic.animeDetail,
         builder: (_, animeDetail, __) {
-          return DefaultTabController(
-            length: animeDetail.resources.length,
-            child: NestedScrollView(
-              controller: logic.scrollController,
-              headerSliverBuilder: (_, __) {
-                return [_buildAppbar(animeDetail)];
-              },
-              body: _buildAnimeResources(animeDetail.resources),
-            ),
+          if (animeDetail.resources.isNotEmpty) {
+            tabController ??= TabController(
+                length: animeDetail.resources.length, vsync: this);
+          }
+          return NestedScrollView(
+            controller: logic.scrollController,
+            headerSliverBuilder: (_, __) {
+              return [_buildAppbar(animeDetail)];
+            },
+            body: _buildAnimeResources(animeDetail.resources),
           );
         },
       ),
@@ -154,6 +159,7 @@ class _AnimeDetailPageState
         if (resources.isNotEmpty)
           TabBar(
             isScrollable: true,
+            controller: tabController,
             onTap: logic.resourceIndex.setValue,
             tabs: List.generate(
               resources.length,
@@ -165,8 +171,9 @@ class _AnimeDetailPageState
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => DownloadSheet.show(
             context,
-            animeInfo: logic.animeDetail.value,
+            tabController: tabController,
             checkNetwork: logic.checkNetwork,
+            animeInfo: logic.animeDetail.value,
           ).whenComplete(logic.cacheController.refreshValue),
         ),
       ],
@@ -190,6 +197,7 @@ class _AnimeDetailPageState
             valueListenable: logic.playRecord,
             builder: (_, playRecord, __) {
               return TabBarView(
+                controller: tabController,
                 children: List.generate(resources.length, (i) {
                   final items = resources[i];
                   return GridView.builder(
@@ -325,6 +333,38 @@ class _AnimeDetailLogic extends BaseLogic {
     });
   }
 
+  // 加载番剧详情
+  Future<void> loadAnimeDetail({bool useCache = true}) async {
+    if (isLoading) return;
+    final animeUrl = animeDetail.value.url;
+    if (animeUrl.isEmpty) return;
+    loading.setValue(true);
+    try {
+      // 获取播放记录
+      final record = await db.getPlayRecord(animeUrl);
+      playRecord.setValue(record);
+      // 获取番剧详细信息，是否使用缓存加载
+      final result = await parserHandle.getAnimeDetail(
+        useCache: useCache,
+        animeUrl,
+      );
+      animeDetail.setValue(result);
+      // 根据番剧信息添加收藏信息
+      final collect = await db.getCollect(animeUrl);
+      collectInfo.setValue(collect ??
+          (Collect()
+            ..url = result.url
+            ..name = result.name
+            ..cover = result.cover
+            ..source = parserHandle.currentSource
+            ..collected = false));
+    } catch (e) {
+      SnackTool.showMessage(message: '番剧加载失败，请重试~');
+    } finally {
+      loading.setValue(false);
+    }
+  }
+
   // 更新收藏状态（收藏/取消收藏）
   Future<void> updateCollect(Collect item) async {
     if (isLoading) return;
@@ -375,38 +415,6 @@ class _AnimeDetailLogic extends BaseLogic {
       final record = await db.getPlayRecord(url);
       playRecord.setValue(record);
     });
-  }
-
-  // 加载番剧详情
-  Future<void> loadAnimeDetail({bool useCache = true}) async {
-    if (isLoading) return;
-    final animeUrl = animeDetail.value.url;
-    if (animeUrl.isEmpty) return;
-    loading.setValue(true);
-    try {
-      // 获取播放记录
-      final record = await db.getPlayRecord(animeUrl);
-      playRecord.setValue(record);
-      // 获取番剧详细信息，是否使用缓存加载
-      final result = await parserHandle.getAnimeDetail(
-        useCache: useCache,
-        animeUrl,
-      );
-      animeDetail.setValue(result);
-      // 根据番剧信息添加收藏信息
-      final collect = await db.getCollect(animeUrl);
-      collectInfo.setValue(collect ??
-          (Collect()
-            ..url = result.url
-            ..name = result.name
-            ..cover = result.cover
-            ..source = parserHandle.currentSource
-            ..collected = false));
-    } catch (e) {
-      SnackTool.showMessage(message: '番剧加载失败，请重试~');
-    } finally {
-      loading.setValue(false);
-    }
   }
 
   // 加载下载记录

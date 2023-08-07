@@ -90,18 +90,24 @@ class ResourceItemModel extends BaseModel {
   // 地址
   final String url;
 
+  // 排序（1-1代表资源1的第一条资源）
+  final int order;
+
   ResourceItemModel({
     required this.name,
     required this.url,
+    this.order = 0,
   });
 
   ResourceItemModel.from(obj)
       : name = obj['name'] ?? '',
-        url = obj['url'] ?? '';
+        url = obj['url'] ?? '',
+        order = obj['order'] ?? 0;
 
   @override
   Map<String, dynamic> to() => {
         'name': name,
         'url': url,
+        'order': order,
       };
 }

@@ -235,6 +235,7 @@ class YHDMZParserHandle extends ParserHandle {
     if (cover?.startsWith('//') ?? false) {
       cover = 'https:$cover';
     }
+    int resIndex = 10000;
     return {
       'url': url,
       'name': info?.querySelector('h1')?.text,
@@ -255,13 +256,19 @@ class YHDMZParserHandle extends ParserHandle {
           ?.text,
       'resources': document
           .querySelectorAll('#main0 > div.movurl')
-          .map((e) => e
-              .querySelectorAll('ul > li > a')
-              .map((e) => {
-                    'name': e.text,
-                    'url': _getUri(e.attributes['href'] ?? '').toString(),
-                  })
-              .toList())
+          .map((e) {
+            int index = 0;
+            final results = e
+                .querySelectorAll('ul > li > a')
+                .map((e) => {
+                      'name': e.text,
+                      'url': _getUri(e.attributes['href'] ?? '').toString(),
+                      'order': int.tryParse('$resIndex${index++}') ?? 0,
+                    })
+                .toList();
+            if (results.isNotEmpty) resIndex += 10000;
+            return results;
+          })
           .where((e) => e.isNotEmpty)
           .toList(),
     };
