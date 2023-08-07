@@ -267,7 +267,8 @@ class _DownloadSheetState extends State<DownloadSheet> {
               ..source = parserHandle.currentSource
               ..resUrl = e.url
               ..downloadUrl = e.playUrl
-              ..name = e.item?.name ?? '')
+              ..name = e.item?.name ?? ''
+              ..order = e.item?.order ?? 0)
             .toList();
         // 使用下载记录启动下载
         final results = await download.startTasks(downloadRecords);
