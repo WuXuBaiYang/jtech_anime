@@ -85,8 +85,8 @@ dependencies:
   # 跑马灯
   text_scroll: ^0.2.0
 
-  # 自定义刷新组件
-  custom_refresh_indicator: ^2.2.1
+  # 刷新组件
+  easy_refresh: ^3.3.2+1
 
   # 电池容量
   battery_plus: ^4.0.2

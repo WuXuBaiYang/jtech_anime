@@ -10,10 +10,10 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/page/home/time_table.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
@@ -50,66 +50,46 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    return Scaffold(
-      body: AnimeFilterConfigMenu(
-        complete: () => logic.loadAnimeList(false),
-        filterConfig: logic.filterConfig,
-        filterSelect: logic.filterSelect,
-        body: NestedScrollView(
-          controller: logic.scrollController,
-          headerSliverBuilder: (_, __) {
-            return [_buildAppBar()];
-          },
-          body: _buildAnimeList(),
-        ),
-      ),
-    );
-  }
-
-  // 构建页面头部
-  Widget _buildAppBar() {
-    return ValueListenableBuilder2<Map<String, FilterSelect>, bool>(
-      first: logic.filterConfig,
-      second: logic.showAppbar,
-      builder: (_, selectMap, showAppbar, __) {
-        return SliverAppBar(
-          title: _buildSearchButton(showAppbar),
-          expandedHeight: _HomeLogic.expandedHeight,
-          actions: [
-            if (showAppbar) ..._actions,
-          ],
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: EdgeInsets.only(
-                bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
+    return ValueListenableBuilder<int>(
+      valueListenable: logic.showChildIndex,
+      builder: (_, showChildIndex, __) {
+        return Scaffold(
+          appBar: AppBar(
+            title: _buildSearchButton(),
+            actions: _getAppbarActions(showChildIndex),
+            bottom: showChildIndex == 0
+                ? PreferredSize(
+                    preferredSize: const Size.fromHeight(kToolbarHeight),
+                    child: _buildFilterChips())
+                : null,
+          ),
+          body: IndexedStack(
+            index: showChildIndex,
+            children: [
+              AnimeFilterConfigMenu(
+                complete: () => Loading.show(
+                  loadFuture: logic.loadAnimeList(false),
+                ),
+                filterConfig: logic.filterConfig,
+                filterSelect: logic.filterSelect,
+                body: _buildAnimeList(),
               ),
-              child: AnimeTimeTable(
+              AnimeTimeTable(
                 onTap: (item) => logic.goDetail(AnimeModel.from({
                   'name': item.name,
                   'url': item.url,
                   'status': item.status,
                 })),
               ),
-            ),
+            ],
           ),
-          bottom: selectMap.isNotEmpty
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(kToolbarHeight),
-                  child: Container(
-                    color: !showAppbar ? Colors.white : null,
-                    child: _buildFilterChips(selectMap),
-                  ),
-                )
-              : null,
         );
       },
     );
   }
 
   // 构建搜索按钮
-  Widget _buildSearchButton(bool showAppbar) {
-    if (!showAppbar) return const SizedBox();
+  Widget _buildSearchButton() {
     const color = Colors.black38;
     const textStyle = TextStyle(color: color, fontSize: 16);
     return Padding(
@@ -127,72 +107,75 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     );
   }
 
-  // 标题栏动作按钮集合
-  List<Widget> get _actions => [
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.heart),
-          onPressed: () => router.pushNamed(RoutePath.collect),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.clockRotateLeft),
-          onPressed: () => router.pushNamed(RoutePath.record),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () => router.pushNamed(RoutePath.download),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.handPointDown),
-          onPressed: () => logic.expandedTimeTable(),
-        ),
-      ];
+  // 获取标题栏动作按钮集合
+  List<Widget> _getAppbarActions(int showChildIndex) {
+    return [
+      IconButton(
+        icon: const Icon(FontAwesomeIcons.heart),
+        onPressed: () => router.pushNamed(RoutePath.collect),
+      ),
+      IconButton(
+        icon: const Icon(FontAwesomeIcons.clockRotateLeft),
+        onPressed: () => router.pushNamed(RoutePath.record),
+      ),
+      IconButton(
+        icon: const Icon(FontAwesomeIcons.download),
+        onPressed: () => router.pushNamed(RoutePath.download),
+      ),
+      IconButton(
+        icon: Icon(showChildIndex == 0
+            ? FontAwesomeIcons.handPointRight
+            : FontAwesomeIcons.handPointLeft),
+        onPressed: () => logic.showChildIndex.setValue(showChildIndex ^ 1),
+      ),
+    ];
+  }
 
   // 构建番剧过滤配置组件
-  Widget _buildFilterChips(Map<String, FilterSelect> selectMap) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(right: 8),
-        child: Row(
-          children: List.generate(selectMap.length, (i) {
-            final item = selectMap.values.elementAt(i);
-            final text = '${item.parentName} · ${item.name}';
-            return Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: RawChip(label: Text(text)),
-            );
-          }),
-        ),
-      ),
+  Widget _buildFilterChips() {
+    return ValueListenableBuilder<Map<String, FilterSelect>>(
+      valueListenable: logic.filterConfig,
+      builder: (_, selectMap, __) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(right: 8),
+            child: Row(
+              children: List.generate(selectMap.length, (i) {
+                final item = selectMap.values.elementAt(i);
+                final text = '${item.parentName} · ${item.name}';
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: RawChip(label: Text(text)),
+                );
+              }),
+            ),
+          ),
+        );
+      },
     );
   }
 
   // 构建番剧列表
   Widget _buildAnimeList() {
-    return CustomRefreshView(
-      enableRefresh: true,
-      enableLoadMore: true,
-      onRefresh: (loadMore) => logic.loadAnimeList(loadMore),
-      child: ValueListenableBuilder<List<AnimeModel>>(
-        valueListenable: logic.animeList,
-        builder: (_, animeList, __) {
-          return Stack(
+    return ValueListenableBuilder<List<AnimeModel>>(
+      valueListenable: logic.animeList,
+      builder: (_, animeList, __) {
+        return CustomRefreshView(
+          enableRefresh: true,
+          enableLoadMore: true,
+          initialRefresh: true,
+          onRefresh: (loadMore) => logic.loadAnimeList(loadMore),
+          child: Stack(
             children: [
               if (animeList.isEmpty)
-                ValueListenableBuilder<bool>(
-                  valueListenable: logic.loading,
-                  builder: (_, isLoading, __) {
-                    return Center(
-                      child: StatusBox(
-                        animSize: 34,
-                        status: isLoading
-                            ? StatusBoxStatus.loading
-                            : StatusBoxStatus.empty,
-                        title: Text(isLoading ? '正在加载中~' : '下拉试试看~'),
-                      ),
-                    );
-                  },
+                const Center(
+                  child: StatusBox(
+                    animSize: 34,
+                    status: StatusBoxStatus.empty,
+                    title: Text('下拉试试看~'),
+                  ),
                 ),
               GridView.builder(
                 itemCount: animeList.length,
@@ -209,9 +192,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 },
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -266,49 +249,21 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 * @Time 2023/7/6 10:03
 */
 class _HomeLogic extends BaseLogic {
-  // 折叠高度
-  static const double expandedHeight = 350.0;
-
-  // 标题栏展示状态¶
-  final showAppbar = ValueChangeNotifier<bool>(true);
-
-  // 滚动控制器
-  final scrollController = ScrollController();
-
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
   // 记录过滤条件
   final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
 
+  // 首页展示内容下标
+  final showChildIndex = ValueChangeNotifier<int>(0);
+
   @override
   void init() {
     super.init();
     // 获取过滤条件
-    db.getFilterSelectList(parserHandle.currentSource).then((v) {
-      final result = v.asMap().map<String, FilterSelect>((_, v) {
-        return MapEntry(_genFilterKey(v), v);
-      });
-      filterConfig.setValue(result);
-      scrollController.jumpTo(_scrollOffset + 1);
-    });
-    // 监听容器滚动
-    scrollController.addListener(() {
-      // 判断是否需要展示标题栏
-      showAppbar.setValue(scrollController.offset > _scrollOffset);
-    });
-    // 初始化加载首页数据
-    loadAnimeList(false);
+    _loadFilterConfig();
   }
-
-  // 获取滚动偏移量
-  double get _scrollOffset =>
-      expandedHeight -
-      (filterConfig.isEmpty ? kToolbarHeight : kToolbarHeight * 2);
-
-  // 展开番剧时间表
-  void expandedTimeTable() => scrollController.animateTo(0,
-      duration: const Duration(milliseconds: 400), curve: Curves.ease);
 
   // 加载番剧列表
   Future<void> loadAnimeList(bool loadMore) async {
@@ -326,6 +281,14 @@ class _HomeLogic extends BaseLogic {
     } finally {
       loading.setValue(false);
     }
+  }
+
+  // 加载过滤条件配置
+  Future<void> _loadFilterConfig() async {
+    final result = await db.getFilterSelectList(parserHandle.currentSource);
+    filterConfig.setValue(result.asMap().map<String, FilterSelect>(
+          (_, v) => MapEntry(_genFilterKey(v), v),
+        ));
   }
 
   // 选择过滤条件

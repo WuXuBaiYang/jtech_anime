@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/model/time_table.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
 // 时间表点击回调
@@ -13,25 +12,30 @@ typedef AnimeTimeTableTap = void Function(TimeTableItemModel item);
 * @author wuxubaiyang
 * @Time 2023/7/7 15:27
 */
-class AnimeTimeTable extends StatelessWidget {
+class AnimeTimeTable extends StatefulWidget {
   // 时间表点击回调
   final AnimeTimeTableTap? onTap;
 
+  const AnimeTimeTable({super.key, this.onTap});
+
+  @override
+  State<AnimeTimeTable> createState() => _AnimeTimeTableState();
+}
+
+class _AnimeTimeTableState extends State<AnimeTimeTable> {
   // 周/天下标
   final int _weekday = DateTime.now().weekday - 1;
 
   // 周/天换算表
-  final _weekdayMap = {
-    0: [FontAwesomeIcons.faceDizzy, '周一'],
-    1: [FontAwesomeIcons.faceFrown, '周二'],
-    2: [FontAwesomeIcons.faceFlushed, '周三'],
-    3: [FontAwesomeIcons.faceGrimace, '周四'],
-    4: [FontAwesomeIcons.faceGrinStars, '周五'],
-    5: [FontAwesomeIcons.faceLaughWink, '周六'],
-    6: [FontAwesomeIcons.faceSadTear, '周日'],
+  final _weekdayMap = <IconData, String>{
+    FontAwesomeIcons.faceDizzy: '周一',
+    FontAwesomeIcons.faceFrown: '周二',
+    FontAwesomeIcons.faceFlushed: '周三',
+    FontAwesomeIcons.faceGrimace: '周四',
+    FontAwesomeIcons.faceGrinStars: '周五',
+    FontAwesomeIcons.faceLaughWink: '周六',
+    FontAwesomeIcons.faceSadTear: '周日',
   };
-
-  AnimeTimeTable({super.key, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -63,14 +67,13 @@ class AnimeTimeTable extends StatelessWidget {
     return TabBar(
       isScrollable: true,
       tabs: List.generate(length, (i) {
-        final icon = _weekdayMap[i]!.first as IconData;
-        final text = _weekdayMap[i]!.last as String;
+        final item = _weekdayMap.entries.elementAt(i);
         return Tab(
           child: Row(
             children: [
-              Text(text),
+              Text(item.value),
               const SizedBox(width: 4),
-              Icon(icon, size: 14),
+              Icon(item.key, size: 14),
             ],
           ),
         );
@@ -101,7 +104,7 @@ class AnimeTimeTable extends StatelessWidget {
               trailing: updateIcon,
               title: Text(item.name),
               subtitle: Text(item.status),
-              onTap: () => onTap?.call(item),
+              onTap: () => widget.onTap?.call(item),
             );
           },
         );

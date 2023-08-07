@@ -134,7 +134,7 @@ class PlayerResourceDrawer extends StatelessWidget {
     );
   }
 
-  // 加载下载记录表
+  // 加载已下载记录表
   Future<Map<String, DownloadRecord>> _loadDownloadRecordMap() {
     return db.getDownloadRecordList(
       parserHandle.currentSource,

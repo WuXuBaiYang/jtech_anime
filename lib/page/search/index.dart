@@ -66,7 +66,6 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
   Widget _buildSearchList() {
     final padding = MediaQuery.of(context).padding;
     return CustomRefreshView(
-        displacement: 120,
         enableRefresh: true,
         enableLoadMore: true,
         controller: logic.controller,
