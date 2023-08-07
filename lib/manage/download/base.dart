@@ -30,6 +30,7 @@ abstract class Downloader {
     DownloaderProgressCallback? receiveProgress,
     FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
+    int singleBatchSize = 30,
     String fileDir = '',
     int retries = 3,
   }) async {
@@ -48,7 +49,7 @@ abstract class Downloader {
       downloader.cancelTasksWithIds(taskIds);
     });
     // 启动任务批量下载
-    final singleBatchSize = 30, length = downloadTasks.length;
+    final length = downloadTasks.length;
     final groups = (length / singleBatchSize).ceil();
     final batchFutures = <Future>[];
     for (int i = 0; i < groups; i++) {
