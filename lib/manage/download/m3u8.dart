@@ -126,10 +126,15 @@ class M3U8Downloader extends Downloader {
     }
     // 遍历分片列表并同时生成本地索引文件
     final resources = {};
+    final ignoreReg = RegExp(Common.m3u8FileIgnores.join('|'));
     for (final item in playlist.segments) {
       // 拼接分片下载地址
       String? url = item.url;
       if (url == null) continue;
+      if (ignoreReg.hasMatch(url)) {
+        content = content.replaceAll(url, '');
+        continue;
+      }
       url = _mergeUrl(url, baseUri);
       final filename = basename(url);
       resources[filename] = url;
