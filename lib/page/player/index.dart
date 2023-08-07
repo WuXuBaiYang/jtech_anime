@@ -92,7 +92,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       builder: (_, item, __) {
         return PlayerResourceDrawer(
           currentItem: item,
-          resources: logic.resources,
+          animeInfo: logic.animeInfo.value,
           onResourceSelect: (item) {
             pageKey.currentState?.closeEndDrawer();
             logic.changeVideo(item);

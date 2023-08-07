@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
@@ -54,7 +55,7 @@ class M3U8Downloader extends Downloader {
     await downloadBatch(
       receiveProgress: (count, _, speed) {
         if (isCanceled(cancelToken)) return;
-        receiveProgress?.call(initCount + count, total, speed);
+        receiveProgress?.call(min(initCount + count, total), total, speed);
       },
       fileDir: cacheDir.path.substring(startIndex),
       root: Common.videoCacheRoot,
