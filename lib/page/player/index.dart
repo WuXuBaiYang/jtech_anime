@@ -335,7 +335,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 选择资源/视频
   Future<void> changeVideo(ResourceItemModel item,
-      [bool playTheRecord = true]) async {
+      [bool playTheRecord = false]) async {
     if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
@@ -426,6 +426,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 更新视频进度
   void _updateVideoProgress(Duration progress) {
+    if (progress < const Duration(seconds: 5)) return;
     final source = parserHandle.currentSource;
     final item = animeInfo.value;
     final resItem = resourceInfo.value;
