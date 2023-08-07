@@ -179,7 +179,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
     Map<String, DownloadRecord> downloadMap,
     List<ResourceItemModel> selectList,
   ) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(8),
       child: Wrap(
         spacing: 8,
