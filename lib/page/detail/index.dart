@@ -20,6 +20,7 @@ import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
+import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
 
@@ -187,41 +188,45 @@ class _AnimeDetailPageState
         child: StatusBox(status: StatusBoxStatus.empty),
       );
     }
-    return CacheFutureBuilder<Map<String, DownloadRecord>>(
-        controller: logic.cacheController,
-        future: logic.loadDownloadRecord,
-        builder: (_, snap) {
-          if (!snap.hasData) return const SizedBox();
-          final downloadMap = snap.data!;
-          return ValueListenableBuilder<PlayRecord?>(
-            valueListenable: logic.playRecord,
-            builder: (_, playRecord, __) {
-              return TabBarView(
-                controller: tabController,
-                children: List.generate(resources.length, (i) {
-                  final items = resources[i];
-                  return GridView.builder(
-                    itemCount: items.length,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      mainAxisExtent: 40,
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                    ),
-                    itemBuilder: (_, i) {
-                      final item = items[i];
-                      return _buildAnimeResourcesItem(
-                          item, downloadMap, playRecord?.resUrl);
-                    },
-                  );
-                }),
-              );
-            },
-          );
-        });
+    return CustomRefreshView(
+      refreshTriggerOffset: 20,
+      child: CacheFutureBuilder<Map<String, DownloadRecord>>(
+          controller: logic.cacheController,
+          future: logic.loadDownloadRecord,
+          builder: (_, snap) {
+            if (!snap.hasData) return const SizedBox();
+            final downloadMap = snap.data!;
+            return ValueListenableBuilder<PlayRecord?>(
+              valueListenable: logic.playRecord,
+              builder: (_, playRecord, __) {
+                return TabBarView(
+                  controller: tabController,
+                  children: List.generate(resources.length, (i) {
+                    final items = resources[i];
+                    return GridView.builder(
+                      itemCount: items.length,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        mainAxisExtent: 40,
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                      ),
+                      itemBuilder: (_, i) {
+                        final item = items[i];
+                        return _buildAnimeResourcesItem(
+                            item, downloadMap, playRecord?.resUrl);
+                      },
+                    );
+                  }),
+                );
+              },
+            );
+          }),
+      onRefresh: (_) => logic.loadAnimeDetail(useCache: false),
+    );
   }
 
   // 构建番剧资源子项

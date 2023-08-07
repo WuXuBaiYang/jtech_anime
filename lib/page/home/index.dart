@@ -8,8 +8,8 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
+import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/filter.dart';
-import 'package:jtech_anime/page/home/time_table.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
@@ -34,7 +34,12 @@ class HomePage extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/7/6 10:03
 */
-class _HomePageState extends LogicState<HomePage, _HomeLogic> {
+class _HomePageState extends LogicState<HomePage, _HomeLogic>
+    with SingleTickerProviderStateMixin {
+  // 时间轴tab控制器
+  late TabController timetableTabController = TabController(
+      length: 7, vsync: this, initialIndex: DateTime.now().weekday - 1);
+
   @override
   _HomeLogic initLogic() => _HomeLogic();
 
@@ -50,6 +55,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
+    final scrollController = ScrollController();
     return ValueListenableBuilder<int>(
       valueListenable: logic.showChildIndex,
       builder: (_, showChildIndex, __) {
@@ -57,11 +63,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           appBar: AppBar(
             title: _buildSearchButton(),
             actions: _getAppbarActions(showChildIndex),
-            bottom: showChildIndex == 0
-                ? PreferredSize(
-                    preferredSize: const Size.fromHeight(kToolbarHeight),
-                    child: _buildFilterChips())
-                : null,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight),
+              child: [
+                _buildFilterChips(),
+                _buildTimetableTabBar(),
+              ][showChildIndex],
+            ),
           ),
           body: IndexedStack(
             index: showChildIndex,
@@ -74,13 +82,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 filterSelect: logic.filterSelect,
                 body: _buildAnimeList(),
               ),
-              AnimeTimeTable(
-                onTap: (item) => logic.goDetail(AnimeModel.from({
-                  'name': item.name,
-                  'url': item.url,
-                  'status': item.status,
-                })),
-              ),
+              _buildTimetableTabView(),
             ],
           ),
         );
@@ -152,6 +154,87 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               }),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // 周/天换算表
+  final _weekdayMap = <IconData, String>{
+    FontAwesomeIcons.faceDizzy: '周一',
+    FontAwesomeIcons.faceFrown: '周二',
+    FontAwesomeIcons.faceFlushed: '周三',
+    FontAwesomeIcons.faceGrimace: '周四',
+    FontAwesomeIcons.faceGrinStars: '周五',
+    FontAwesomeIcons.faceLaughWink: '周六',
+    FontAwesomeIcons.faceSadTear: '周日',
+  };
+
+  // 构建时间轴tabBar
+  Widget _buildTimetableTabBar() {
+    return TabBar(
+      isScrollable: true,
+      controller: timetableTabController,
+      tabs: List.generate(timetableTabController.length, (i) {
+        final item = _weekdayMap.entries.elementAt(i);
+        return Tab(
+          child: Row(
+            children: [
+              Text(item.value),
+              const SizedBox(width: 4),
+              Icon(item.key, size: 14),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  // 构建时间轴tabView
+  Widget _buildTimetableTabView() {
+    return ValueListenableBuilder(
+      valueListenable: logic.timetableDataList,
+      builder: (_, dataList, __) {
+        if (dataList.isEmpty) {
+          return const Center(
+            child: StatusBox(
+              status: StatusBoxStatus.empty,
+            ),
+          );
+        }
+        return TabBarView(
+          controller: timetableTabController,
+          children: List.generate(timetableTabController.length, (i) {
+            final items = i >= dataList.length ? [] : dataList[i];
+            return ListView.builder(
+              primary: false,
+              itemCount: items.length,
+              padding: EdgeInsets.zero,
+              itemBuilder: (_, i) {
+                final item = items[i];
+                final updateIcon = item.isUpdate
+                    ? const Icon(
+                        FontAwesomeIcons.seedling,
+                        color: Colors.green,
+                        size: 18,
+                      )
+                    : null;
+                return ListTile(
+                  dense: true,
+                  trailing: updateIcon,
+                  title: Text(item.name),
+                  subtitle: Text(item.status),
+                  onTap: () {
+                    logic.goDetail(AnimeModel.from({
+                      'name': item.name,
+                      'url': item.url,
+                      'status': item.status,
+                    }));
+                  },
+                );
+              },
+            );
+          }),
         );
       },
     );
@@ -252,6 +335,10 @@ class _HomeLogic extends BaseLogic {
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
+  // 时间轴数据
+  final timetableDataList =
+      ListValueChangeNotifier<List<TimeTableItemModel>>.empty();
+
   // 记录过滤条件
   final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
 
@@ -263,6 +350,8 @@ class _HomeLogic extends BaseLogic {
     super.init();
     // 获取过滤条件
     _loadFilterConfig();
+    // 加载时间轴数据
+    _loadTimetableDataList();
   }
 
   // 加载番剧列表
@@ -281,6 +370,12 @@ class _HomeLogic extends BaseLogic {
     } finally {
       loading.setValue(false);
     }
+  }
+
+  // 加载时间轴数据
+  Future<void> _loadTimetableDataList() async {
+    final result = await parserHandle.loadAnimeTimeTable();
+    timetableDataList.setValue(result);
   }
 
   // 加载过滤条件配置

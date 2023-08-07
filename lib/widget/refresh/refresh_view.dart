@@ -26,6 +26,9 @@ class CustomRefreshView extends StatefulWidget {
   // 是否初始化加载更多
   final bool initialRefresh;
 
+  // 下拉刷新的触发距离
+  final double refreshTriggerOffset;
+
   // 刷新组件控制器
   final CustomRefreshController controller;
 
@@ -36,6 +39,7 @@ class CustomRefreshView extends StatefulWidget {
     this.enableRefresh = true,
     this.enableLoadMore = false,
     this.initialRefresh = false,
+    this.refreshTriggerOffset = 80,
     CustomRefreshController? controller,
   }) : controller = controller ?? CustomRefreshController();
 
@@ -69,6 +73,10 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     return EasyRefresh(
       onLoad: onloadMore,
       onRefresh: onRefresh,
+      footer: const BezierFooter(),
+      header: BezierCircleHeader(
+        triggerOffset: widget.refreshTriggerOffset,
+      ),
       controller: widget.controller.controller,
       child: widget.child,
     );
