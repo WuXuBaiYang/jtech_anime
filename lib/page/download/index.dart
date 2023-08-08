@@ -111,11 +111,11 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
                 Expanded(
                   child: DownloadRecordListView(
                     groupList: groups,
-                    downloadTask: snap.data,
                     initialExpanded: expandedList,
+                    downloadTask: snap.data ?? DownloadTask(),
                     onRemoveRecords: (records) =>
                         _showDeleteDialog(context, records),
-                    onPlayRecords: (records) async {
+                    onStartDownloads: (records) async {
                       // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
                       if (logic.checkNetwork.value &&
                           await Tool.checkNetworkInMobile() &&
@@ -137,7 +137,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
   Widget _buildDownloadingListHead(
       List<DownloadGroup> groups, DownloadTask? task) {
     final padding =
-        const EdgeInsets.symmetric(horizontal: 14).copyWith(top: 18);
+        const EdgeInsets.symmetric(horizontal: 14).copyWith(top: 18, right: 8);
     final textStyle = TextStyle(color: kPrimaryColor, fontSize: 20);
     final totalSpeed = '${FileTool.formatSize(task?.totalSpeed ?? 0)}/s';
     return Padding(
@@ -296,8 +296,9 @@ class _DownloadLogic extends BaseLogic {
     for (int i = 0; i < result.length; i++) {
       final item = result[i];
       if ((lastUrl ??= item.url) != item.url) {
-        final group = DownloadGroup.fromRecords(subList);
+        final group = DownloadGroup.fromRecords(List.of(subList));
         if (group != null) groupList.add(group);
+        lastUrl = item.url;
         subList.clear();
       }
       subList.add(item);

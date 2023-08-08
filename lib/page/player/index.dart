@@ -308,14 +308,6 @@ class _PlayerLogic extends BaseLogic {
         () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
-      // 监听播放进度，当播放完成之后则自动播放下一集
-      if (total != null && e >= total!) {
-        final item = nextResourceInfo.value;
-        if (item != null) {
-          changeVideo(item);
-          total = null;
-        }
-      }
     });
   }
 
