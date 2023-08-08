@@ -79,7 +79,6 @@ class DownloadRecord {
     String? name,
     String? cover,
     int? order,
-    bool? collected,
     String? title,
     DownloadRecordStatus? status,
     String? failText,

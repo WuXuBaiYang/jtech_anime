@@ -14,14 +14,13 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/download.dart';
-import 'package:jtech_anime/page/download/list.dart';
+import 'package:jtech_anime/model/download_group.dart';
+import 'package:jtech_anime/page/download/listview.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/permission.dart';
-import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
-import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 
 /*
 * 下载管理页
@@ -40,33 +39,33 @@ class DownloadPage extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/7/12 9:08
 */
-class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
+class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
+    with SingleTickerProviderStateMixin {
+  // tab控制器
+  late TabController tabController = TabController(length: 2, vsync: this);
+
   @override
   _DownloadLogic initLogic() => _DownloadLogic();
-
-  // 分页控制表
-  late Map<String, Widget Function(BuildContext context)> tabsMap = {
-    '下载队列': _buildDownloadingList,
-    '已下载': _buildDownloadRecordList,
-  };
 
   @override
   void initState() {
     super.initState();
+    // 初始化获取下载记录，获取到之后判断跳转tab页
+    logic.loadDownloadRecords().then((_) {
+      // 如果下载队列为空，并且已下载页面有数据，则展示下载队列，否则展示已下载队列
+      final showDownloading =
+          logic.downloadingList.isNotEmpty || logic.downloadedList.isEmpty;
+      tabController.animateTo(showDownloading ? 0 : 1);
+    });
     // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 监听下载完成事件
-      download.addDownloadCompleteListener((record) {
-        if (!mounted) return;
-        // 移除下载列表
-        logic.downloadingList.removeWhere((e) {
-          return e.downloadUrl == record.downloadUrl;
-        });
-        // 刷新下载完成队列
-        logic.loadDownloadRecords(context, false);
-      });
       // 请求通知权限
       PermissionTool.checkNotification(context);
+      // 监听下载完成事件
+      download.addDownloadCompleteListener((_) {
+        if (!mounted) return;
+        logic.loadDownloadRecords();
+      });
       // 主动推送一次最新的下载进度
       download.pushLatestProgress();
     });
@@ -74,57 +73,56 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    final tabs = tabsMap.keys.map((e) => Tab(text: e)).toList();
-    final views = tabsMap.values.map((e) => e.call(context)).toList();
-    return DefaultTabController(
-      length: tabsMap.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('番剧缓存'),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(kToolbarHeight),
-            child: TabBar(tabs: tabs),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('番剧缓存'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: TabBar(
+            indicatorSize: TabBarIndicatorSize.tab,
+            controller: tabController,
+            tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
           ),
         ),
-        body: TabBarView(children: views),
+      ),
+      body: TabBarView(
+        controller: tabController,
+        children: [
+          _buildDownloadingList(context),
+          _buildDownloadedList(context),
+        ],
       ),
     );
   }
 
   // 构建下载队列
   Widget _buildDownloadingList(BuildContext context) {
-    const status = [DownloadRecordStatus.download, DownloadRecordStatus.fail];
-    return ValueListenableBuilder<List<DownloadRecord>>(
+    return ValueListenableBuilder<List<DownloadGroup>>(
       valueListenable: logic.downloadingList,
-      builder: (_, recordList, __) {
+      builder: (_, groups, __) {
+        final expandedList = groups.map((e) => e.url).toList();
         return StreamBuilder<DownloadTask?>(
           stream: download.downloadProgress,
           builder: (_, snap) {
             return Column(
               children: [
-                if (recordList.isNotEmpty)
-                  _buildDownloadingHead(recordList, snap.data),
+                if (groups.isNotEmpty)
+                  _buildDownloadingListHead(groups, snap.data),
                 Expanded(
-                  child: DownloadRecordList(
-                    recordList: recordList,
+                  child: DownloadRecordListView(
+                    groupList: groups,
                     downloadTask: snap.data,
-                    onTaskLongTap: (item) => _showDeleteDialog(
-                        context, [item], logic.downloadingList),
-                    onAnimeLongTap: (item) => logic
-                        .getAnimeDownloadRecord(item, status: status)
-                        .then((items) => _showDeleteDialog(
-                            context, items, logic.downloadingList)),
-                    onTaskTap: (record) async {
-                      if (download.inQueue(record)) {
-                        download.stopTask(record);
-                        return;
-                      }
+                    initialExpanded: expandedList,
+                    onRemoveRecords: (records) =>
+                        _showDeleteDialog(context, records),
+                    onPlayRecords: (records) async {
                       // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
                       if (logic.checkNetwork.value &&
                           await Tool.checkNetworkInMobile() &&
                           !await _showNetworkStatusDialog(context)) return;
-                      download.startTask(record);
+                      download.startTasks(records);
                     },
+                    onStopDownloads: download.stopTasks,
                   ),
                 ),
               ],
@@ -136,8 +134,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
   }
 
   // 构建下载队列头部
-  Widget _buildDownloadingHead(
-      List<DownloadRecord> recordList, DownloadTask? task) {
+  Widget _buildDownloadingListHead(
+      List<DownloadGroup> groups, DownloadTask? task) {
     final padding =
         const EdgeInsets.symmetric(horizontal: 14).copyWith(top: 18);
     final textStyle = TextStyle(color: kPrimaryColor, fontSize: 20);
@@ -149,7 +147,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
           Text(totalSpeed, style: textStyle),
           const Spacer(),
           IconButton(
-            onPressed: () => download.stopTasks(recordList),
+            onPressed: () => download.stopTasks(
+                groups.expand<DownloadRecord>((e) => e.records).toList()),
             icon: const Icon(FontAwesomeIcons.pause),
             color: kPrimaryColor,
           ),
@@ -159,7 +158,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
               if (logic.checkNetwork.value &&
                   await Tool.checkNetworkInMobile() &&
                   !await _showNetworkStatusDialog(context)) return;
-              download.startTasks(recordList);
+              download.startTasks(
+                  groups.expand<DownloadRecord>((e) => e.records).toList());
             },
             icon: const Icon(FontAwesomeIcons.play),
             color: kPrimaryColor,
@@ -170,24 +170,17 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
   }
 
   // 构建下载记录列表
-  Widget _buildDownloadRecordList(BuildContext context) {
-    const status = [DownloadRecordStatus.complete];
-    return ValueListenableBuilder<List<DownloadRecord>>(
-      valueListenable: logic.downloadRecordList,
-      builder: (_, recordList, __) {
-        return CustomRefreshView(
-          enableRefresh: true,
-          enableLoadMore: true,
-          initialRefresh: true,
-          child: DownloadRecordList(
-            recordList: recordList,
-            onTaskLongTap: (item) =>
-                _showDeleteDialog(context, [item], logic.downloadRecordList),
-            onAnimeLongTap: (item) => logic
-                .getAnimeDownloadRecord(item, status: status)
-                .then((items) => _showDeleteDialog(
-                    context, items, logic.downloadRecordList)),
-            onTaskTap: (item) => router.pushNamed(
+  Widget _buildDownloadedList(BuildContext context) {
+    return ValueListenableBuilder<List<DownloadGroup>>(
+      valueListenable: logic.downloadedList,
+      builder: (_, groups, __) {
+        return DownloadRecordListView(
+          groupList: groups,
+          onRemoveRecords: (records) => _showDeleteDialog(context, records),
+          onPlayRecords: (records) {
+            if (records.isEmpty) return;
+            final item = records.first;
+            router.pushNamed(
               RoutePath.animeDetail,
               arguments: {
                 'animeDetail': AnimeModel(
@@ -197,9 +190,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
                 ),
                 'downloadRecord': item,
               },
-            ),
-          ),
-          onRefresh: (loadMore) => logic.loadDownloadRecords(context, loadMore),
+            );
+          },
         );
       },
     );
@@ -207,10 +199,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 
   // 展示删除弹窗
   Future<void> _showDeleteDialog(
-    BuildContext context,
-    List<DownloadRecord> items,
-    ListValueChangeNotifier<DownloadRecord> notifier,
-  ) {
+      BuildContext context, List<DownloadRecord> items) {
     final item = items.firstOrNull;
     final content =
         '是否删除 ${item?.title} ${item?.name} ${items.length > 1 ? '等${items.length}条下载记录' : ''}';
@@ -225,7 +214,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
       actionRight: TextButton(
         child: const Text('删除'),
         onPressed: () {
-          logic.removeDownloadRecord(items, notifier);
+          logic.loadDownloadRecords();
           router.pop();
         },
       ),
@@ -268,87 +257,62 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic> {
 */
 class _DownloadLogic extends BaseLogic {
   // 下载队列
-  final downloadingList = ListValueChangeNotifier<DownloadRecord>.empty();
+  final downloadingList = ListValueChangeNotifier<DownloadGroup>.empty();
 
   // 已下载记录
-  final downloadRecordList = ListValueChangeNotifier<DownloadRecord>.empty();
+  final downloadedList = ListValueChangeNotifier<DownloadGroup>.empty();
 
   // 是否检查网络状态
   final checkNetwork = ValueChangeNotifier<bool>(
       cache.getBool(Common.checkNetworkStatusKey) ?? true);
 
-  // 当前页码
-  int _pageIndex = 1;
-
-  @override
-  void init() {
-    super.init();
-    // 获取下载队列基础数据
-    loadDownloadingList();
-  }
-
-  // 获取下载队列列表
-  Future<void> loadDownloadingList() async {
+  // 获取下载队列与已下载队列
+  Future<void> loadDownloadRecords() async {
     try {
-      final results = await db.getDownloadRecordList(
-        parserHandle.currentSource,
-        // 最大可显示下载队列为999
-        pageSize: 999,
-        status: [
-          DownloadRecordStatus.download,
-          DownloadRecordStatus.fail,
-        ],
-      );
-      downloadingList.setValue(results);
+      // 加载下载队列记录
+      downloadingList.setValue(await _getDownloadRecords([
+        DownloadRecordStatus.download,
+        DownloadRecordStatus.fail,
+      ]));
+      // 加载已下载记录
+      downloadedList.setValue(await _getDownloadRecords([
+        DownloadRecordStatus.complete,
+      ]));
     } catch (e) {
       LogTool.e('获取下载记录失败', error: e);
     }
   }
 
   // 获取下载记录
-  Future<void> loadDownloadRecords(BuildContext context, bool loadMore) async {
-    if (isLoading) return;
-    try {
-      loading.setValue(true);
-      final index = loadMore ? _pageIndex + 1 : 1;
-      final result = await db.getDownloadRecordList(
-        status: [DownloadRecordStatus.complete],
-        parserHandle.currentSource,
-        pageIndex: index,
-      );
-      if (result.isNotEmpty) {
-        _pageIndex = index;
-        return loadMore
-            ? downloadRecordList.addValues(result)
-            : downloadRecordList.setValue(result);
-      }
-    } catch (e) {
-      SnackTool.showMessage(message: '下载记录加载失败，请重试~');
-    } finally {
-      loading.setValue(false);
-    }
-  }
-
-  // 获取番剧对应的下载任务
-  Future<List<DownloadRecord>> getAnimeDownloadRecord(DownloadRecord item,
-      {List<DownloadRecordStatus> status = const []}) {
-    return db.getDownloadRecordList(
-      item.source,
-      pageSize: 999,
+  Future<List<DownloadGroup>> _getDownloadRecords(
+      List<DownloadRecordStatus> status) async {
+    final result = await db.getDownloadRecordList(
+      parserHandle.currentSource,
       status: status,
-      animeList: [item.url],
     );
+    // 遍历下载记录并将记录分组排序
+    String? lastUrl;
+    final groupList = <DownloadGroup>[], subList = <DownloadRecord>[];
+    for (int i = 0; i < result.length; i++) {
+      final item = result[i];
+      if ((lastUrl ??= item.url) != item.url) {
+        final group = DownloadGroup.fromRecords(subList);
+        if (group != null) groupList.add(group);
+        subList.clear();
+      }
+      subList.add(item);
+    }
+    final group = DownloadGroup.fromRecords(subList);
+    if (group != null) groupList.add(group);
+    // 对分组数据进行排序(按时间)
+    return groupList..sort((l, r) => l.updateTime.compareTo(r.updateTime));
   }
 
   // 删除下载记录
   Future<void> removeDownloadRecord(List<DownloadRecord> items,
       ListValueChangeNotifier<DownloadRecord> notifier) async {
-    final results = await download.removeTasks(items);
-    for (int i = 0; i < results.length; i++) {
-      if (!results[i]) continue;
-      notifier.removeWhere((e) {
-        return e.downloadUrl == items[i].downloadUrl;
-      });
-    }
+    // 移除目标任务并重新获取下载记录
+    await download.removeTasks(items);
+    await loadDownloadRecords();
   }
 }

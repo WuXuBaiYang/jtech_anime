@@ -39,9 +39,6 @@ class DBManage extends BaseManage {
     );
   }
 
-  // 监听下载记录变化
-  Stream<void> watchDownloadRecord() => isar.downloadRecords.watchLazy();
-
   // 删除下载记录
   Future<bool> removeDownloadRecord(int id) => isar.writeTxn<bool>(() {
         // 移除下载记录
@@ -73,14 +70,11 @@ class DBManage extends BaseManage {
   // 获取下载记录列表
   Future<List<DownloadRecord>> getDownloadRecordList(
     String source, {
-    int pageIndex = 1,
-    int pageSize = 25,
     // 按照下载状态过滤
     List<DownloadRecordStatus> status = const [],
     // 按照番剧地址过滤
     List<String> animeList = const [],
   }) async {
-    if (pageIndex < 1 || pageSize < 1) return [];
     return isar.downloadRecords
         .where()
         .sourceEqualTo(source)
@@ -89,8 +83,6 @@ class DBManage extends BaseManage {
         .and()
         .anyOf(animeList, (q, e) => q.urlEqualTo(e))
         .sortByUrl()
-        .offset((--pageIndex) * pageSize)
-        .limit(pageSize)
         .findAll();
   }
 

@@ -10,7 +10,7 @@ class DownloadTask extends BaseModel {
   // 总速度
   final int totalSpeed;
 
-  // 总进度
+  // 总进度(指正在下载的任务进度和/正在下载的任务数)
   final double totalRatio;
 
   // 回调次数

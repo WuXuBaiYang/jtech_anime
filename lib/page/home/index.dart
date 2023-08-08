@@ -123,11 +123,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         icon: const Icon(FontAwesomeIcons.download),
         onPressed: () => router.pushNamed(RoutePath.download),
       ),
-      IconButton(
-        icon: Icon(showChildIndex == 0
-            ? FontAwesomeIcons.handPointRight
-            : FontAwesomeIcons.handPointLeft),
-        onPressed: () => logic.showChildIndex.setValue(showChildIndex ^ 1),
+      AnimatedRotation(
+        turns: showChildIndex == 1 ? 0.5 : 1,
+        duration: const Duration(milliseconds: 200),
+        child: IconButton(
+          icon: const Icon(FontAwesomeIcons.handPointRight),
+          onPressed: () => logic.showChildIndex.setValue(showChildIndex ^ 1),
+        ),
       ),
     ];
   }
