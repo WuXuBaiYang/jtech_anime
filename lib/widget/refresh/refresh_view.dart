@@ -77,6 +77,7 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     return EasyRefresh(
       onLoad: onloadMore,
       onRefresh: onRefresh,
+      triggerAxis: Axis.vertical,
       footer: BezierFooter(
         triggerOffset: widget.loadMoreTriggerOffset,
       ),

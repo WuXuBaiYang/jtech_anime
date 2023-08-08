@@ -183,23 +183,23 @@ class _AnimeDetailPageState
 
   // 构建动漫资源列表
   Widget _buildAnimeResources(List<List<ResourceItemModel>> resources) {
-    if (resources.isEmpty) {
-      return const Center(
-        child: StatusBox(status: StatusBoxStatus.empty),
-      );
-    }
-    return CustomRefreshView(
-      refreshTriggerOffset: 20,
-      child: CacheFutureBuilder<Map<String, DownloadRecord>>(
-          controller: logic.cacheController,
-          future: logic.loadDownloadRecord,
-          builder: (_, snap) {
-            if (!snap.hasData) return const SizedBox();
-            final downloadMap = snap.data!;
-            return ValueListenableBuilder<PlayRecord?>(
-              valueListenable: logic.playRecord,
-              builder: (_, playRecord, __) {
-                return TabBarView(
+    return CacheFutureBuilder<Map<String, DownloadRecord>>(
+        controller: logic.cacheController,
+        future: logic.loadDownloadRecord,
+        builder: (_, snap) {
+          if (!snap.hasData) return const SizedBox();
+          final downloadMap = snap.data!;
+          return ValueListenableBuilder<PlayRecord?>(
+            valueListenable: logic.playRecord,
+            builder: (_, playRecord, __) {
+              if (resources.isEmpty) {
+                return const Center(
+                  child: StatusBox(status: StatusBoxStatus.empty),
+                );
+              }
+              return CustomRefreshView(
+                refreshTriggerOffset: 20,
+                child: TabBarView(
                   controller: tabController,
                   children: List.generate(resources.length, (i) {
                     final items = resources[i];
@@ -221,12 +221,12 @@ class _AnimeDetailPageState
                       },
                     );
                   }),
-                );
-              },
-            );
-          }),
-      onRefresh: (_) => logic.loadAnimeDetail(useCache: false),
-    );
+                ),
+                onRefresh: (_) => logic.loadAnimeDetail(useCache: false),
+              );
+            },
+          );
+        });
   }
 
   // 构建番剧资源子项
