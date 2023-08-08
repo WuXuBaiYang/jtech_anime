@@ -251,9 +251,12 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
+      logic.stopTimer();
       logic.controller
         ..lockedControls.value = false
         ..pause();
+    } else if (state == AppLifecycleState.resumed) {
+      logic.resumeTimer();
     }
   }
 
@@ -291,10 +294,6 @@ class _PlayerLogic extends BaseLogic {
 
   // 当前时间
   final currentTime = ValueChangeNotifier<DateTime>(DateTime.now());
-
-  // 计时器
-  late final Timer _timer = Timer.periodic(
-      const Duration(seconds: 1), (t) => currentTime.setValue(DateTime.now()));
 
   @override
   void init() {
@@ -342,6 +341,7 @@ class _PlayerLogic extends BaseLogic {
     return Loading.show(loadFuture: Future(() async {
       try {
         loading.setValue(true);
+        playRecord.setValue(null);
         resourceInfo.setValue(item);
         nextResourceInfo.setValue(_findNextResourceItem(item));
         // 暂停现有播放器
@@ -417,6 +417,21 @@ class _PlayerLogic extends BaseLogic {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
+  // 计时器
+  Timer? _timer;
+
+  // 启动计时器
+  void resumeTimer() {
+    _timer ??= Timer.periodic(const Duration(seconds: 1),
+        (t) => currentTime.setValue(DateTime.now()));
+  }
+
+  // 停止计时器
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
   // 一定时间后关闭播放记录弹窗
   void time2CloseRecord() => Debounce.c(
         () => playRecord.setValue(null),
@@ -467,7 +482,7 @@ class _PlayerLogic extends BaseLogic {
   @override
   void dispose() {
     // 关闭计时器
-    _timer.cancel();
+    stopTimer();
     // 退出播放器状态
     quitPlayer();
     // 销毁控制器
