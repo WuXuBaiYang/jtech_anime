@@ -189,7 +189,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
               onPlayRecords: (records) {
                 if (records.isEmpty) return;
                 final item = records.first;
-                logic.goPlayDetail(item);
+                final playRecord = playRecordMap[item.url];
+                logic.goPlay(item, playRecord?.resUrl == item.resUrl);
               },
             );
           },
@@ -323,16 +324,17 @@ class _DownloadLogic extends BaseLogic {
   }
 
   // 跳转到播放详情页
-  Future<void> goPlayDetail(DownloadRecord item) async {
+  Future<void> goPlay(DownloadRecord item, [bool playTheRecord = false]) async {
     await router.pushNamed(
       RoutePath.animeDetail,
       arguments: {
+        'downloadRecord': item,
+        'playTheRecord': playTheRecord,
         'animeDetail': AnimeModel(
           url: item.url,
           name: item.name,
           cover: item.cover,
         ),
-        'downloadRecord': item,
       },
     );
     // 页面返回之后刷新播放记录
