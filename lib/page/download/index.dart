@@ -199,10 +199,11 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
 
   // 展示删除弹窗
   Future<void> _showDeleteDialog(
-      BuildContext context, List<DownloadRecord> items) {
-    final item = items.firstOrNull;
-    final content =
-        '是否删除 ${item?.title} ${item?.name} ${items.length > 1 ? '等${items.length}条下载记录' : ''}';
+      BuildContext context, List<DownloadRecord> records) async {
+    if (records.isEmpty) return;
+    final item = records.first;
+    final content = '是否删除 ${item.title} ${item.name} '
+        '${records.length > 1 ? '等${records.length}条下载记录' : ''}';
     return MessageDialog.show(
       context,
       title: const Text('删除'),
@@ -214,7 +215,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
       actionRight: TextButton(
         child: const Text('删除'),
         onPressed: () {
-          logic.loadDownloadRecords();
+          logic.removeDownloadRecord(records);
           router.pop();
         },
       ),
@@ -310,10 +311,9 @@ class _DownloadLogic extends BaseLogic {
   }
 
   // 删除下载记录
-  Future<void> removeDownloadRecord(List<DownloadRecord> items,
-      ListValueChangeNotifier<DownloadRecord> notifier) async {
+  Future<void> removeDownloadRecord(List<DownloadRecord> records) async {
     // 移除目标任务并重新获取下载记录
-    await download.removeTasks(items);
+    await download.removeTasks(records);
     await loadDownloadRecords();
   }
 }
