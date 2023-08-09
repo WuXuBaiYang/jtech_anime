@@ -81,7 +81,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
                   AnimeFilterConfigMenu(
                     complete: () => Loading.show(
                       loadFuture: logic.loadAnimeList(false),
-                    ),
+                    )?.then((_) => logic.animeController.jumpTo(0)),
                     filterConfig: logic.filterSelect,
                     filterSelect: logic.selectFilterConfig,
                     body: _buildAnimeList(),
@@ -271,6 +271,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
               GridView.builder(
                 itemCount: animeList.length,
                 padding: const EdgeInsets.all(8),
+                controller: logic.animeController,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   mainAxisExtent: 190,
                   crossAxisCount: 3,
@@ -352,6 +353,9 @@ class _HomeLogic extends BaseLogic {
 
   // 首页展示内容下标
   final showChildIndex = ValueChangeNotifier<int>(0);
+
+  // 动漫列表滚动控制器
+  final animeController = ScrollController();
 
   @override
   void init() {
