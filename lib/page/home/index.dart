@@ -58,32 +58,39 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     return ValueListenableBuilder<int>(
       valueListenable: logic.showChildIndex,
       builder: (_, showChildIndex, __) {
-        return Scaffold(
-          appBar: AppBar(
-            title: _buildSearchButton(),
-            actions: _getAppbarActions(showChildIndex),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: [
-                _buildFilterChips(),
-                _buildTimetableTabBar(),
-              ][showChildIndex],
-            ),
-          ),
-          body: IndexedStack(
-            index: showChildIndex,
-            children: [
-              AnimeFilterConfigMenu(
-                complete: () => Loading.show(
-                  loadFuture: logic.loadAnimeList(false),
-                ),
-                filterConfig: logic.filterConfig,
-                filterSelect: logic.filterSelect,
-                body: _buildAnimeList(),
+        return ValueListenableBuilder(
+          valueListenable: logic.filterSelect,
+          builder: (_, filterSelect, __) {
+            return Scaffold(
+              appBar: AppBar(
+                title: _buildSearchButton(),
+                actions: _getAppbarActions(showChildIndex),
+                bottom: (showChildIndex != 0 || filterSelect.isNotEmpty)
+                    ? PreferredSize(
+                        preferredSize: const Size.fromHeight(kToolbarHeight),
+                        child: [
+                          _buildFilterChips(),
+                          _buildTimetableTabBar(),
+                        ][showChildIndex],
+                      )
+                    : null,
               ),
-              _buildTimetableTabView(),
-            ],
-          ),
+              body: IndexedStack(
+                index: showChildIndex,
+                children: [
+                  AnimeFilterConfigMenu(
+                    complete: () => Loading.show(
+                      loadFuture: logic.loadAnimeList(false),
+                    ),
+                    filterConfig: logic.filterSelect,
+                    filterSelect: logic.selectFilterConfig,
+                    body: _buildAnimeList(),
+                  ),
+                  _buildTimetableTabView(),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -137,16 +144,16 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 构建番剧过滤配置组件
   Widget _buildFilterChips() {
     return ValueListenableBuilder<Map<String, FilterSelect>>(
-      valueListenable: logic.filterConfig,
-      builder: (_, selectMap, __) {
+      valueListenable: logic.filterSelect,
+      builder: (_, filterMap, __) {
         return Align(
           alignment: Alignment.centerLeft,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(right: 8),
             child: Row(
-              children: List.generate(selectMap.length, (i) {
-                final item = selectMap.values.elementAt(i);
+              children: List.generate(filterMap.length, (i) {
+                final item = filterMap.values.elementAt(i);
                 final text = '${item.parentName} · ${item.name}';
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -172,7 +179,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   };
 
   // 构建时间轴tabBar
-  Widget _buildTimetableTabBar() {
+  PreferredSizeWidget _buildTimetableTabBar() {
     return TabBar(
       isScrollable: true,
       controller: timetableTabController,
@@ -341,7 +348,7 @@ class _HomeLogic extends BaseLogic {
       ListValueChangeNotifier<List<TimeTableItemModel>>.empty();
 
   // 记录过滤条件
-  final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
+  final filterSelect = MapValueChangeNotifier<String, FilterSelect>.empty();
 
   // 首页展示内容下标
   final showChildIndex = ValueChangeNotifier<int>(0);
@@ -382,29 +389,29 @@ class _HomeLogic extends BaseLogic {
   // 加载过滤条件配置
   Future<void> _loadFilterConfig() async {
     final result = await db.getFilterSelectList(parserHandle.currentSource);
-    filterConfig.setValue(result.asMap().map<String, FilterSelect>(
+    filterSelect.setValue(result.asMap().map<String, FilterSelect>(
           (_, v) => MapEntry(_genFilterKey(v), v),
         ));
   }
 
   // 选择过滤条件
-  Future<void> filterSelect(
+  Future<void> selectFilterConfig(
       bool selected, FilterSelect item, int maxSelected) async {
     if (selected) {
       final result = await db.addFilterSelect(item, maxSelected);
       if (result != null) {
-        final temp = filterConfig.value;
+        final temp = filterSelect.value;
         if (maxSelected == 1) {
           temp.removeWhere((_, v) => v.key == item.key);
         }
-        filterConfig.setValue({
+        filterSelect.setValue({
           ...temp,
           _genFilterKey(result): result,
         });
       }
     } else {
       final result = await db.removeFilterSelect(item.id);
-      if (result) filterConfig.removeValue(_genFilterKey(item));
+      if (result) filterSelect.removeValue(_genFilterKey(item));
     }
   }
 

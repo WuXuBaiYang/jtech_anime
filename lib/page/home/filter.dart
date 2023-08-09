@@ -86,7 +86,12 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
               ? const SizedBox()
               : GestureDetector(
                   child: Container(color: Colors.black12),
-                  onTapDown: (_) => filterStatus.setValue(FilterStatus.fold),
+                  onTapDown: (_) {
+                    final hasEdited = lastConfigHash.value !=
+                        widget.filterConfig.keys.toString().hashCode;
+                    if (hasEdited) widget.complete();
+                    filterStatus.setValue(FilterStatus.fold);
+                  },
                 ),
         );
       },
