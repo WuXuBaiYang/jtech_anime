@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';

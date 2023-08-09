@@ -14,7 +14,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/notification.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/home/index.dart';

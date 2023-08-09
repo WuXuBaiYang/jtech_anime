@@ -8,7 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart' as router;
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';

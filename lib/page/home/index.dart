@@ -4,7 +4,7 @@ import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';

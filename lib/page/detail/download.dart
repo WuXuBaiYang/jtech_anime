@@ -6,7 +6,7 @@ import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
