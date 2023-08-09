@@ -13,6 +13,7 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
+import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/model/download_group.dart';
 import 'package:jtech_anime/page/download/listview.dart';
@@ -20,6 +21,7 @@ import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
 
 /*
@@ -65,6 +67,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
       download.addDownloadCompleteListener((_) {
         if (!mounted) return;
         logic.loadDownloadRecords();
+        logic.playRecordController.refreshValue();
       });
       // 主动推送一次最新的下载进度
       download.pushLatestProgress();
@@ -171,24 +174,22 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
 
   // 构建下载记录列表
   Widget _buildDownloadedList(BuildContext context) {
-    return ValueListenableBuilder<List<DownloadGroup>>(
-      valueListenable: logic.downloadedList,
-      builder: (_, groups, __) {
-        return DownloadRecordListView(
-          groupList: groups,
-          onRemoveRecords: (records) => _showDeleteDialog(context, records),
-          onPlayRecords: (records) {
-            if (records.isEmpty) return;
-            final item = records.first;
-            router.pushNamed(
-              RoutePath.animeDetail,
-              arguments: {
-                'animeDetail': AnimeModel(
-                  url: item.url,
-                  name: item.name,
-                  cover: item.cover,
-                ),
-                'downloadRecord': item,
+    return CacheFutureBuilder<Map<String, PlayRecord>>(
+      future: logic.loadDownloadedPlayRecord,
+      controller: logic.playRecordController,
+      builder: (_, snap) {
+        final playRecordMap = snap.data ?? {};
+        return ValueListenableBuilder<List<DownloadGroup>>(
+          valueListenable: logic.downloadedList,
+          builder: (_, groups, __) {
+            return DownloadRecordListView(
+              groupList: groups,
+              playRecordMap: playRecordMap,
+              onRemoveRecords: (records) => _showDeleteDialog(context, records),
+              onPlayRecords: (records) {
+                if (records.isEmpty) return;
+                final item = records.first;
+                logic.goPlayDetail(item);
               },
             );
           },
@@ -267,6 +268,10 @@ class _DownloadLogic extends BaseLogic {
   final checkNetwork = ValueChangeNotifier<bool>(
       cache.getBool(Common.checkNetworkStatusKey) ?? true);
 
+  // 播放记录缓存控制
+  final playRecordController =
+      CacheFutureBuilderController<Map<String, PlayRecord>>();
+
   // 获取下载队列与已下载队列
   Future<void> loadDownloadRecords() async {
     try {
@@ -308,6 +313,30 @@ class _DownloadLogic extends BaseLogic {
     if (group != null) groupList.add(group);
     // 对分组数据进行排序(按时间)
     return groupList..sort((l, r) => l.updateTime.compareTo(r.updateTime));
+  }
+
+  // 根据已下载列表获取播放记录并转换成map
+  Future<Map<String, PlayRecord>> loadDownloadedPlayRecord() async {
+    final urls = downloadedList.value.map((e) => e.url).toList();
+    final result = await db.getPlayRecords(urls);
+    return result.asMap().map((_, v) => MapEntry(v.url, v));
+  }
+
+  // 跳转到播放详情页
+  Future<void> goPlayDetail(DownloadRecord item) async {
+    await router.pushNamed(
+      RoutePath.animeDetail,
+      arguments: {
+        'animeDetail': AnimeModel(
+          url: item.url,
+          name: item.name,
+          cover: item.cover,
+        ),
+        'downloadRecord': item,
+      },
+    );
+    // 页面返回之后刷新播放记录
+    playRecordController.refreshValue();
   }
 
   // 删除下载记录

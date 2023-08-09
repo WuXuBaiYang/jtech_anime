@@ -149,6 +149,12 @@ class DBManage extends BaseManage {
   Future<PlayRecord?> getPlayRecord(String url) =>
       isar.playRecords.where().urlEqualTo(url).findFirst();
 
+  // 根据播放地址集合获取播放记录
+  Future<List<PlayRecord>> getPlayRecords(List<String> urls) => isar.playRecords
+      .filter()
+      .anyOf(urls, (q, e) => q.urlEqualTo(e))
+      .findAll();
+
   // 获取播放记录(分页)
   Future<List<PlayRecord>> getPlayRecordList(String source,
       {int pageIndex = 1, int pageSize = 25}) async {

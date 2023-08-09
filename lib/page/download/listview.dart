@@ -4,11 +4,13 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
+import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/model/download_group.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime/widget/text_scroll.dart';
 
 // 下载记录事件回调
 typedef DownloadRecordCallback = void Function(List<DownloadRecord> records);
@@ -24,6 +26,9 @@ class DownloadRecordListView extends StatefulWidget {
 
   // 下载任务进度
   final DownloadTask? downloadTask;
+
+  // 播放记录
+  final Map<String, PlayRecord>? playRecordMap;
 
   // 删除回调
   final DownloadRecordCallback? onRemoveRecords;
@@ -47,6 +52,7 @@ class DownloadRecordListView extends StatefulWidget {
     this.onStartDownloads,
     this.onStopDownloads,
     this.onRemoveRecords,
+    this.playRecordMap,
     this.onPlayRecords,
     this.downloadTask,
   });
@@ -133,7 +139,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
               widget.downloadTask != null
                   ? _buildGroupItemDownloadingRecords(
                       item.records, downloadTask)
-                  : _buildGroupItemDownloadedRecords(item.records),
+                  : _buildGroupItemDownloadedRecords(
+                      item.records, widget.playRecordMap?[item.url]),
           ],
         ),
         onTap: () => _toggleExpanded(item.url),
@@ -259,7 +266,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   }
 
   // 构建分组项已下载列表
-  Widget _buildGroupItemDownloadedRecords(List<DownloadRecord> records) {
+  Widget _buildGroupItemDownloadedRecords(
+      List<DownloadRecord> records, PlayRecord? playRecord) {
     return GridView.builder(
       shrinkWrap: true,
       itemCount: records.length,
@@ -273,6 +281,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       ),
       itemBuilder: (_, i) {
         final item = records[i];
+        final hasPlayRecord = playRecord?.resUrl == item.resUrl;
         return InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () => widget.onPlayRecords?.call([item]),
@@ -286,8 +295,10 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.black12),
             ),
-            child:
-                Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: hasPlayRecord
+                ? CustomScrollText.slow('上次看到 ${item.name}',
+                    style: TextStyle(color: kPrimaryColor))
+                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
         );
       },
