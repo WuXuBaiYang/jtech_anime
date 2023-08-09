@@ -33,10 +33,13 @@ class AppVersion extends BaseModel {
   final String fileId;
 
   // 文件校验
-  final String sha256checksum;
+  final String? sha256checksum;
 
   // 文件大小
   final int fileLength;
+
+  // 安装地址
+  final String installUrl;
 
   AppVersion.from(obj)
       : id = obj['id'] ?? '',
@@ -47,8 +50,9 @@ class AppVersion extends BaseModel {
         versionCode = obj['version_code'] ?? 0,
         intro = obj['intro'] ?? '',
         fileId = obj['file_id'] ?? '',
-        sha256checksum = obj['sha256checksum'] ?? '',
-        fileLength = obj['file_length'] ?? 0;
+        sha256checksum = obj['sha256checksum'],
+        fileLength = obj['file_length'] ?? 0,
+        installUrl = obj['installUrl'] ?? '';
 
   // 获取文件大小
   String get fileSize => FileTool.formatSize(fileLength, lowerCase: true);

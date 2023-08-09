@@ -29,6 +29,7 @@ doc/api/
 
 *.g.dart
 
-assets/filter/supabase.json
+assets/filter/update_config.json
 publish
 publish/keystore
+assets/filter/update_config.json

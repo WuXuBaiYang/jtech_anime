@@ -1,10 +1,10 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/supabase.dart';
 import 'package:jtech_anime/model/version.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
@@ -24,8 +24,6 @@ class AppVersionTool {
   // 检查更新
   static Future<bool> check(BuildContext context,
       {bool immediately = false}) async {
-    // 开源版本不公开supabase服务，如果想实现版本更新请接入自己的服务
-    if (!supabase.hasSupabaseInfo) return false;
     // 判断是否需要进行版本更新
     if (!immediately && (cache.getBool(_ignoreUpdateKey) ?? false)) {
       return false;
@@ -36,14 +34,15 @@ class AppVersionTool {
   }
 
   // 检查android的版本更新
-  static Future<bool> _checkAndroidUpdate(BuildContext context) {
-    // 获取最新版本号并判断是否需要更新
-    return supabase.getLatestAppVersion().then<bool?>((info) {
-      return info?.checkUpdate().then((update) {
-        if (update) return _showAndroidUpdateDialog(context, info);
-        return Future.value(update);
-      });
-    }).then<bool>((update) => update ?? false);
+  // 默认是调用我的账号下的更新服务器，这部分信息不开源，如有需要请自行重写以下内容
+  static Future<bool> _checkAndroidUpdate(BuildContext context) async {
+    Dio().get('http://api.appmeta.cn/apps/latest/$id');
+    // return supabase.getLatestAppVersion().then<bool?>((info) {
+    //   return info?.checkUpdate().then((update) {
+    //     if (update) return _showAndroidUpdateDialog(context, info);
+    //     return Future.value(update);
+    //   });
+    // }).then<bool>((update) => update ?? false);
   }
 
   // 展示版本更新提示
@@ -115,11 +114,9 @@ class AppVersionTool {
     progress.setValue(-1);
     try {
       OtaUpdate()
-          .execute(
-        await supabase.getAndroidAPKUrl(info.fileId),
-        destinationFilename: '${info.name}_${info.versionCode}.apk',
-        sha256checksum: info.sha256checksum,
-      )
+          .execute(info.installUrl,
+              destinationFilename: '${info.name}_${info.versionCode}.apk',
+              sha256checksum: info.sha256checksum)
           .listen((e) {
         switch (e.status) {
           case OtaStatus.DOWNLOADING:

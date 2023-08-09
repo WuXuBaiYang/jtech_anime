@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:jtech_anime/tool/file.dart';
 
 /*
@@ -12,7 +11,8 @@ class Common {
   static const String appName = '看番咩?';
 
   // 动画-加载动画
-  static String get statusLoadingAsset => [
+  static String get statusLoadingAsset =>
+      [
         'assets/anime/status_loading1.json',
         'assets/anime/status_loading2.json',
         'assets/anime/status_loading3.json',
