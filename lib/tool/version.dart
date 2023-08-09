@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/notification.dart';
@@ -36,13 +38,32 @@ class AppVersionTool {
   // 检查android的版本更新
   // 默认是调用我的账号下的更新服务器，这部分信息不开源，如有需要请自行重写以下内容
   static Future<bool> _checkAndroidUpdate(BuildContext context) async {
-    Dio().get('http://api.appmeta.cn/apps/latest/$id');
-    // return supabase.getLatestAppVersion().then<bool?>((info) {
-    //   return info?.checkUpdate().then((update) {
-    //     if (update) return _showAndroidUpdateDialog(context, info);
-    //     return Future.value(update);
-    //   });
-    // }).then<bool>((update) => update ?? false);
+    final configJson =
+        await rootBundle.loadString('assets/filter/update_config.json');
+    if (configJson.isEmpty) return false;
+    final config = jsonDecode(configJson);
+    final url = 'https://api.appmeta.cn/apps/latest/${config['id']}';
+    final resp =
+        await Dio().get(url, queryParameters: {'api_token': config['token']});
+    if (resp.statusCode == 200) {
+      final data = resp.data;
+      final appVersion = AppVersion.from({
+        'nameCN': data['name'],
+        'version': data['versionShort'],
+        'versionCode': int.tryParse(data['build']) ?? -1,
+        'changelog': data['changelog'] ?? '',
+        'fileLength': data['binary']['fsize'],
+        'installUrl': data['install_url'],
+      });
+      return appVersion.checkUpdate().then((isUpdate) {
+        if (isUpdate) {
+          return _showAndroidUpdateDialog(context, appVersion)
+              .then((value) => value ?? false);
+        }
+        return Future.value(false);
+      });
+    }
+    return false;
   }
 
   // 展示版本更新提示
@@ -55,15 +76,13 @@ class AppVersionTool {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(info.intro.replaceAll('\\n', '\n')),
-          const SizedBox(height: 14),
-          const Divider(),
+          Text(info.changelog),
           const SizedBox(height: 14),
           Text(
             '${info.nameCN} · v${info.version} · ${info.fileSize}',
             textAlign: TextAlign.end,
             style: const TextStyle(color: Colors.grey, fontSize: 12),
-          )
+          ),
         ],
       ),
       actionLeft: TextButton(
@@ -81,7 +100,6 @@ class AppVersionTool {
       actionRight: TextButton(
         onPressed: () {
           PermissionTool.checkAllGranted(context, permissions: [
-            const PermissionRequest.storage(),
             const PermissionRequest.androidManageExternalStorage(),
             const PermissionRequest.androidRequestInstallPackages(),
           ]).then((v) {
