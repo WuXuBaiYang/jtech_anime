@@ -62,7 +62,7 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
                 const Center(
                   child: StatusBox(
                     status: StatusBoxStatus.empty,
-                    title: Text('还没有播放记录~'),
+                    title: Text('还有收藏记录~'),
                   ),
                 ),
               StatefulBuilder(builder: (_, setState) {

@@ -44,20 +44,35 @@ class _PlayRecordPageState
         title: const Text('播放记录'),
       ),
       body: _buildPlayRecords(),
+      floatingActionButton: _buildPlayFAB(),
+    );
+  }
+
+  // 构建播放按钮
+  Widget _buildPlayFAB() {
+    return ValueListenableBuilder<List<PlayRecord>>(
+      valueListenable: logic.playRecords,
+      builder: (_, playRecords, ___) {
+        if (playRecords.isEmpty) return const SizedBox();
+        return FloatingActionButton(
+          child: const Icon(FontAwesomeIcons.play),
+          onPressed: () => logic.goLatestDetail(),
+        );
+      },
     );
   }
 
   // 构建播放记录列表
   Widget _buildPlayRecords() {
-    return CustomRefreshView(
-      enableRefresh: true,
-      enableLoadMore: true,
-      initialRefresh: true,
-      onRefresh: (loadMore) => logic.loadPlayRecords(loadMore),
-      child: ValueListenableBuilder<List<PlayRecord>>(
-        valueListenable: logic.playRecords,
-        builder: (_, playRecords, __) {
-          return Stack(
+    return ValueListenableBuilder<List<PlayRecord>>(
+      valueListenable: logic.playRecords,
+      builder: (_, playRecords, __) {
+        return CustomRefreshView(
+          enableRefresh: true,
+          enableLoadMore: true,
+          initialRefresh: true,
+          onRefresh: (loadMore) => logic.loadPlayRecords(loadMore),
+          child: Stack(
             children: [
               if (playRecords.isEmpty)
                 const Center(
@@ -74,9 +89,9 @@ class _PlayRecordPageState
                 },
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -186,5 +201,11 @@ class _PlayRecordLogic extends BaseLogic {
         playRecords.insertValues(0, [it]);
       }
     }
+  }
+
+  // 跳转到最新一条视频的播放
+  Future<void>? goLatestDetail() async {
+    if (playRecords.isEmpty) return;
+    return goDetail(playRecords.value.first);
   }
 }

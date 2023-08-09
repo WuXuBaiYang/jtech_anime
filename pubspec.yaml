@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.1.0+100
 
 environment:
   sdk: '>=3.0.5 <4.0.0'
@@ -41,12 +41,12 @@ dependencies:
   path: ^1.8.3
 
   # 路径管理
-  path_provider: ^2.0.15
+  path_provider: ^2.1.0
 
   # sp缓存
   shared_preferences: ^2.2.0
 
-  # 加密算法
+  # 加密
   crypto: ^3.0.3
 
   # 日志
@@ -74,10 +74,10 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
 
   # 包信息
-  package_info_plus: any
+  package_info_plus: ^4.1.0
 
   # 动画
-  lottie: ^2.5.0
+  lottie: ^2.6.0
 
   # 模糊
   blur: ^3.1.0
@@ -85,32 +85,29 @@ dependencies:
   # 跑马灯
   text_scroll: ^0.2.0
 
-  # 自定义刷新组件
-  custom_refresh_indicator: ^2.2.1
+  # 刷新组件
+  easy_refresh: ^3.3.2+1
 
   # 电池容量
   battery_plus: ^4.0.2
 
   # 视频播放器
-  flutter_meedu_videoplayer: ^4.2.21
-  media_kit_libs_android_video: ^1.3.0
+  flutter_meedu_videoplayer: ^4.2.24
+  media_kit_libs_android_video: ^1.3.1
   #  media_kit_libs_macos_video: ^1.0.5
   #  media_kit_libs_windows_video: ^1.0.2
 
+  # 桌面端浏览器爬虫(win/mac/linux)
+  puppeteer: ^3.2.0
+
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
-
-  # supabase服务
-  supabase_flutter: ^1.10.11
 
   # 权限管理
   permission_handler: ^10.4.3
 
   # android版本更新
   ota_update: ^5.1.0
-
-  # 桌面端浏览器爬虫(win/mac/linux)
-  puppeteer: ^3.1.1
 
   # 通知栏消息
   flutter_local_notifications: ^15.1.0+1
@@ -123,7 +120,7 @@ dependencies:
   connectivity_plus: ^4.0.2
 
   # 后台下载器
-  background_downloader: ^7.8.1
+  background_downloader: ^7.9.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

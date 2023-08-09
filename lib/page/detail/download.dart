@@ -27,6 +27,9 @@ class DownloadSheet extends StatefulWidget {
   // 是否检查网络状态
   final ValueChangeNotifier<bool> checkNetwork;
 
+  // tab控制器
+  final TabController? tabController;
+
   // 番剧信息
   final AnimeModel animeInfo;
 
@@ -34,12 +37,14 @@ class DownloadSheet extends StatefulWidget {
     super.key,
     required this.animeInfo,
     required this.checkNetwork,
+    this.tabController,
   });
 
   static Future<void> show(
     BuildContext context, {
     required AnimeModel animeInfo,
     required ValueChangeNotifier<bool> checkNetwork,
+    TabController? tabController,
   }) {
     PermissionTool.checkNotification(context);
     return showModalBottomSheet(
@@ -49,6 +54,7 @@ class DownloadSheet extends StatefulWidget {
         return DownloadSheet(
           animeInfo: animeInfo,
           checkNetwork: checkNetwork,
+          tabController: tabController,
         );
       },
     );
@@ -73,31 +79,28 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: widget.animeInfo.resources.length,
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(FontAwesomeIcons.xmark),
-            onPressed: () => router.pop(),
-          ),
-          title: const Text('番剧缓存'),
-          actions: [
-            TextButton(
-              onPressed: () => router
-                  .pushNamed(RoutePath.download)
-                  ?.then((_) => cacheController.refreshValue()),
-              child: const Text('缓存管理'),
-            ),
-            _buildSubmitButton(context),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(kToolbarHeight),
-            child: _buildResourceTab(),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(FontAwesomeIcons.xmark),
+          onPressed: () => router.pop(),
         ),
-        body: _buildResourceTabView(),
+        title: const Text('番剧缓存'),
+        actions: [
+          TextButton(
+            onPressed: () => router
+                .pushNamed(RoutePath.download)
+                ?.then((_) => cacheController.refreshValue()),
+            child: const Text('缓存管理'),
+          ),
+          _buildSubmitButton(context),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: _buildResourceTab(),
+        ),
       ),
+      body: _buildResourceTabView(),
     );
   }
 
@@ -135,6 +138,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
       child: TabBar(
         isScrollable: true,
         indicatorColor: kPrimaryColor,
+        controller: widget.tabController,
         dividerColor: Colors.transparent,
         tabs: List.generate(resources.length, (i) {
           return Tab(text: '资源${i + 1}');
@@ -156,6 +160,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
           valueListenable: selectResources,
           builder: (_, selectList, __) {
             return TabBarView(
+              controller: widget.tabController,
               children: List.generate(resources.length, (i) {
                 final items = resources[i];
                 return _buildResourceTabViewItem(
@@ -174,7 +179,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
     Map<String, DownloadRecord> downloadMap,
     List<ResourceItemModel> selectList,
   ) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(8),
       child: Wrap(
         spacing: 8,
@@ -247,10 +252,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
     return Loading.show<void>(
       title: title,
       loadFuture: Future(() async {
+        final selectList = selectResources.value;
         // 获取视频缓存
         final videoCaches = await parserHandle.getAnimeVideoCache(
           progress: (count, total) => title.setValue('正在解析($count/$total)'),
-          selectResources.value,
+          selectList..sort((l, r) => l.order.compareTo(r.order)),
         );
         // 将视频缓存封装为下载记录结构
         final downloadRecords = videoCaches
@@ -261,7 +267,8 @@ class _DownloadSheetState extends State<DownloadSheet> {
               ..source = parserHandle.currentSource
               ..resUrl = e.url
               ..downloadUrl = e.playUrl
-              ..name = e.item?.name ?? '')
+              ..name = e.item?.name ?? ''
+              ..order = e.item?.order ?? 0)
             .toList();
         // 使用下载记录启动下载
         final results = await download.startTasks(downloadRecords);

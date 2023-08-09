@@ -8,12 +8,12 @@ import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
+import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/filter.dart';
-import 'package:jtech_anime/page/home/time_table.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
@@ -34,7 +34,12 @@ class HomePage extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/7/6 10:03
 */
-class _HomePageState extends LogicState<HomePage, _HomeLogic> {
+class _HomePageState extends LogicState<HomePage, _HomeLogic>
+    with SingleTickerProviderStateMixin {
+  // 时间轴tab控制器
+  late TabController timetableTabController = TabController(
+      length: 7, vsync: this, initialIndex: DateTime.now().weekday - 1);
+
   @override
   _HomeLogic initLogic() => _HomeLogic();
 
@@ -50,66 +55,49 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    return Scaffold(
-      body: AnimeFilterConfigMenu(
-        complete: () => logic.loadAnimeList(false),
-        filterConfig: logic.filterConfig,
-        filterSelect: logic.filterSelect,
-        body: NestedScrollView(
-          controller: logic.scrollController,
-          headerSliverBuilder: (_, __) {
-            return [_buildAppBar()];
-          },
-          body: _buildAnimeList(),
-        ),
-      ),
-    );
-  }
-
-  // 构建页面头部
-  Widget _buildAppBar() {
-    return ValueListenableBuilder2<Map<String, FilterSelect>, bool>(
-      first: logic.filterConfig,
-      second: logic.showAppbar,
-      builder: (_, selectMap, showAppbar, __) {
-        return SliverAppBar(
-          title: _buildSearchButton(showAppbar),
-          expandedHeight: _HomeLogic.expandedHeight,
-          actions: [
-            if (showAppbar) ..._actions,
-          ],
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: EdgeInsets.only(
-                bottom: selectMap.isNotEmpty ? kToolbarHeight : 0.0,
+    return ValueListenableBuilder<int>(
+      valueListenable: logic.showChildIndex,
+      builder: (_, showChildIndex, __) {
+        return ValueListenableBuilder(
+          valueListenable: logic.filterSelect,
+          builder: (_, filterSelect, __) {
+            return Scaffold(
+              appBar: AppBar(
+                title: _buildSearchButton(),
+                actions: _getAppbarActions(showChildIndex),
+                bottom: (showChildIndex != 0 || filterSelect.isNotEmpty)
+                    ? PreferredSize(
+                        preferredSize: const Size.fromHeight(kToolbarHeight),
+                        child: [
+                          _buildFilterChips(),
+                          _buildTimetableTabBar(),
+                        ][showChildIndex],
+                      )
+                    : null,
               ),
-              child: AnimeTimeTable(
-                onTap: (item) => logic.goDetail(AnimeModel.from({
-                  'name': item.name,
-                  'url': item.url,
-                  'status': item.status,
-                })),
-              ),
-            ),
-          ),
-          bottom: selectMap.isNotEmpty
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(kToolbarHeight),
-                  child: Container(
-                    color: !showAppbar ? Colors.white : null,
-                    child: _buildFilterChips(selectMap),
+              body: IndexedStack(
+                index: showChildIndex,
+                children: [
+                  AnimeFilterConfigMenu(
+                    complete: () => Loading.show(
+                      loadFuture: logic.loadAnimeList(false),
+                    )?.then((_) => logic.animeController.jumpTo(0)),
+                    filterConfig: logic.filterSelect,
+                    filterSelect: logic.selectFilterConfig,
+                    body: _buildAnimeList(),
                   ),
-                )
-              : null,
+                  _buildTimetableTabView(),
+                ],
+              ),
+            );
+          },
         );
       },
     );
   }
 
   // 构建搜索按钮
-  Widget _buildSearchButton(bool showAppbar) {
-    if (!showAppbar) return const SizedBox();
+  Widget _buildSearchButton() {
     const color = Colors.black38;
     const textStyle = TextStyle(color: color, fontSize: 16);
     return Padding(
@@ -127,76 +115,163 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     );
   }
 
-  // 标题栏动作按钮集合
-  List<Widget> get _actions => [
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.heart),
-          onPressed: () => router.pushNamed(RoutePath.collect),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.clockRotateLeft),
-          onPressed: () => router.pushNamed(RoutePath.record),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.download),
-          onPressed: () => router.pushNamed(RoutePath.download),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.handPointDown),
-          onPressed: () => logic.expandedTimeTable(),
-        ),
-      ];
-
-  // 构建番剧过滤配置组件
-  Widget _buildFilterChips(Map<String, FilterSelect> selectMap) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(right: 8),
-        child: Row(
-          children: List.generate(selectMap.length, (i) {
-            final item = selectMap.values.elementAt(i);
-            final text = '${item.parentName} · ${item.name}';
-            return Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: RawChip(label: Text(text)),
-            );
-          }),
+  // 获取标题栏动作按钮集合
+  List<Widget> _getAppbarActions(int showChildIndex) {
+    return [
+      IconButton(
+        icon: const Icon(FontAwesomeIcons.heart),
+        onPressed: () => router.pushNamed(RoutePath.collect),
+      ),
+      IconButton(
+        icon: const Icon(FontAwesomeIcons.clockRotateLeft),
+        onPressed: () => router.pushNamed(RoutePath.record),
+      ),
+      IconButton(
+        icon: const Icon(FontAwesomeIcons.download),
+        onPressed: () => router.pushNamed(RoutePath.download),
+      ),
+      AnimatedRotation(
+        turns: showChildIndex == 1 ? 0.5 : 1,
+        duration: const Duration(milliseconds: 200),
+        child: IconButton(
+          icon: const Icon(FontAwesomeIcons.handPointRight),
+          onPressed: () => logic.showChildIndex.setValue(showChildIndex ^ 1),
         ),
       ),
+    ];
+  }
+
+  // 构建番剧过滤配置组件
+  Widget _buildFilterChips() {
+    return ValueListenableBuilder<Map<String, FilterSelect>>(
+      valueListenable: logic.filterSelect,
+      builder: (_, filterMap, __) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(right: 8),
+            child: Row(
+              children: List.generate(filterMap.length, (i) {
+                final item = filterMap.values.elementAt(i);
+                final text = '${item.parentName} · ${item.name}';
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: RawChip(label: Text(text)),
+                );
+              }),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 周/天换算表
+  final _weekdayMap = <IconData, String>{
+    FontAwesomeIcons.faceDizzy: '周一',
+    FontAwesomeIcons.faceFrown: '周二',
+    FontAwesomeIcons.faceFlushed: '周三',
+    FontAwesomeIcons.faceGrimace: '周四',
+    FontAwesomeIcons.faceGrinStars: '周五',
+    FontAwesomeIcons.faceLaughWink: '周六',
+    FontAwesomeIcons.faceSadTear: '周日',
+  };
+
+  // 构建时间轴tabBar
+  PreferredSizeWidget _buildTimetableTabBar() {
+    return TabBar(
+      isScrollable: true,
+      controller: timetableTabController,
+      tabs: List.generate(timetableTabController.length, (i) {
+        final item = _weekdayMap.entries.elementAt(i);
+        return Tab(
+          child: Row(
+            children: [
+              Text(item.value),
+              const SizedBox(width: 4),
+              Icon(item.key, size: 14),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  // 构建时间轴tabView
+  Widget _buildTimetableTabView() {
+    return ValueListenableBuilder(
+      valueListenable: logic.timetableDataList,
+      builder: (_, dataList, __) {
+        if (dataList.isEmpty) {
+          return const Center(
+            child: StatusBox(
+              status: StatusBoxStatus.empty,
+            ),
+          );
+        }
+        return TabBarView(
+          controller: timetableTabController,
+          children: List.generate(timetableTabController.length, (i) {
+            final items = i >= dataList.length ? [] : dataList[i];
+            return ListView.builder(
+              primary: false,
+              itemCount: items.length,
+              padding: EdgeInsets.zero,
+              itemBuilder: (_, i) {
+                final item = items[i];
+                final updateIcon = item.isUpdate
+                    ? const Icon(
+                        FontAwesomeIcons.seedling,
+                        color: Colors.green,
+                        size: 18,
+                      )
+                    : null;
+                return ListTile(
+                  dense: true,
+                  trailing: updateIcon,
+                  title: Text(item.name),
+                  subtitle: Text(item.status),
+                  onTap: () {
+                    logic.goDetail(AnimeModel.from({
+                      'name': item.name,
+                      'url': item.url,
+                      'status': item.status,
+                    }));
+                  },
+                );
+              },
+            );
+          }),
+        );
+      },
     );
   }
 
   // 构建番剧列表
   Widget _buildAnimeList() {
-    return CustomRefreshView(
-      enableRefresh: true,
-      enableLoadMore: true,
-      onRefresh: (loadMore) => logic.loadAnimeList(loadMore),
-      child: ValueListenableBuilder<List<AnimeModel>>(
-        valueListenable: logic.animeList,
-        builder: (_, animeList, __) {
-          return Stack(
+    return ValueListenableBuilder<List<AnimeModel>>(
+      valueListenable: logic.animeList,
+      builder: (_, animeList, __) {
+        return CustomRefreshView(
+          enableRefresh: true,
+          enableLoadMore: true,
+          initialRefresh: true,
+          onRefresh: (loadMore) => logic.loadAnimeList(loadMore),
+          child: Stack(
             children: [
               if (animeList.isEmpty)
-                ValueListenableBuilder<bool>(
-                  valueListenable: logic.loading,
-                  builder: (_, isLoading, __) {
-                    return Center(
-                      child: StatusBox(
-                        animSize: 34,
-                        status: isLoading
-                            ? StatusBoxStatus.loading
-                            : StatusBoxStatus.empty,
-                        title: Text(isLoading ? '正在加载中~' : '下拉试试看~'),
-                      ),
-                    );
-                  },
+                const Center(
+                  child: StatusBox(
+                    animSize: 34,
+                    status: StatusBoxStatus.empty,
+                    title: Text('下拉试试看~'),
+                  ),
                 ),
               GridView.builder(
                 itemCount: animeList.length,
                 padding: const EdgeInsets.all(8),
+                controller: logic.animeController,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   mainAxisExtent: 190,
                   crossAxisCount: 3,
@@ -209,9 +284,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 },
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -266,49 +341,30 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 * @Time 2023/7/6 10:03
 */
 class _HomeLogic extends BaseLogic {
-  // 折叠高度
-  static const double expandedHeight = 350.0;
-
-  // 标题栏展示状态¶
-  final showAppbar = ValueChangeNotifier<bool>(true);
-
-  // 滚动控制器
-  final scrollController = ScrollController();
-
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
+  // 时间轴数据
+  final timetableDataList =
+      ListValueChangeNotifier<List<TimeTableItemModel>>.empty();
+
   // 记录过滤条件
-  final filterConfig = MapValueChangeNotifier<String, FilterSelect>.empty();
+  final filterSelect = MapValueChangeNotifier<String, FilterSelect>.empty();
+
+  // 首页展示内容下标
+  final showChildIndex = ValueChangeNotifier<int>(0);
+
+  // 动漫列表滚动控制器
+  final animeController = ScrollController();
 
   @override
   void init() {
     super.init();
     // 获取过滤条件
-    db.getFilterSelectList(parserHandle.currentSource).then((v) {
-      final result = v.asMap().map<String, FilterSelect>((_, v) {
-        return MapEntry(_genFilterKey(v), v);
-      });
-      filterConfig.setValue(result);
-      scrollController.jumpTo(_scrollOffset + 1);
-    });
-    // 监听容器滚动
-    scrollController.addListener(() {
-      // 判断是否需要展示标题栏
-      showAppbar.setValue(scrollController.offset > _scrollOffset);
-    });
-    // 初始化加载首页数据
-    loadAnimeList(false);
+    _loadFilterConfig();
+    // 加载时间轴数据
+    _loadTimetableDataList();
   }
-
-  // 获取滚动偏移量
-  double get _scrollOffset =>
-      expandedHeight -
-      (filterConfig.isEmpty ? kToolbarHeight : kToolbarHeight * 2);
-
-  // 展开番剧时间表
-  void expandedTimeTable() => scrollController.animateTo(0,
-      duration: const Duration(milliseconds: 400), curve: Curves.ease);
 
   // 加载番剧列表
   Future<void> loadAnimeList(bool loadMore) async {
@@ -328,24 +384,38 @@ class _HomeLogic extends BaseLogic {
     }
   }
 
+  // 加载时间轴数据
+  Future<void> _loadTimetableDataList() async {
+    final result = await parserHandle.loadAnimeTimeTable();
+    timetableDataList.setValue(result);
+  }
+
+  // 加载过滤条件配置
+  Future<void> _loadFilterConfig() async {
+    final result = await db.getFilterSelectList(parserHandle.currentSource);
+    filterSelect.setValue(result.asMap().map<String, FilterSelect>(
+          (_, v) => MapEntry(_genFilterKey(v), v),
+        ));
+  }
+
   // 选择过滤条件
-  Future<void> filterSelect(
+  Future<void> selectFilterConfig(
       bool selected, FilterSelect item, int maxSelected) async {
     if (selected) {
       final result = await db.addFilterSelect(item, maxSelected);
       if (result != null) {
-        final temp = filterConfig.value;
+        final temp = filterSelect.value;
         if (maxSelected == 1) {
           temp.removeWhere((_, v) => v.key == item.key);
         }
-        filterConfig.setValue({
+        filterSelect.setValue({
           ...temp,
           _genFilterKey(result): result,
         });
       }
     } else {
       final result = await db.removeFilterSelect(item.id);
-      if (result) filterConfig.removeValue(_genFilterKey(item));
+      if (result) filterSelect.removeValue(_genFilterKey(item));
     }
   }
 

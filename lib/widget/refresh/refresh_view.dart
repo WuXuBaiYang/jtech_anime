@@ -1,7 +1,6 @@
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
-
-import 'indicator/fetch_load.dart';
 
 // 异步刷新回调
 typedef AsyncRefreshCallback = Future<void> Function(bool loadMore);
@@ -27,8 +26,11 @@ class CustomRefreshView extends StatefulWidget {
   // 是否初始化加载更多
   final bool initialRefresh;
 
-  // 下拉刷新距离
-  final double displacement;
+  // 下拉刷新的触发距离
+  final double refreshTriggerOffset;
+
+  // 加载更多的触发距离
+  final double loadMoreTriggerOffset;
 
   // 刷新组件控制器
   final CustomRefreshController controller;
@@ -37,10 +39,11 @@ class CustomRefreshView extends StatefulWidget {
     super.key,
     required this.child,
     required this.onRefresh,
-    this.displacement = 40,
     this.enableRefresh = true,
     this.enableLoadMore = false,
     this.initialRefresh = false,
+    this.refreshTriggerOffset = 80,
+    this.loadMoreTriggerOffset = 80,
     CustomRefreshController? controller,
   }) : controller = controller ?? CustomRefreshController();
 
@@ -61,39 +64,27 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 判断是否启用初始化加载
-      if (widget.initialRefresh) {
-        widget.controller.startRefresh();
-      }
+      if (widget.initialRefresh) widget.controller.startRefresh();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    var child = widget.child;
-    if (widget.enableLoadMore) {
-      child = _buildLoad(child);
-    }
-    if (widget.enableRefresh) {
-      child = _buildRefresh(child);
-    }
-    return child;
-  }
-
-  // 构建刷新组件
-  Widget _buildRefresh(Widget child) {
-    return RefreshIndicator.adaptive(
-      key: widget.controller.refreshKey,
-      displacement: widget.displacement,
-      onRefresh: () => widget.onRefresh(false),
-      child: child,
-    );
-  }
-
-  // 构建更多组件
-  Widget _buildLoad(Widget child) {
-    return FetchLoadIndicator(
-      key: widget.controller.loadKey,
-      onLoad: () => widget.onRefresh(true),
+    final onRefresh =
+        widget.enableRefresh ? () => widget.onRefresh(false) : null;
+    final onloadMore =
+        widget.enableLoadMore ? () => widget.onRefresh(true) : null;
+    return EasyRefresh(
+      onLoad: onloadMore,
+      onRefresh: onRefresh,
+      triggerAxis: Axis.vertical,
+      footer: BezierFooter(
+        triggerOffset: widget.loadMoreTriggerOffset,
+      ),
+      header: BezierCircleHeader(
+        triggerOffset: widget.refreshTriggerOffset,
+      ),
+      controller: widget.controller.controller,
       child: widget.child,
     );
   }

@@ -296,7 +296,7 @@ class DownloadManage extends BaseManage {
   }
 
   // 更新下载任务队列
-  DownloadTask? _updateDownloadProgress(int count) {
+  DownloadTask? _updateDownloadProgress(int times) {
     // 如果缓冲队列为空则直接返回空任务
     if (_progressBuffed.isEmpty) return DownloadTask();
     final downloadingMap = _progressBuffed.map((k, v) {
@@ -307,7 +307,7 @@ class DownloadManage extends BaseManage {
     _stoppingBuffed.forEach(downloadingMap.remove);
     if (downloadingMap.isEmpty) return null;
     // 计算总速度并返回
-    double totalSpeed = 0, totalRatio = 0;
+    double totalSpeed = 0, totalRatio = 0, count = 0;
     for (var downloadUrl in downloadingMap.keys) {
       final item = downloadingMap[downloadUrl];
       _startingBuffed.remove(downloadUrl);
@@ -315,12 +315,13 @@ class DownloadManage extends BaseManage {
       totalSpeed += item.speed;
       if (item.total != 0 && item.count != 0) {
         totalRatio += item.count / item.total;
+        count++;
       }
     }
-    // 总进度比值等于(下载任务+下载任务...)/(下载任务数+准备任务数)
+    // 总进度比值等于(下载任务+下载任务...)/(下载任务数)
     final totalCount = downloadQueue.length + prepareQueue.length;
     if (totalCount <= 0) return null;
-    totalRatio = totalRatio / totalCount;
+    totalRatio = totalRatio / count;
     final progress = totalRatio * 100;
     // 推送消息
     final content = '(${progress.toStringAsFixed(1)}%)  正在下载 $totalCount 条视频';
@@ -336,7 +337,7 @@ class DownloadManage extends BaseManage {
       downloadingMap: downloadingMap,
       totalSpeed: totalSpeed.toInt(),
       totalRatio: totalRatio,
-      times: count,
+      times: times,
     );
   }
 

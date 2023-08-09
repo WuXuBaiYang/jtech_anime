@@ -48,6 +48,9 @@ class DownloadRecord {
   // 更新时间
   DateTime updateTime = DateTime.now();
 
+  // 下载记录排序
+  int order = 0;
+
   // 判断状态是否已完成
   @ignore
   bool get isComplete => status == DownloadRecordStatus.complete;
@@ -76,7 +79,6 @@ class DownloadRecord {
     String? name,
     String? cover,
     int? order,
-    bool? collected,
     String? title,
     DownloadRecordStatus? status,
     String? failText,
@@ -97,7 +99,8 @@ class DownloadRecord {
         ..resUrl = resUrl ?? this.resUrl
         ..downloadUrl = downloadUrl ?? this.downloadUrl
         ..savePath = savePath ?? this.savePath
-        ..updateTime = updateTime ?? this.updateTime;
+        ..updateTime = updateTime ?? this.updateTime
+        ..order = order ?? this.order;
 }
 
 enum DownloadRecordStatus { download, complete, fail }

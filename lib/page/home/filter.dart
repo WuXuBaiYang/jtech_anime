@@ -17,7 +17,7 @@ typedef FilterSelectCallback = void Function(
 * @author wuxubaiyang
 * @Time 2023/7/7 15:27
 */
-class AnimeFilterConfigMenu extends StatelessWidget {
+class AnimeFilterConfigMenu extends StatefulWidget {
   // 过滤条件配置
   final MapValueChangeNotifier<String, FilterSelect> filterConfig;
 
@@ -30,6 +30,19 @@ class AnimeFilterConfigMenu extends StatelessWidget {
   // 内容体
   final Widget body;
 
+  const AnimeFilterConfigMenu({
+    super.key,
+    required this.filterConfig,
+    required this.filterSelect,
+    required this.complete,
+    required this.body,
+  });
+
+  @override
+  State<AnimeFilterConfigMenu> createState() => _AnimeFilterConfigMenuState();
+}
+
+class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
   // fab状态管理
   final filterStatus = ValueChangeNotifier<FilterStatus>(FilterStatus.fold);
 
@@ -43,20 +56,12 @@ class AnimeFilterConfigMenu extends StatelessWidget {
   // 动画时长
   final duration = const Duration(milliseconds: 120);
 
-  AnimeFilterConfigMenu({
-    super.key,
-    required this.filterConfig,
-    required this.filterSelect,
-    required this.complete,
-    required this.body,
-  });
-
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Positioned.fill(child: body),
+        Positioned.fill(child: widget.body),
         Positioned.fill(child: _buildBackground()),
         SafeArea(
           child: Align(
@@ -81,7 +86,12 @@ class AnimeFilterConfigMenu extends StatelessWidget {
               ? const SizedBox()
               : GestureDetector(
                   child: Container(color: Colors.black12),
-                  onTapDown: (_) => filterStatus.setValue(FilterStatus.fold),
+                  onTapDown: (_) {
+                    final hasEdited = lastConfigHash.value !=
+                        widget.filterConfig.keys.toString().hashCode;
+                    if (hasEdited) widget.complete();
+                    filterStatus.setValue(FilterStatus.fold);
+                  },
                 ),
         );
       },
@@ -171,7 +181,7 @@ class AnimeFilterConfigMenu extends StatelessWidget {
             Text('选择过滤条件', style: titleTextStyle),
             const Spacer(),
             ValueListenableBuilder<Map<String, FilterSelect>>(
-                valueListenable: filterConfig,
+                valueListenable: widget.filterConfig,
                 builder: (_, configMap, __) {
                   final hashCode = configMap.keys.toString().hashCode;
                   if (lastConfigHash.value == null) {
@@ -184,7 +194,7 @@ class AnimeFilterConfigMenu extends StatelessWidget {
                   return IconButton(
                     icon: Icon(iconData),
                     onPressed: () {
-                      if (hasEdited) complete();
+                      if (hasEdited) widget.complete();
                       filterStatus.setValue(FilterStatus.fold);
                       lastConfigHash.setValue(null);
                     },
@@ -204,7 +214,7 @@ class AnimeFilterConfigMenu extends StatelessWidget {
         if (!snap.hasData) return const SizedBox();
         final dataList = snap.data ?? [];
         return ValueListenableBuilder<Map<String, FilterSelect>>(
-          valueListenable: filterConfig,
+          valueListenable: widget.filterConfig,
           builder: (_, selectMap, __) {
             return ListView.builder(
               padding: const EdgeInsets.only(top: 14),
@@ -258,7 +268,7 @@ class AnimeFilterConfigMenu extends StatelessWidget {
               ..parentName = item.name
               ..name = sub.name
               ..source = parserHandle.currentSource;
-            filterSelect(v, selectItem!, item.maxSelected);
+            widget.filterSelect(v, selectItem!, item.maxSelected);
           },
         );
       }),

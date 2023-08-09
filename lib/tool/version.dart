@@ -1,10 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/supabase.dart';
 import 'package:jtech_anime/model/version.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
@@ -24,8 +26,6 @@ class AppVersionTool {
   // 检查更新
   static Future<bool> check(BuildContext context,
       {bool immediately = false}) async {
-    // 开源版本不公开supabase服务，如果想实现版本更新请接入自己的服务
-    if (!supabase.hasSupabaseInfo) return false;
     // 判断是否需要进行版本更新
     if (!immediately && (cache.getBool(_ignoreUpdateKey) ?? false)) {
       return false;
@@ -36,14 +36,34 @@ class AppVersionTool {
   }
 
   // 检查android的版本更新
-  static Future<bool> _checkAndroidUpdate(BuildContext context) {
-    // 获取最新版本号并判断是否需要更新
-    return supabase.getLatestAppVersion().then<bool?>((info) {
-      return info?.checkUpdate().then((update) {
-        if (update) return _showAndroidUpdateDialog(context, info);
-        return Future.value(update);
+  // 默认是调用我的账号下的更新服务器，这部分信息不开源，如有需要请自行重写以下内容
+  static Future<bool> _checkAndroidUpdate(BuildContext context) async {
+    final configJson =
+        await rootBundle.loadString('assets/filter/update_config.json');
+    if (configJson.isEmpty) return false;
+    final config = jsonDecode(configJson);
+    final url = 'https://api.appmeta.cn/apps/latest/${config['id']}';
+    final resp =
+        await Dio().get(url, queryParameters: {'api_token': config['token']});
+    if (resp.statusCode == 200) {
+      final data = resp.data;
+      final appVersion = AppVersion.from({
+        'nameCN': data['name'],
+        'version': data['versionShort'],
+        'versionCode': int.tryParse(data['build']) ?? -1,
+        'changelog': data['changelog'] ?? '',
+        'fileLength': data['binary']['fsize'],
+        'installUrl': data['install_url'],
       });
-    }).then<bool>((update) => update ?? false);
+      return appVersion.checkUpdate().then((isUpdate) {
+        if (isUpdate) {
+          return _showAndroidUpdateDialog(context, appVersion)
+              .then((value) => value ?? false);
+        }
+        return Future.value(false);
+      });
+    }
+    return false;
   }
 
   // 展示版本更新提示
@@ -56,15 +76,13 @@ class AppVersionTool {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(info.intro.replaceAll('\\n', '\n')),
-          const SizedBox(height: 14),
-          const Divider(),
+          Text(info.changelog),
           const SizedBox(height: 14),
           Text(
             '${info.nameCN} · v${info.version} · ${info.fileSize}',
             textAlign: TextAlign.end,
             style: const TextStyle(color: Colors.grey, fontSize: 12),
-          )
+          ),
         ],
       ),
       actionLeft: TextButton(
@@ -82,7 +100,6 @@ class AppVersionTool {
       actionRight: TextButton(
         onPressed: () {
           PermissionTool.checkAllGranted(context, permissions: [
-            const PermissionRequest.storage(),
             const PermissionRequest.androidManageExternalStorage(),
             const PermissionRequest.androidRequestInstallPackages(),
           ]).then((v) {
@@ -115,11 +132,9 @@ class AppVersionTool {
     progress.setValue(-1);
     try {
       OtaUpdate()
-          .execute(
-        await supabase.getAndroidAPKUrl(info.fileId),
-        destinationFilename: '${info.name}_${info.versionCode}.apk',
-        sha256checksum: info.sha256checksum,
-      )
+          .execute(info.installUrl,
+              destinationFilename: '${info.name}_${info.versionCode}.apk',
+              sha256checksum: info.sha256checksum)
           .listen((e) {
         switch (e.status) {
           case OtaStatus.DOWNLOADING:

@@ -92,7 +92,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       builder: (_, item, __) {
         return PlayerResourceDrawer(
           currentItem: item,
-          resources: logic.resources,
+          animeInfo: logic.animeInfo.value,
           onResourceSelect: (item) {
             pageKey.currentState?.closeEndDrawer();
             logic.changeVideo(item);
@@ -251,9 +251,12 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
+      logic.stopTimer();
       logic.controller
         ..lockedControls.value = false
         ..pause();
+    } else if (state == AppLifecycleState.resumed) {
+      logic.resumeTimer();
     }
   }
 
@@ -292,10 +295,6 @@ class _PlayerLogic extends BaseLogic {
   // 当前时间
   final currentTime = ValueChangeNotifier<DateTime>(DateTime.now());
 
-  // 计时器
-  late final Timer _timer = Timer.periodic(
-      const Duration(seconds: 1), (t) => currentTime.setValue(DateTime.now()));
-
   @override
   void init() {
     super.init();
@@ -309,14 +308,6 @@ class _PlayerLogic extends BaseLogic {
         () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
-      // 监听播放进度，当播放完成之后则自动播放下一集
-      if (total != null && e >= total!) {
-        final item = nextResourceInfo.value;
-        if (item != null) {
-          changeVideo(item);
-          total = null;
-        }
-      }
     });
   }
 
@@ -335,13 +326,14 @@ class _PlayerLogic extends BaseLogic {
 
   // 选择资源/视频
   Future<void> changeVideo(ResourceItemModel item,
-      [bool playTheRecord = true]) async {
+      [bool playTheRecord = false]) async {
     if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
     return Loading.show(loadFuture: Future(() async {
       try {
         loading.setValue(true);
+        playRecord.setValue(null);
         resourceInfo.setValue(item);
         nextResourceInfo.setValue(_findNextResourceItem(item));
         // 暂停现有播放器
@@ -417,6 +409,21 @@ class _PlayerLogic extends BaseLogic {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
+  // 计时器
+  Timer? _timer;
+
+  // 启动计时器
+  void resumeTimer() {
+    _timer ??= Timer.periodic(const Duration(seconds: 1),
+        (t) => currentTime.setValue(DateTime.now()));
+  }
+
+  // 停止计时器
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
   // 一定时间后关闭播放记录弹窗
   void time2CloseRecord() => Debounce.c(
         () => playRecord.setValue(null),
@@ -426,6 +433,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 更新视频进度
   void _updateVideoProgress(Duration progress) {
+    if (progress < const Duration(seconds: 5)) return;
     final source = parserHandle.currentSource;
     final item = animeInfo.value;
     final resItem = resourceInfo.value;
@@ -466,7 +474,7 @@ class _PlayerLogic extends BaseLogic {
   @override
   void dispose() {
     // 关闭计时器
-    _timer.cancel();
+    stopTimer();
     // 退出播放器状态
     quitPlayer();
     // 销毁控制器

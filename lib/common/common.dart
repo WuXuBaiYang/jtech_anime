@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:jtech_anime/tool/file.dart';
 
 /*
@@ -12,7 +11,8 @@ class Common {
   static const String appName = '看番咩?';
 
   // 动画-加载动画
-  static String get statusLoadingAsset => [
+  static String get statusLoadingAsset =>
+      [
         'assets/anime/status_loading1.json',
         'assets/anime/status_loading2.json',
         'assets/anime/status_loading3.json',
@@ -30,6 +30,15 @@ class Common {
 
   // 视频缓存根目录
   static const FileDir videoCacheRoot = FileDir.applicationDocuments;
+
+  // m3u8视频中需要忽略的碎片列表（插入的广告）
+  static const List<String> m3u8FileIgnores = [
+    '1o357.ts',
+    '1o358.ts',
+    '1o359.ts',
+    '1o360.ts',
+    '1o361.ts',
+  ];
 }
 
 /*
