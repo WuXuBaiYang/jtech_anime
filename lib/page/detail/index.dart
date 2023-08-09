@@ -389,13 +389,11 @@ class _AnimeDetailLogic extends BaseLogic {
   Future<void>? playTheRecord() {
     final record = playRecord.value;
     if (record == null) return null;
-    return goPlay(
-      ResourceItemModel(
-        name: record.resName,
-        url: record.resUrl,
-      ),
-      playTheRecord: true,
+    final item = ResourceItemModel(
+      name: record.resName,
+      url: record.resUrl,
     );
+    return goPlay(item, true);
   }
 
   // 播放下载内容
@@ -409,7 +407,7 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 播放视频
-  Future<void>? goPlay(ResourceItemModel item, {bool playTheRecord = false}) {
+  Future<void>? goPlay(ResourceItemModel item, [bool playTheRecord = false]) {
     if (animeDetail.value.resources.isEmpty) return null;
     return router.pushNamed(RoutePath.player, arguments: {
       'animeDetail': animeDetail.value,
