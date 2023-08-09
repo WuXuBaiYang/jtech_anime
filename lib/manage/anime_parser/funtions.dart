@@ -26,11 +26,11 @@ enum AnimeParserFunction {
 extension AnimeParserFunctionExtension on AnimeParserFunction {
   // 获取方法名
   String get functionName => {
-        AnimeParserFunction.timeTable: '',
-        AnimeParserFunction.search: '',
-        AnimeParserFunction.filter: '',
-        AnimeParserFunction.home: '',
-        AnimeParserFunction.detail: '',
-        AnimeParserFunction.playUrl: '',
+        AnimeParserFunction.timeTable: 'loadTimeTableList',
+        AnimeParserFunction.search: 'searchAnimeList',
+        AnimeParserFunction.filter: 'loadFilterList',
+        AnimeParserFunction.home: 'loadHomeList',
+        AnimeParserFunction.detail: 'getAnimeDetail',
+        AnimeParserFunction.playUrl: 'getPlayUrl',
       }[this]!;
 }
