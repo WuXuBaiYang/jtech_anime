@@ -209,7 +209,7 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
   // 构建过滤配置列表
   Widget _buildFilterConfigList() {
     return CacheFutureBuilder<List<AnimeFilterModel>>(
-      future: parserHandle.loadFilterList,
+      future: animeParser.loadFilterList,
       builder: (_, snap) {
         if (!snap.hasData) return const SizedBox();
         final dataList = snap.data ?? [];
@@ -262,12 +262,14 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
           label: Text(sub.name),
           selected: selectItem != null,
           onSelected: (v) {
+            final source = animeParser.currentSource;
+            if (source == null) return;
             selectItem ??= FilterSelect()
               ..key = item.key
               ..value = sub.value
               ..parentName = item.name
               ..name = sub.name
-              ..source = parserHandle.currentSource;
+              ..source = source.key;
             widget.filterSelect(v, selectItem!, item.maxSelected);
           },
         );

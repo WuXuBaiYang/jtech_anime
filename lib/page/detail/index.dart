@@ -5,9 +5,9 @@ import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
@@ -18,6 +18,7 @@ import 'package:jtech_anime/page/detail/download.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
@@ -274,6 +275,9 @@ class _AnimeDetailPageState
 * @Time 2023/7/12 9:07
 */
 class _AnimeDetailLogic extends BaseLogic {
+  // 缓存视频详情key
+  final String _cacheAnimeDetailKey = 'cache_anime_detail_';
+
   // 折叠高度
   static const double expandedHeight = 350.0;
 
@@ -349,20 +353,26 @@ class _AnimeDetailLogic extends BaseLogic {
       final record = await db.getPlayRecord(animeUrl);
       playRecord.setValue(record);
       // 获取番剧详细信息，是否使用缓存加载
-      final result = await parserHandle.getAnimeDetail(
-        useCache: useCache,
-        animeUrl,
-      );
+      final cacheKey = '$_cacheAnimeDetailKey${Tool.md5(animeUrl)}';
+      Map? cacheData = cache.getJson(cacheKey);
+      final result = (useCache && cacheData != null)
+          ? AnimeModel.from(cacheData)
+          : await animeParser.getAnimeDetail(animeUrl);
+      if (result == null) throw Exception('番剧详情获取失败');
       animeDetail.setValue(result);
       // 根据番剧信息添加收藏信息
       final collect = await db.getCollect(animeUrl);
+      final source = animeParser.currentSource;
+      if (source == null) throw Exception('数据源不存在');
       collectInfo.setValue(collect ??
           (Collect()
             ..url = result.url
+            ..collected = false
             ..name = result.name
-            ..cover = result.cover
-            ..source = parserHandle.currentSource
-            ..collected = false));
+            ..source = source.key
+            ..cover = result.cover));
+      await cache.setJsonMap(cacheKey, result.to(),
+          expiration: const Duration(days: 1));
     } catch (e) {
       SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {
@@ -422,10 +432,10 @@ class _AnimeDetailLogic extends BaseLogic {
 
   // 加载下载记录
   Future<Map<String, DownloadRecord>> loadDownloadRecord() async {
-    final result = await db.getDownloadRecordList(
-      parserHandle.currentSource,
-      animeList: [animeDetail.value.url],
-    );
+    final source = animeParser.currentSource;
+    if (source == null) return {};
+    final result = await db
+        .getDownloadRecordList(source, animeList: [animeDetail.value.url]);
     return result.asMap().map((_, v) => MapEntry(v.resUrl, v));
   }
 }

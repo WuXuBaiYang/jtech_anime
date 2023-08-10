@@ -39,7 +39,7 @@ class AppVersionTool {
   // 默认是调用我的账号下的更新服务器，这部分信息不开源，如有需要请自行重写以下内容
   static Future<bool> _checkAndroidUpdate(BuildContext context) async {
     final configJson =
-        await rootBundle.loadString('assets/filter/update_config.json');
+        await rootBundle.loadString('assets/source/update_config.json');
     if (configJson.isEmpty) return false;
     final config = jsonDecode(configJson);
     final url = 'https://api.appmeta.cn/apps/latest/${config['id']}';

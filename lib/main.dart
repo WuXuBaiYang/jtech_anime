@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_meedu_videoplayer/init_meedu_player.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.dart';
@@ -37,7 +35,6 @@ void main() async {
   await animeParser.init(); // 番剧解析器
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
-    AndroidInAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarIconBrightness: Brightness.light,
       statusBarColor: Colors.transparent,
@@ -49,10 +46,10 @@ void main() async {
     if (status == ConnectivityResult.mobile) {
       if (cache.getBool(Common.checkNetworkStatusKey) ?? true) {
         // 只暂停当前资源下的所有下载任务，切换资源的时候则会暂停全部任务
-        final records = await db.getDownloadRecordList(
-          parserHandle.currentSource,
-          status: [DownloadRecordStatus.download],
-        );
+        final source = animeParser.currentSource;
+        if (source == null) return;
+        final records = await db.getDownloadRecordList(source,
+            status: [DownloadRecordStatus.download]);
         await download.stopTasks(records);
       }
     }

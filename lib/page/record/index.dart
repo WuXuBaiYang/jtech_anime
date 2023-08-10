@@ -3,8 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
+import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
@@ -167,10 +167,9 @@ class _PlayRecordLogic extends BaseLogic {
     try {
       loading.setValue(true);
       final index = loadMore ? _pageIndex + 1 : 1;
-      final result = await db.getPlayRecordList(
-        parserHandle.currentSource,
-        pageIndex: index,
-      );
+      final source = animeParser.currentSource;
+      if (source == null) throw Exception('数据源不存在');
+      final result = await db.getPlayRecordList(source, pageIndex: index);
       if (result.isNotEmpty) {
         _pageIndex = index;
         return loadMore

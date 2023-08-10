@@ -7,8 +7,8 @@ import 'package:flutter_meedu_videoplayer/meedu_player.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
+import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/router.dart' as router;
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
@@ -301,7 +301,6 @@ class _PlayerLogic extends BaseLogic {
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
-    Duration? total;
     controller.onPositionChanged.listen((e) {
       // 更新当前播放进度
       Throttle.c(
@@ -341,7 +340,7 @@ class _PlayerLogic extends BaseLogic {
         // 根据当前资源获取播放记录
         final record = await db.getPlayRecord(animeInfo.value.url);
         // 根据资源与视频下标切换视频播放地址
-        final result = await parserHandle.getAnimeVideoCache([item]);
+        final result = await animeParser.getPlayUrls([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         final playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
@@ -434,16 +433,17 @@ class _PlayerLogic extends BaseLogic {
   // 更新视频进度
   void _updateVideoProgress(Duration progress) {
     if (progress < const Duration(seconds: 5)) return;
-    final source = parserHandle.currentSource;
+    final source = animeParser.currentSource;
+    if (source == null) return;
     final item = animeInfo.value;
     final resItem = resourceInfo.value;
     db.updatePlayRecord(PlayRecord()
       ..url = item.url
-      ..source = source
       ..name = item.name
       ..cover = item.cover
-      ..resName = resItem.name
+      ..source = source.key
       ..resUrl = resItem.url
+      ..resName = resItem.name
       ..progress = progress.inMilliseconds);
   }
 

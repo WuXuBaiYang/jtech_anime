@@ -5,10 +5,10 @@ import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
@@ -293,10 +293,9 @@ class _DownloadLogic extends BaseLogic {
   // 获取下载记录
   Future<List<DownloadGroup>> _getDownloadRecords(
       List<DownloadRecordStatus> status) async {
-    final result = await db.getDownloadRecordList(
-      parserHandle.currentSource,
-      status: status,
-    );
+    final source = animeParser.currentSource;
+    if (source == null) return [];
+    final result = await db.getDownloadRecordList(source, status: status);
     // 遍历下载记录并将记录分组排序
     String? lastUrl;
     final groupList = <DownloadGroup>[], subList = <DownloadRecord>[];

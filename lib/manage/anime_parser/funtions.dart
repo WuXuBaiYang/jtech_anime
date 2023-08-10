@@ -29,22 +29,49 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
   // 获取方法名
   String get functionName => {
         AnimeParserFunction.source: 'getSourceInfo',
-        AnimeParserFunction.timeTable: 'loadTimeTableList',
-        AnimeParserFunction.search: 'searchAnimeList',
+        AnimeParserFunction.timeTable: 'getTimeTable',
         AnimeParserFunction.filter: 'loadFilterList',
+        AnimeParserFunction.search: 'searchAnimeList',
         AnimeParserFunction.home: 'loadHomeList',
         AnimeParserFunction.detail: 'getAnimeDetail',
-        AnimeParserFunction.playUrl: 'getPlayUrl',
+        AnimeParserFunction.playUrl: 'getPlayUrls',
       }[this]!;
 
   // 判断方法是否为必须
   bool get required => {
-        AnimeParserFunction.timeTable: false,
-        AnimeParserFunction.search: false,
-        AnimeParserFunction.filter: false,
         AnimeParserFunction.source: true,
+        AnimeParserFunction.timeTable: false,
+        AnimeParserFunction.filter: false,
+        AnimeParserFunction.search: false,
         AnimeParserFunction.home: true,
         AnimeParserFunction.detail: true,
         AnimeParserFunction.playUrl: true,
       }[this]!;
+
+  // 拼装方法请求
+  String getCaseFunction(Map<String, dynamic> params) => {
+        AnimeParserFunction.source: (params) => '$functionName()',
+        AnimeParserFunction.timeTable: (params) => '$functionName()',
+        AnimeParserFunction.search: (params) {
+          final pageIndex = params['pageIndex'];
+          final pageSize = params['pageSize'];
+          final keyword = params['keyword'];
+          return '$functionName($pageIndex, $pageSize, $keyword)';
+        },
+        AnimeParserFunction.filter: (params) => '$functionName()',
+        AnimeParserFunction.home: (params) {
+          final pageIndex = params['pageIndex'];
+          final pageSize = params['pageSize'];
+          final filterSelect = params['filterSelect'];
+          return '$functionName($pageIndex, $pageSize, $filterSelect)';
+        },
+        AnimeParserFunction.detail: (params) {
+          final animeUrl = params['animeUrl'];
+          return '$functionName($animeUrl)';
+        },
+        AnimeParserFunction.playUrl: (params) {
+          final resourceUrls = params['resourceUrls'];
+          return '$functionName($resourceUrls)';
+        },
+      }[this]!(params);
 }

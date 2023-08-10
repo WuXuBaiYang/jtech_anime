@@ -61,12 +61,6 @@ dependencies:
   # 图标
   font_awesome_flutter: ^10.5.0
 
-  # 网页解析框架
-  html: ^0.15.4
-
-  # 浏览器框架(android)
-  flutter_inappwebview: ^5.7.2+3
-
   # 数据库框架
   isar: ^3.1.0+1
 
@@ -97,9 +91,6 @@ dependencies:
   #  media_kit_libs_macos_video: ^1.0.5
   #  media_kit_libs_windows_video: ^1.0.2
 
-  # 桌面端浏览器爬虫(win/mac/linux)
-  puppeteer: ^3.2.0
-
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
 
@@ -121,6 +112,9 @@ dependencies:
 
   # 后台下载器
   background_downloader: ^7.9.0
+
+  # js运行时
+  flutter_js: ^0.8.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -156,7 +150,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/filter/
+    - assets/source/
     - assets/anime/
 
   # An image asset can refer to one or more resolution-specific "variants", see

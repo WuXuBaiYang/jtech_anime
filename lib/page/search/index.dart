@@ -4,11 +4,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/page/search/search.dart';
@@ -264,6 +263,12 @@ class _SearchLogic extends BaseLogic {
         ));
   }
 
+  // 维护分页页码
+  int _pageIndex = 1;
+
+  // 维护分页数据量
+  final _pageSize = 25;
+
   // 缓存最后一次搜索关键字
   String? _lastKeyword;
 
@@ -292,10 +297,11 @@ class _SearchLogic extends BaseLogic {
         _lastKeyword = keyword;
       }
       // 执行搜索请求
-      final result = await (loadMore
-          ? parserHandle.searchAnimeListNextPage(keyword)
-          : parserHandle.searchAnimeList(keyword));
+      final pageIndex = loadMore ? _pageIndex + 1 : 1;
+      final result = await animeParser.searchAnimeList(keyword,
+          pageIndex: pageIndex, pageSize: _pageSize);
       loadMore ? searchList.addValues(result) : searchList.setValue(result);
+      _pageIndex = pageIndex;
     } catch (e) {
       SnackTool.showMessage(message: '搜索请求失败，请重试~');
     } finally {

@@ -6,11 +6,11 @@ import 'package:jtech_anime/common/model.dart';
 * @Time 2023/8/10 11:13
 */
 class AnimeSource extends BaseModel {
-  // 英文名
-  final String name;
+  // 资源站key（唯一英文名/拼音，不可变）
+  final String key;
 
-  // 中文名
-  final String nameCN;
+  // 资源站名称
+  final String name;
 
   // 站点首页
   final String homepage;
@@ -25,8 +25,8 @@ class AnimeSource extends BaseModel {
   final String logoUrl;
 
   AnimeSource.from(obj)
-      : name = obj['name'] ?? '',
-        nameCN = obj['nameCN'] ?? '',
+      : key = obj['key'] ?? '',
+        name = obj['name'] ?? '',
         homepage = obj['homepage'] ?? '',
         version = obj['version'] ?? '',
         lastEditDate =
