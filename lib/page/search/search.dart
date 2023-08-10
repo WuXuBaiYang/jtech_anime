@@ -126,6 +126,7 @@ class SearchBarView extends StatelessWidget {
     AutocompleteOnSelected<SearchRecord> onSelected,
     Iterable<SearchRecord> options,
   ) {
+    return const SizedBox();
     return Align(
       alignment: Alignment.topLeft,
       child: Material(
