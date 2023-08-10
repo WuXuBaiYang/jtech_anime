@@ -9,12 +9,12 @@ import 'package:flutter_meedu_videoplayer/init_meedu_player.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/notification.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/home/index.dart';
@@ -34,6 +34,7 @@ void main() async {
   await db.init(); // 数据库
   await download.init(); // 下载管理
   await notice.init(); // 消息通知
+  await animeParser.init(); // 番剧解析器
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
     AndroidInAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
