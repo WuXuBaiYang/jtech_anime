@@ -38,16 +38,6 @@ class AnimeParserRequestModel extends BaseModel {
     this.resourceUrls,
   });
 
-  // 构建数据源信息请求数据结构
-  AnimeParserRequestModel.fromSource()
-      : pageIndex = null,
-        pageSize = null,
-        keyword = null,
-        animeUrl = null,
-        resourceUrls = null,
-        filterSelect = null,
-        function = AnimeParserFunction.source;
-
   // 构建番剧时间表信息请求数据结构
   AnimeParserRequestModel.fromTimeTable()
       : pageIndex = null,

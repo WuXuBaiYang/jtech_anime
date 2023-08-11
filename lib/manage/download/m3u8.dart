@@ -58,7 +58,7 @@ class M3U8Downloader extends Downloader {
         receiveProgress?.call(min(initCount + count, total), total, speed);
       },
       fileDir: cacheDir.path.substring(startIndex),
-      root: Common.videoCacheRoot,
+      root: FileDir.applicationDocuments,
       cancelToken: cancelToken,
       downloadsMap,
     );

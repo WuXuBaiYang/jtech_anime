@@ -35,33 +35,33 @@ class DBManage extends BaseManage {
         PlayRecordSchema,
         CollectSchema,
         DownloadRecordSchema,
-        SourceConfigSchema,
+        AnimeSourceSchema,
       ],
       directory: dir.path,
     );
   }
 
   // 获取所有数据源配置
-  Future<List<SourceConfig>> getSourceConfigList() =>
-      isar.sourceConfigs.where().sortByKey().findAll();
+  Future<List<AnimeSource>> getAnimeSourceList() =>
+      isar.animeSources.where().sortByKey().findAll();
 
   // 根据数据源key获取数据源信息
-  Future<SourceConfig?> getSourceConfig(String key) =>
-      isar.sourceConfigs.filter().keyEqualTo(key).findFirst();
+  Future<AnimeSource?> getAnimeSource(String key) =>
+      isar.animeSources.filter().keyEqualTo(key).findFirst();
 
   // 删除数据源
-  Future<bool> removeSourceConfig(int id) => isar.writeTxn<bool>(() {
+  Future<bool> removeAnimeSource(int id) => isar.writeTxn<bool>(() {
         // 移除数据源
-        return isar.sourceConfigs.delete(id);
+        return isar.animeSources.delete(id);
       });
 
   // 添加数据源
-  Future<SourceConfig?> updateSourceConfig(SourceConfig item) =>
-      isar.writeTxn<SourceConfig?>(() {
+  Future<AnimeSource?> updateAnimeSource(AnimeSource item) =>
+      isar.writeTxn<AnimeSource?>(() {
         // 更新或添加数据源
-        return isar.sourceConfigs
+        return isar.animeSources
             .put(item)
-            .then((id) => isar.sourceConfigs.get(id));
+            .then((id) => isar.animeSources.get(id));
       });
 
   // 删除下载记录
@@ -94,7 +94,7 @@ class DBManage extends BaseManage {
 
   // 获取下载记录列表
   Future<List<DownloadRecord>> getDownloadRecordList(
-    SourceConfig source, {
+    AnimeSource source, {
     // 按照下载状态过滤
     List<DownloadRecordStatus> status = const [],
     // 按照番剧地址过滤
@@ -128,7 +128,7 @@ class DBManage extends BaseManage {
 
   // 更新排序
   Future<bool> updateCollectOrder(String url,
-          {required SourceConfig source, required int to}) =>
+          {required AnimeSource source, required int to}) =>
       isar.writeTxn<bool>(() async {
         // 查出全部收藏列表
         final items = await isar.collects
@@ -151,7 +151,7 @@ class DBManage extends BaseManage {
       isar.collects.where().urlEqualTo(url).findFirst();
 
   // 获取收藏列表(分页)
-  Future<List<Collect>> getCollectList(SourceConfig source,
+  Future<List<Collect>> getCollectList(AnimeSource source,
       {int pageIndex = 1, int pageSize = 25}) async {
     if (pageIndex < 1 || pageSize < 1) return [];
     return isar.collects
@@ -181,7 +181,7 @@ class DBManage extends BaseManage {
       .findAll();
 
   // 获取播放记录(分页)
-  Future<List<PlayRecord>> getPlayRecordList(SourceConfig source,
+  Future<List<PlayRecord>> getPlayRecordList(AnimeSource source,
       {int pageIndex = 1, int pageSize = 25}) async {
     if (pageIndex < 1 || pageSize < 1) return [];
     return isar.playRecords
@@ -221,7 +221,7 @@ class DBManage extends BaseManage {
       });
 
   // 获取已选过滤条件
-  Future<List<FilterSelect>> getFilterSelectList(SourceConfig source) =>
+  Future<List<FilterSelect>> getFilterSelectList(AnimeSource source) =>
       isar.filterSelects.where().sourceEqualTo(source.key).findAll();
 
   // 添加过滤条件

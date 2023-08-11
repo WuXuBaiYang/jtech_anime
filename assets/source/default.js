@@ -12,34 +12,6 @@ function getFetchOptions() {
     }
 }
 
-function createDocument(html) {
-    const parser = new DOMParser()
-    return parser.parseFromString(html, 'text/html')
-}
-
-/**
- * **必填方法**
- * 获取数据源信息
- * @returns {Map} {
- *         'key': '数据源唯一值，当与已有数据源重叠的时候会自动覆盖，可以使用英文名或缩写',
- *         'name': '数据源名称',
- *         'homepage': '数据源首页地址',
- *         'version': '版本号',
- *         'lastEditDate': '最后更新的时间戳，Iso8601格式',
- *         'logoUrl': '数据源图标在线地址',
- *     }
- */
-async function getSourceInfo() {
-    return {
-        key: 'yhdmz',
-        name: '樱花动漫',
-        homepage: 'https://www.yhdmz.org',
-        version: '1.0.0',
-        lastEditDate: '2023-08-10T17:19:42.113727',
-        logoUrl: 'https://www.yhdmz.org/tpsf/yh_pic/favicon.ico',
-    };
-}
-
 /**
  * 获取番剧时间表
  * @returns {Map} {

@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'package:isar/isar.dart';
 
 part 'source.g.dart';
 
 @collection
-class SourceConfig {
+class AnimeSource {
   Id id = Isar.autoIncrement;
 
   // 资源key（唯一）
@@ -17,36 +16,27 @@ class SourceConfig {
   // 资源站图标
   String logoUrl = '';
 
+  // 资源站地址
+  String homepage = '';
+
+  // 资源解析版本号
+  String version = '';
+
+  // 最后更新时间
+  DateTime lastEditDate = DateTime(1);
+
   // 配置文件路径
-  String filePath = '';
+  String fileUri = '';
 
-  // 判断是否为默认配置
-  @Ignore()
-  bool isDefault = false;
-
-  // 配置文件内容
-  @Ignore()
-  String? _content;
-
-  // 获取配置文件内容
-  @Ignore()
-  Future<String> get content async =>
-      _content ??= await File(filePath).readAsString();
-
-  SourceConfig({
-    required this.key,
-    this.name = '',
-    this.logoUrl = '',
-    this.filePath = '',
-    this.isDefault = false,
-  });
-
-  SourceConfig.fromContent({
-    required this.key,
-    required String content,
-    this.name = '',
-    this.logoUrl = '',
-    this.filePath = '',
-    this.isDefault = false,
-  }) : _content = content;
+  static AnimeSource from(obj) {
+    return AnimeSource()
+      ..key = obj['key'] ?? ''
+      ..name = obj['name'] ?? ''
+      ..logoUrl = obj['logoUrl'] ?? ''
+      ..homepage = obj['homepage'] ?? ''
+      ..version = obj['version'] ?? ''
+      ..lastEditDate =
+          DateTime.tryParse(obj['lastEditDate'] ?? '') ?? DateTime(1)
+      ..fileUri = obj['fileUri'] ?? '';
+  }
 }

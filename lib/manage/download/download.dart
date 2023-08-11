@@ -116,7 +116,7 @@ class DownloadManage extends BaseManage {
           ? record.savePath
           : await FileTool.getDirPath(
               '${FileDirPath.videoCachePath}/${Tool.md5(record.downloadUrl)}',
-              root: Common.videoCacheRoot);
+              root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
       return _resumeTask(record..savePath = savePath);

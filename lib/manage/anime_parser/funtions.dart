@@ -4,8 +4,6 @@
 * @Time 2023/8/9 17:23
 */
 enum AnimeParserFunction {
-  // 获取当前资源信息
-  source,
   // 番剧时间表
   timeTable,
   // 搜索（支持分页）
@@ -28,7 +26,6 @@ enum AnimeParserFunction {
 extension AnimeParserFunctionExtension on AnimeParserFunction {
   // 获取方法名
   String get functionName => {
-        AnimeParserFunction.source: 'getSourceInfo',
         AnimeParserFunction.timeTable: 'getTimeTable',
         AnimeParserFunction.filter: 'loadFilterList',
         AnimeParserFunction.search: 'searchAnimeList',
@@ -39,7 +36,6 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
 
   // 判断方法是否为必须
   bool get required => {
-        AnimeParserFunction.source: true,
         AnimeParserFunction.timeTable: false,
         AnimeParserFunction.filter: false,
         AnimeParserFunction.search: false,
@@ -50,7 +46,6 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
 
   // 拼装方法请求
   String getCaseFunction(Map<String, dynamic> params) => {
-        AnimeParserFunction.source: (params) => '$functionName()',
         AnimeParserFunction.timeTable: (params) => '$functionName()',
         AnimeParserFunction.search: (params) {
           final pageIndex = params['pageIndex'];
