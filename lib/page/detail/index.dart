@@ -372,7 +372,7 @@ class _AnimeDetailLogic extends BaseLogic {
             ..source = source.key
             ..cover = result.cover));
       await cache.setJsonMap(cacheKey, result.to(),
-          expiration: const Duration(days: 1));
+          expiration: const Duration(hours: 6));
     } catch (e) {
       SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {

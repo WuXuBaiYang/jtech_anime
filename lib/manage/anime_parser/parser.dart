@@ -48,7 +48,6 @@ class AnimeParserManage extends BaseManage {
   Future<void> init() async {
     // 获取当前缓存的数据源
     _source = await _getSource();
-    print('object');
   }
 
   // 切换数据源
@@ -170,10 +169,16 @@ class AnimeParserManage extends BaseManage {
   Future<String> _doJSFunction(
       String sourceCode, AnimeParserRequestModel request) async {
     final params = request.to();
+    final function = request.function.getCaseFunction(params);
     final result = await _jsRuntime.evaluateAsync('''
-          $sourceCode 
-          ${request.function.getCaseFunction(params)}
+          $sourceCode
+          async function doJSFunction() {
+              let result = await $function
+              return JSON.stringify(result)
+          }
+          doJSFunction()
     ''');
+
     _jsRuntime.executePendingJob();
     return (await _jsRuntime.handlePromise(result)).stringResult;
   }
