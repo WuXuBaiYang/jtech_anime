@@ -68,6 +68,8 @@ class AnimeParserManage extends BaseManage {
   Future<void> init() async {
     // 获取当前缓存的数据源
     _source = await _getSource();
+    // 初始化自定义方法
+    _initialCustomFunctions();
   }
 
   // 切换数据源
@@ -222,6 +224,18 @@ class AnimeParserManage extends BaseManage {
 
     _jsRuntime.executePendingJob();
     return (await _jsRuntime.handlePromise(result)).stringResult;
+  }
+
+  // 初始化自定义方法
+  void _initialCustomFunctions() {
+    // 从html中查询目标内容，返回集合
+    _jsRuntime.onMessage('querySelectorAll', (args){
+
+    });
+    // 从html中查询目标内容，返回对象，不存在则返回空
+    _jsRuntime.onMessage('querySelector', (args) {
+
+    });
   }
 }
 
