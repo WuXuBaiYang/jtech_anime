@@ -3,6 +3,8 @@
 * @author wuxubaiyang
 * @Time 2023/8/9 17:23
 */
+import 'dart:convert';
+
 enum AnimeParserFunction {
   // 番剧时间表
   timeTable,
@@ -51,22 +53,22 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
           final pageIndex = params['pageIndex'];
           final pageSize = params['pageSize'];
           final keyword = params['keyword'];
-          return '$functionName($pageIndex, $pageSize, $keyword)';
+          return '$functionName($pageIndex, $pageSize, "$keyword")';
         },
         AnimeParserFunction.filter: (params) => '$functionName()',
         AnimeParserFunction.home: (params) {
           final pageIndex = params['pageIndex'];
           final pageSize = params['pageSize'];
           final filterSelect = params['filterSelect'];
-          return '$functionName($pageIndex, $pageSize, $filterSelect)';
+          return '$functionName($pageIndex, $pageSize, ${jsonEncode(filterSelect)})';
         },
         AnimeParserFunction.detail: (params) {
           final animeUrl = params['animeUrl'];
-          return '$functionName($animeUrl)';
+          return '$functionName("$animeUrl")';
         },
         AnimeParserFunction.playUrl: (params) {
           final resourceUrls = params['resourceUrls'];
-          return '$functionName($resourceUrls)';
+          return '$functionName(${jsonEncode(resourceUrls)})';
         },
       }[this]!(params);
 }

@@ -8,8 +8,18 @@ function getFetchOptions() {
     }
 }
 
-function getBaseUrl() {
-    return 'https://www.yhdmz.org'
+function getUri(path, params) {
+    let queryParams = '';
+    let obj = (params || {})
+    Object.keys(obj).forEach((key) => {
+        let item = `${key}=${obj[key]}`
+        if (queryParams.length === 0) {
+            queryParams += `?${item}`;
+        } else {
+            queryParams += `&${item}`
+        }
+    });
+    return `https://www.yhdmz.org${path || ''}${queryParams}`
 }
 
 /**
@@ -25,7 +35,7 @@ function getBaseUrl() {
  *     }
  */
 async function getTimeTable() {
-    let html = await requestText(getBaseUrl(), getFetchOptions())
+    let html = await requestText(getUri(), getFetchOptions())
     let tempList = []
     const selector = 'body > div.area > div.side.r > div.bg > div.tlist > ul'
     let uls = await html.querySelectorAll(selector)
@@ -36,24 +46,23 @@ async function getTimeTable() {
         for (const j in lis) {
             const li = lis[j]
             const status = await li.querySelector('a:nth-child(1)', 'text')
-            const path = await li.querySelector('a:nth-child(3)', 'href')
             temp.push({
-                'name': await li.querySelector('a:nth-child(3)', 'text'),
-                'url': getBaseUrl() + path,
-                'status': status.replaceAll('new', '').trim(),
-                'isUpdate': status.includes('new'),
+                name: await li.querySelector('a:nth-child(3)', 'text'),
+                url: getUri(await li.querySelector('a:nth-child(3)', 'href')),
+                status: status.replaceAll('new', '').trim(),
+                isUpdate: status.includes('new'),
             });
         }
         tempList.push(temp)
     }
     return {
-        'monday': tempList[0],
-        'tuesday': tempList[1],
-        'wednesday': tempList[2],
-        'thursday': tempList[3],
-        'friday': tempList[4],
-        'saturday': tempList[5],
-        'sunday': tempList[6],
+        monday: tempList[0],
+        tuesday: tempList[1],
+        wednesday: tempList[2],
+        thursday: tempList[3],
+        friday: tempList[4],
+        saturday: tempList[5],
+        sunday: tempList[6],
     }
 }
 
@@ -75,16 +84,248 @@ async function getTimeTable() {
  */
 async function loadFilterList() {
     return [{
-        'name': '过滤项名称', 'key': '过滤项字段', 'maxSelected': 最大可选数量(int), 'items': [{
-            'name': '过滤项子项名称', 'value': '过滤项子项值'
+        "name": "地区", "key": "region", "maxSelected": 1, "items": [{
+            "name": "日本", "value": "日本"
+        }, {
+            "name": "中国", "value": "中国"
+        }, {
+            "name": "欧美", "value": "欧美"
+        }]
+    }, {
+        "name": "版本", "key": "genre", "maxSelected": 1, "items": [{
+            "name": "TV", "value": "TV"
+        }, {
+            "name": "剧场版", "value": "剧场版"
+        }, {
+            "name": "OVA", "value": "OVA"
+        }]
+    }, {
+        "name": "首字母", "key": "letter", "maxSelected": 1, "items": [{
+            "name": "A", "value": "A"
+        }, {
+            "name": "B", "value": "B"
+        }, {
+            "name": "C", "value": "C"
+        }, {
+            "name": "D", "value": "D"
+        }, {
+            "name": "E", "value": "E"
+        }, {
+            "name": "F", "value": "F"
+        }, {
+            "name": "G", "value": "G"
+        }, {
+            "name": "H", "value": "H"
+        }, {
+            "name": "I", "value": "I"
+        }, {
+            "name": "J", "value": "J"
+        }, {
+            "name": "K", "value": "K"
+        }, {
+            "name": "L", "value": "L"
+        }, {
+            "name": "M", "value": "M"
+        }, {
+            "name": "N", "value": "N"
+        }, {
+            "name": "O", "value": "O"
+        }, {
+            "name": "P", "value": "P"
+        }, {
+            "name": "Q", "value": "Q"
+        }, {
+            "name": "R", "value": "R"
+        }, {
+            "name": "S", "value": "S"
+        }, {
+            "name": "T", "value": "T"
+        }, {
+            "name": "U", "value": "U"
+        }, {
+            "name": "V", "value": "V"
+        }, {
+            "name": "W", "value": "W"
+        }, {
+            "name": "X", "value": "X"
+        }, {
+            "name": "Y", "value": "Y"
+        }, {
+            "name": "Z", "value": "Z"
+        }]
+    }, {
+        "name": "年份", "key": "year", "maxSelected": 1, "items": [{
+            "name": "2023", "value": "2023"
+        }, {
+            "name": "2022", "value": "2022"
+        }, {
+            "name": "2021", "value": "2021"
+        }, {
+            "name": "2020", "value": "2020"
+        }, {
+            "name": "2019", "value": "2019"
+        }, {
+            "name": "2018", "value": "2018"
+        }, {
+            "name": "2017", "value": "2017"
+        }, {
+            "name": "2016", "value": "2016"
+        }, {
+            "name": "2015", "value": "2015"
+        }, {
+            "name": "2014", "value": "2014"
+        }, {
+            "name": "2013", "value": "2013"
+        }, {
+            "name": "2012", "value": "2012"
+        }, {
+            "name": "2011", "value": "2011"
+        }, {
+            "name": "2010", "value": "2010"
+        }, {
+            "name": "2009", "value": "2009"
+        }, {
+            "name": "2008", "value": "2008"
+        }, {
+            "name": "2007", "value": "2007"
+        }, {
+            "name": "2006", "value": "2006"
+        }, {
+            "name": "2005", "value": "2005"
+        }, {
+            "name": "2004", "value": "2004"
+        }, {
+            "name": "2003", "value": "2003"
+        }, {
+            "name": "2002", "value": "2002"
+        }, {
+            "name": "2001", "value": "2001"
+        }, {
+            "name": "2000以前", "value": "2000以前"
+        }]
+    }, {
+        "name": "季度", "key": "season", "maxSelected": 1, "items": [{
+            "name": "1月", "value": "1月"
+        }, {
+            "name": "4月", "value": "4月"
+        }, {
+            "name": "7月", "value": "7月"
+        }, {
+            "name": "10月", "value": "10月"
+        }]
+    }, {
+        "name": "状态", "key": "status", "maxSelected": 1, "items": [{
+            "name": "连载", "value": "连载"
+        }, {
+            "name": "完结", "value": "完结"
+        }, {
+            "name": "未播放", "value": "未播放"
+        }]
+    }, {
+        "name": "类型", "key": "label", "maxSelected": 1, "items": [{
+            "name": "搞笑", "value": "搞笑"
+        }, {
+            "name": "运动", "value": "运动"
+        }, {
+            "name": "励志", "value": "励志"
+        }, {
+            "name": "热血", "value": "热血"
+        }, {
+            "name": "战斗", "value": "战斗"
+        }, {
+            "name": "竞技", "value": "竞技"
+        }, {
+            "name": "校园", "value": "校园"
+        }, {
+            "name": "青春", "value": "青春"
+        }, {
+            "name": "爱情", "value": "爱情"
+        }, {
+            "name": "冒险", "value": "冒险"
+        }, {
+            "name": "后宫", "value": "后宫"
+        }, {
+            "name": "百合", "value": "百合"
+        }, {
+            "name": "治愈", "value": "治愈"
+        }, {
+            "name": "萝莉", "value": "萝莉"
+        }, {
+            "name": "魔法", "value": "魔法"
+        }, {
+            "name": "悬疑", "value": "悬疑"
+        }, {
+            "name": "推理", "value": "推理"
+        }, {
+            "name": "奇幻", "value": "奇幻"
+        }, {
+            "name": "科幻", "value": "科幻"
+        }, {
+            "name": "游戏", "value": "游戏"
+        }, {
+            "name": "神魔", "value": "神魔"
+        }, {
+            "name": "恐怖", "value": "恐怖"
+        }, {
+            "name": "血腥", "value": "血腥"
+        }, {
+            "name": "机战", "value": "机战"
+        }, {
+            "name": "战争", "value": "战争"
+        }, {
+            "name": "犯罪", "value": "犯罪"
+        }, {
+            "name": "历史", "value": "历史"
+        }, {
+            "name": "社会", "value": "社会"
+        }, {
+            "name": "职场", "value": "职场"
+        }, {
+            "name": "剧情", "value": "剧情"
+        }, {
+            "name": "伪娘", "value": "伪娘"
+        }, {
+            "name": "耽美", "value": "耽美"
+        }, {
+            "name": "童年", "value": "童年"
+        }, {
+            "name": "教育", "value": "教育"
+        }, {
+            "name": "亲子", "value": "亲子"
+        }, {
+            "name": "真人", "value": "真人"
+        }, {
+            "name": "歌舞", "value": "歌舞"
+        }, {
+            "name": "肉番", "value": "肉番"
+        }, {
+            "name": "美少女", "value": "美少女"
+        }, {
+            "name": "轻小说", "value": "轻小说"
+        }, {
+            "name": "吸血鬼", "value": "吸血鬼"
+        }, {
+            "name": "女性向", "value": "女性向"
+        }, {
+            "name": "泡面番", "value": "泡面番"
+        }, {
+            "name": "欢乐向", "value": "欢乐向"
+        }]
+    }, {
+        "name": "排序", "key": "order", "maxSelected": 1, "items": [{
+            "name": "更新时间", "value": "更新时间"
+        }, {
+            "name": "名称", "value": "名称"
+        }, {
+            "name": "点击量", "value": "点击量"
         }]
     }]
 }
 
 /**
  * 搜索番剧列表
- * @param {number} pageIndex 当前页码
- * @param {number} pageSize 当前页数据量
+ * @param {number} pageIndex 当前页码(默认值1)
+ * @param {number} pageSize 当前页数据量(默认值25)
  * @param {string} keyword 搜索关键字
  * @returns {Array} [
  *         {
@@ -101,18 +342,17 @@ async function loadFilterList() {
  *     ]
  */
 async function searchAnimeList(pageIndex, pageSize, keyword) {
-    return [{
-        'name': '过滤项名称', 'key': '过滤项字段', 'maxSelected': 最大可选数量(int), 'items': [{
-            'name': '过滤项子项名称', 'value': '过滤项子项值'
-        }]
-    }]
+    let html = await requestText(getUri('/s_all', {
+        'pageindex': pageIndex, 'pagesize': pageSize, 'kw': keyword
+    }), getFetchOptions())
+    return parserAnimeList(html)
 }
 
 /**
  * **必填方法**
  * 获取首页番剧列表
- * @param {number} pageIndex 当前页码
- * @param {number} pageSize 当前页数据量
+ * @param {number} pageIndex 当前页码(默认值1)
+ * @param {number} pageSize 当前页数据量(默认值25)
  * @param {Map.<string,string>} filterSelect 用户选择的过滤条件(key：过滤项 value：过滤值)
  * @returns {Array} [
  *         {
@@ -126,14 +366,10 @@ async function searchAnimeList(pageIndex, pageSize, keyword) {
  *     ]
  */
 async function loadHomeList(pageIndex, pageSize, filterSelect) {
-    return [{
-        'name': '番剧名称',
-        'cover': '番剧封面',
-        'status': '当前状态（更新到xx集/已完结等）',
-        'types': '番剧类型（武侠/玄幻这种）',
-        'intro': '番剧介绍',
-        'url': '番剧详情页地址'
-    }]
+    let html = await requestText(getUri('/list/', {
+        'pageindex': pageIndex, 'pagesize': pageSize, ...filterSelect
+    }), getFetchOptions())
+    return parserAnimeList(html)
 }
 
 /**
@@ -161,20 +397,40 @@ async function loadHomeList(pageIndex, pageSize, filterSelect) {
  *     }
  */
 async function getAnimeDetail(animeUrl) {
+    let html = await requestText(animeUrl, getFetchOptions())
+    let info = await html
+        .querySelector('body > div:nth-child(3) > div.fire.l > div.rate.r')
+    let cover = await html
+        .querySelector('body > div:nth-child(3) > div.fire.l > div.thumb.l > img', 'src')
+    if (cover?.startsWith('//')) cover = `https:${cover}`
+    let resIndex = 10000;
+    let resources = []
+    let resList = await html.querySelectorAll('#main0 > div.movurl')
+    for (const i in resList) {
+        let index = 0
+        let temp = []
+        let items = await resList[i].querySelectorAll('ul > li > a')
+        for (const j in items) {
+            let item = items[j]
+            temp.push({
+                name: await item.querySelector('a', 'text'),
+                url: getUri(await item.querySelector('a', 'href')),
+                order: parseInt(`${resIndex}${index++}`),
+            })
+        }
+        if (temp.length > 0) resources.push(temp)
+    }
     return {
-        'url': '番剧详情页地址',
-        'name': '番剧名称',
-        'cover': '番剧封面',
-        'updateTime': '更新时间（不需要格式化）',
-        'region': '地区',
-        'types': '番剧类型（武侠/玄幻这种）',
-        'status': '当前状态（更新到xx集/已完结等）',
-        'intro': '番剧介绍',
-        'resources': [[{
-            'name': '资源名称',
-            'url': 'url资源地址（可以是目标页面的地址或者播放地址，在使用的时候会通过getPlayUrls结构进行转换）',
-            'order': 1,
-        }]],
+        url: animeUrl,
+        name: await info.querySelector('h1', 'text'),
+        cover: cover,
+        updateTime: (await info.querySelector('div.sinfo > span', 'text'))
+            .replaceAll(/\n|上映:/g, '').trim(),
+        region: await info.querySelector('div.sinfo > span:nth-child(5) > a', 'text'),
+        types: await info.querySelectorAll('div.sinfo > span:nth-child(7) > a', 'text'),
+        status: await info.querySelector('div.sinfo > p:nth-child(13)', 'text'),
+        intro: await html.querySelector('body > div:nth-child(3) > div.fire.l > div.info', 'text'),
+        resources: resources,
     }
 }
 
@@ -194,4 +450,26 @@ async function getPlayUrls(resourceUrls) {
     return [{
         'url': '资源地址（转换前）', 'playUrl': '播放/下载地址（转换后）'
     }]
+}
+
+async function parserAnimeList(html) {
+    let tempList = []
+    const selector = 'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li'
+    let lis = await html.querySelectorAll(selector)
+    for (const i in lis) {
+        const li = lis[i]
+        let cover = await li.querySelector('li > a > img', 'src')
+        if (cover?.startsWith('//')) cover = `https:${cover}`
+        tempList.push({
+            cover: cover,
+            name: await li.querySelector('h2 > a', 'text'),
+            status: await li.querySelector('span > font', 'text'),
+            types: (await li.querySelector('span:nth-child(7)', 'text'))
+                .replaceAll('类型：', '')
+                .split(' '),
+            intro: await li.querySelector('p', 'text'),
+            url: getUri(await li.querySelector('a:nth-child(1)', 'href')),
+        })
+    }
+    return tempList
 }

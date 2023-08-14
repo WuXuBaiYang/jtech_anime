@@ -232,27 +232,35 @@ class AnimeParserManage extends BaseManage {
   void _initialCustomFunctions() {
     // 从html中查询目标内容，返回集合
     _jsRuntime.onMessage('querySelectorAll', (args) {
-      final content = args['content'];
-      final selector = args['selector'];
-      return parse(content)
-          .querySelectorAll(selector)
-          .map((e) => e.outerHtml)
-          .toList();
+      final attr = args['attr'] ?? '';
+      final content = args['content'] ?? '';
+      final selector = args['selector'] ?? '';
+      if (content.isEmpty || selector.isEmpty) return null;
+      final results = parse(content).querySelectorAll(selector).map((e) {
+        if (attr.isEmpty) return e.outerHtml;
+        if (attr.contains(RegExp('text|textContent'))) {
+          return e.text;
+        }
+        return e.attributes[attr];
+      }).toList();
+      return results;
     });
     // 从html中查询目标内容，返回对象，不存在则返回空
     _jsRuntime.onMessage('querySelector', (args) {
-      final attr = args['attr'] ?? 'outerHtml';
-      final selector = args['selector'];
-      final content = args['content'];
+      final attr = args['attr'] ?? '';
+      final selector = args['selector'] ?? '';
+      final content = args['content'] ?? '';
+      if (content.isEmpty) return null;
       final doc = parse(content);
-      final item = doc.querySelector(selector);
+      final item = selector.isEmpty
+          ? doc.children.firstOrNull
+          : doc.querySelector(selector);
       if (item == null) return null;
+      if (attr.isEmpty) return item.outerHtml;
       if (attr.contains(RegExp('text|textContent'))) {
         return item.text;
-      } else if (attr != null || attr.isNotEmpty) {
-        return item.attributes[attr];
       }
-      return item.outerHtml;
+      return item.attributes[attr];
     });
   }
 
@@ -260,9 +268,9 @@ class AnimeParserManage extends BaseManage {
   String get _injectionMethods => [
         // 扩展string方法querySelectorAll
         '''
-        String.prototype.querySelectorAll = async function (selector) {
+        String.prototype.querySelectorAll = async function (selector, attr) {
             return sendMessage('querySelectorAll', JSON.stringify({
-                  "content": this, "selector": selector,
+                  "content": this, "selector": selector, "attr": attr
             }))
         }
         ''',
