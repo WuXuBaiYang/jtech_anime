@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_js/flutter_js.dart';
+import 'package:html/parser.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/manage/anime_parser/funtions.dart';
@@ -165,13 +166,14 @@ class AnimeParserManage extends BaseManage {
         final localFile = await _writeAnimeParserFile(source, resp.data);
         if (localFile == null) return null;
         fileUri = localFile.path;
-      } else if (fileUri.startsWith('asset')) {
-        // 如果是assets文件，则将文件复制到本地
-        final result = await rootBundle.loadString(fileUri);
-        final localFile = await _writeAnimeParserFile(source, result);
-        if (localFile == null) return null;
-        fileUri = localFile.path;
       }
+      // else if (fileUri.startsWith('asset')) {
+      //   // 如果是assets文件，则将文件复制到本地
+      //   final result = await rootBundle.loadString(fileUri);
+      //   final localFile = await _writeAnimeParserFile(source, result);
+      //   if (localFile == null) return null;
+      //   fileUri = localFile.path;
+      // }
       // 将本地文件路径写入到数据库
       return db.updateAnimeSource(source..fileUri = fileUri);
     } catch (e) {
@@ -214,6 +216,7 @@ class AnimeParserManage extends BaseManage {
     final params = request.to();
     final function = request.function.getCaseFunction(params);
     final result = await _jsRuntime.evaluateAsync('''
+          $_injectionMethods
           $sourceCode
           async function doJSFunction() {
               let result = await $function
@@ -221,7 +224,6 @@ class AnimeParserManage extends BaseManage {
           }
           doJSFunction()
     ''');
-
     _jsRuntime.executePendingJob();
     return (await _jsRuntime.handlePromise(result)).stringResult;
   }
@@ -229,14 +231,72 @@ class AnimeParserManage extends BaseManage {
   // 初始化自定义方法
   void _initialCustomFunctions() {
     // 从html中查询目标内容，返回集合
-    _jsRuntime.onMessage('querySelectorAll', (args){
-
+    _jsRuntime.onMessage('querySelectorAll', (args) {
+      final content = args['content'];
+      final selector = args['selector'];
+      return parse(content)
+          .querySelectorAll(selector)
+          .map((e) => e.outerHtml)
+          .toList();
     });
     // 从html中查询目标内容，返回对象，不存在则返回空
     _jsRuntime.onMessage('querySelector', (args) {
-
+      final attr = args['attr'] ?? 'outerHtml';
+      final selector = args['selector'];
+      final content = args['content'];
+      final doc = parse(content);
+      final item = doc.querySelector(selector);
+      if (item == null) return null;
+      if (attr.contains(RegExp('text|textContent'))) {
+        return item.text;
+      } else if (attr != null || attr.isNotEmpty) {
+        return item.attributes[attr];
+      }
+      return item.outerHtml;
     });
   }
+
+  // 注入方法
+  String get _injectionMethods => [
+        // 扩展string方法querySelectorAll
+        '''
+        String.prototype.querySelectorAll = async function (selector) {
+            return sendMessage('querySelectorAll', JSON.stringify({
+                  "content": this, "selector": selector,
+            }))
+        }
+        ''',
+        // 扩展string方法querySelector
+        '''
+        String.prototype.querySelector = async function (selector, attr) {
+            return sendMessage('querySelector', JSON.stringify({
+                  "content": this, "selector": selector, "attr": attr
+            }))
+        }
+        ''',
+        // 请求
+        '''
+        async function request(url, options) {
+            let resp = await fetch(url, options)
+            if (!resp.ok) throw new Error('请求失败,请重试')
+            return resp
+        }
+    ''',
+        // 请求返回字符串
+        '''
+        async function requestText(url, options) {
+            let resp = await request(url, options);
+            return resp.text()
+        }
+    ''',
+        // 请求返回json
+        '''   
+        async function requestJson(url, options) {
+            let resp = await request(url, options);
+            return resp.json()
+        }
+    '''
+      ].join('\n');
 }
 
 // 单例调用

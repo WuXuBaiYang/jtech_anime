@@ -28,16 +28,27 @@ class TimeTableModel extends BaseModel {
   final List<TimeTableItemModel> sunday;
 
   TimeTableModel.from(obj)
-      : monday = (obj['monday'] ?? []).map(TimeTableItemModel.from).toList(),
-        tuesday = (obj['tuesday'] ?? []).map(TimeTableItemModel.from).toList(),
-        wednesday =
-            (obj['wednesday'] ?? []).map(TimeTableItemModel.from).toList(),
-        thursday =
-            (obj['thursday'] ?? []).map(TimeTableItemModel.from).toList(),
-        friday = (obj['friday'] ?? []).map(TimeTableItemModel.from).toList(),
-        saturday =
-            (obj['saturday'] ?? []).map(TimeTableItemModel.from).toList(),
-        sunday = (obj['sunday'] ?? []).map(TimeTableItemModel.from).toList();
+      : monday = (obj['monday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList(),
+        tuesday = (obj['tuesday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList(),
+        wednesday = (obj['wednesday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList(),
+        thursday = (obj['thursday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList(),
+        friday = (obj['friday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList(),
+        saturday = (obj['saturday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList(),
+        sunday = (obj['sunday'] ?? [])
+            .map<TimeTableItemModel>(TimeTableItemModel.from)
+            .toList();
 
   // 根据下标获取对应周天的番剧列表
   List<TimeTableItemModel> getAnimeListByWeekday(int weekday) =>

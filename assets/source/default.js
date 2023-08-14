@@ -1,15 +1,15 @@
-
-
 function getFetchOptions() {
     return {
         method: 'GET',
         host: 'www.yhdmz.org',
         responseType: 'plain',
         contentType: 'text/html; charset=utf-8',
-        userAgent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-            '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
     }
+}
+
+function getBaseUrl() {
+    return 'https://www.yhdmz.org'
 }
 
 /**
@@ -25,20 +25,23 @@ function getFetchOptions() {
  *     }
  */
 async function getTimeTable() {
-    let resp = await fetch('https://www.yhdmz.org', getFetchOptions())
-    if (!resp.ok) throw new Error('请求失败,请重试')
-    const doc = createDocument(resp.text())
-    const selector = 'body > div.area > div.side.r > div.bg > div.tlist > ul'
+    let html = await requestText(getBaseUrl(), getFetchOptions())
     let tempList = []
-    for (const ul in doc.querySelectorAll(selector)) {
+    const selector = 'body > div.area > div.side.r > div.bg > div.tlist > ul'
+    let uls = await html.querySelectorAll(selector)
+    for (const i in uls) {
+        const ul = uls[i]
         let temp = []
-        for (const li in ul.querySelectorAll('li')) {
-            const status = li.querySelectorAll('a')[0].textContent
-            temp.add({
-                'name': li.querySelectorAll('a')[1].textContent,
-                'url': li.querySelectorAll('a')[1].href,
+        let lis = await ul.querySelectorAll('li')
+        for (const j in lis) {
+            const li = lis[j]
+            const status = await li.querySelector('a:nth-child(1)', 'text')
+            const path = await li.querySelector('a:nth-child(3)', 'href')
+            temp.push({
+                'name': await li.querySelector('a:nth-child(3)', 'text'),
+                'url': getBaseUrl() + path,
                 'status': status.replaceAll('new', '').trim(),
-                'isUpdate': status.contains('new'),
+                'isUpdate': status.includes('new'),
             });
         }
         tempList.push(temp)
