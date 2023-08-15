@@ -70,7 +70,6 @@ class _PlayRecordPageState
         return CustomRefreshView(
           enableRefresh: true,
           enableLoadMore: true,
-          initialRefresh: true,
           onRefresh: (loadMore) => logic.loadPlayRecords(loadMore),
           child: Stack(
             children: [
@@ -160,6 +159,13 @@ class _PlayRecordLogic extends BaseLogic {
 
   // 当前页码
   var _pageIndex = 1;
+
+  @override
+  void init() {
+    super.init();
+    // 初始化加载收藏列表
+    loadPlayRecords(false);
+  }
 
   // 加载播放记录
   Future<void> loadPlayRecords(bool loadMore) async {

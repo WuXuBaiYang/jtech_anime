@@ -51,7 +51,6 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
     return CustomRefreshView(
       enableRefresh: true,
       enableLoadMore: true,
-      initialRefresh: true,
       onRefresh: (loadMore) => logic.loadCollectList(loadMore),
       child: ValueListenableBuilder<List<Collect>>(
         valueListenable: logic.collectList,
@@ -157,6 +156,13 @@ class _CollectLogic extends BaseLogic {
 
   // 当前页码
   int _pageIndex = 1;
+
+  @override
+  void init() {
+    super.init();
+    // 初始化加载收藏列表
+    loadCollectList(false);
+  }
 
   // 加载收藏列表
   Future<void> loadCollectList(bool loadMore) async {
