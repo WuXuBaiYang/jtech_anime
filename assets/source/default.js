@@ -37,6 +37,7 @@ function getUri(path, params) {
  */
 async function getTimeTable() {
     let resp = await request(getUri(), getFetchOptions())
+    if (!resp.ok) throw new Error('时间表获取失败，请重试')
     let tempList = []
     const selector = 'body > div.area > div.side.r > div.bg > div.tlist > ul'
     let uls = await resp.doc.querySelectorAll(selector)
@@ -344,8 +345,12 @@ async function loadFilterList() {
  */
 async function searchAnimeList(pageIndex, pageSize, keyword) {
     let resp = await request(getUri('/s_all', {
-        'pageindex': pageIndex, 'pagesize': pageSize, 'kw': keyword
+        'pageindex': pageIndex - 1, 'pagesize': pageSize, 'kw': keyword
     }), getFetchOptions())
+    if (!resp.ok) {
+        if (resp.code === 404) return []
+        throw new Error('番剧搜索失败，请重试')
+    }
     return parserAnimeList(resp.doc)
 }
 
@@ -368,8 +373,12 @@ async function searchAnimeList(pageIndex, pageSize, keyword) {
  */
 async function loadHomeList(pageIndex, pageSize, filterSelect) {
     let resp = await request(getUri('/list/', {
-        'pageindex': pageIndex, 'pagesize': pageSize, ...filterSelect
+        'pageindex': pageIndex - 1, 'pagesize': pageSize, ...filterSelect
     }), getFetchOptions())
+    if (!resp.ok) {
+        if (resp.code === 404) return []
+        throw new Error('番剧搜索失败，请重试')
+    }
     return parserAnimeList(resp.doc)
 }
 
@@ -399,6 +408,7 @@ async function loadHomeList(pageIndex, pageSize, filterSelect) {
  */
 async function getAnimeDetail(animeUrl) {
     let resp = await request(animeUrl, getFetchOptions())
+    if (!resp.ok) throw new Error('获取番剧详情失败，请重试')
     let info = await resp.doc
         .querySelector('body > div:nth-child(3) > div.fire.l > div.rate.r')
     let cover = await resp.doc
@@ -455,6 +465,7 @@ async function getPlayUrls(resourceUrls) {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
     }
     let resp = await request(resourceUrls[0], {method: 'HEAD', headers: headers})
+    if (!resp.ok) throw new Error('获取播放地址失败，请重试')
     headers['Cookie'] = resp.headers['set-cookie']
     let tempList = []
     for (const i in resourceUrls) {
@@ -465,6 +476,7 @@ async function getPlayUrls(resourceUrls) {
         }), {
             method: 'GET', headers: {'Referer': url, ...headers}
         })
+        if (!resp.ok) return new Error('番剧播放地址获取失败，请重试')
         if (resp.text.startsWith('ipchk')) throw new Error('ip检查失败')
         tempList.push({
             url: url, playUrl: decodeURIComponent(playUrl('', url, 0x0, resp.text))

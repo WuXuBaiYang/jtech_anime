@@ -236,13 +236,21 @@ class AnimeParserManage extends BaseManage {
       final url = args['url'] ?? '';
       final options = args['options'] ?? {};
       if (url.isEmpty) return null;
-      final resp = await Dio().request(url,
+      Response? resp;
+      try {
+        resp = await Dio().request(
+          url,
           queryParameters: options['query'],
           options: Options(
             headers: options['headers'],
             method: options['method'] ?? 'GET',
             responseType: ResponseType.bytes,
-          ));
+          ),
+        );
+      } on DioException catch (error) {
+        resp = error.response;
+      }
+      if (resp == null) return null;
       final contentEncoding = resp.headers['Content-Encoding']?.join(';');
       // 如果是br压缩则
       String data = resp.data.isNotEmpty
@@ -260,6 +268,7 @@ class AnimeParserManage extends BaseManage {
       return {
         'ok': resp.statusCode == 200,
         'error': resp.statusMessage,
+        'code': resp.statusCode,
         'headers': headers,
         'json': json,
         'text': data,
@@ -321,11 +330,9 @@ class AnimeParserManage extends BaseManage {
         // 请求
         '''
         async function request(url, options) {
-            let resp = await sendMessage('request', JSON.stringify({
+            return sendMessage('request', JSON.stringify({
                   "url": url, "options": options
             }))
-            if (!resp.ok) throw new Error('请求失败,请重试')
-            return resp
         }
         ''',
       ].join('\n');

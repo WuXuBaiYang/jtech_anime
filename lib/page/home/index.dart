@@ -386,6 +386,9 @@ class _HomeLogic extends BaseLogic {
         filterSelect: filterSelect,
       );
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
+      if (loadMore && result.isEmpty) {
+        SnackTool.showMessage(message: '没有更多番剧了~');
+      }
       _pageIndex = pageIndex;
     } catch (e) {
       SnackTool.showMessage(message: '番剧加载失败，请重试~');

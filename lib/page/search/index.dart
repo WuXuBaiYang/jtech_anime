@@ -301,6 +301,9 @@ class _SearchLogic extends BaseLogic {
       final result = await animeParser.searchAnimeList(keyword,
           pageIndex: pageIndex, pageSize: _pageSize);
       loadMore ? searchList.addValues(result) : searchList.setValue(result);
+      if (loadMore && result.isEmpty) {
+        SnackTool.showMessage(message: '没有更多番剧了~');
+      }
       _pageIndex = pageIndex;
     } catch (e) {
       SnackTool.showMessage(message: '搜索请求失败，请重试~');
