@@ -257,6 +257,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
         // 获取视频缓存
         final videoCaches = await animeParser.getPlayUrls(
             selectList..sort((l, r) => l.order.compareTo(r.order)));
+        if (videoCaches.isEmpty) throw Exception('视频加载失败');
         // 将视频缓存封装为下载记录结构
         final downloadRecords = videoCaches
             .map((e) => DownloadRecord()

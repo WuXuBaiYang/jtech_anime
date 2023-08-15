@@ -215,11 +215,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
         final task = downloadTask?.getDownloadTaskItem(record);
         final speedText =
             task != null ? '  ·  ${FileTool.formatSize(task.speed)}' : '';
-        IconData statusIcon = task != null
-            ? FontAwesomeIcons.pause
-            : (download.inWaitingBuffed(record)
-                ? FontAwesomeIcons.hourglass
-                : FontAwesomeIcons.play);
         return Padding(
           padding:
               const EdgeInsets.symmetric(horizontal: 4).copyWith(bottom: 4),
@@ -249,7 +244,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
                     alignment: Alignment.centerRight,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: Icon(statusIcon, color: kPrimaryColor, size: 22),
+                      child: Icon(_getDownloadingStatusIcon(task, record),
+                          color: kPrimaryColor, size: 22),
                     ),
                   ),
                 ],
@@ -263,6 +259,16 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
         );
       },
     );
+  }
+
+  // 获取当前下载状态图标
+  IconData _getDownloadingStatusIcon(
+      DownloadTaskItem? task, DownloadRecord record) {
+    if (task != null) return FontAwesomeIcons.pause;
+    if (download.inWaitingBuffed(record) || download.inPrepareQueue(record)) {
+      return FontAwesomeIcons.hourglass;
+    }
+    return FontAwesomeIcons.play;
   }
 
   // 构建分组项已下载列表

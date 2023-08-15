@@ -469,18 +469,22 @@ async function getPlayUrls(resourceUrls) {
     headers['Cookie'] = resp.headers['set-cookie']
     let tempList = []
     for (const i in resourceUrls) {
-        const url = resourceUrls[i]
-        let keys = url.split('/').pop().replaceAll('.html', '').split('-')
-        let resp = await request(getUri('/playurl', {
-            aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()
-        }), {
-            method: 'GET', headers: {'Referer': url, ...headers}
-        })
-        if (!resp.ok) return new Error('番剧播放地址获取失败，请重试')
-        if (resp.text.startsWith('ipchk')) throw new Error('ip检查失败')
-        tempList.push({
-            url: url, playUrl: decodeURIComponent(playUrl('', url, 0x0, resp.text))
-        })
+        try {
+            const url = resourceUrls[i]
+            let keys = url.split('/').pop().replaceAll('.html', '').split('-')
+            let resp = await request(getUri('/playurl', {
+                aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()
+            }), {
+                method: 'GET', headers: {'Referer': url, ...headers}
+            })
+            if (!resp.ok) continue
+            if (resp.text.startsWith('ipchk') || resp.text.endsWith('404.mp4')) continue
+            tempList.push({
+                url: url, playUrl: decodeURIComponent(playUrl('', url, 0x0, resp.text))
+            })
+        } catch (e) {
+            throw e
+        }
     }
     return tempList
 }
