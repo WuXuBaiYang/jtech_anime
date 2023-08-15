@@ -348,7 +348,7 @@ final animeParser = AnimeParserManage();
 */
 class SourceChangeEvent extends EventModel {
   // 当前的数据源配置
-  final AnimeSource source;
+  final AnimeSource? source;
 
   SourceChangeEvent(this.source);
 }

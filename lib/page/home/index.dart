@@ -5,14 +5,17 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
+import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
+import 'package:jtech_anime/model/database/source.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
@@ -99,15 +102,16 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 构建搜索按钮
   Widget _buildSearchButton() {
     const color = Colors.black38;
-    const textStyle = TextStyle(color: color, fontSize: 16);
+    // const textStyle = TextStyle(color: color, fontSize: 16);
     return Padding(
       padding: const EdgeInsets.only(left: 8),
       child: ElevatedButton(
         child: const Row(
           children: [
             Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
-            SizedBox(width: 8),
-            Text('嗖嗖嗖~', style: textStyle),
+            // 因为空间不够，展示不开了,所以隐藏下面提示
+            // SizedBox(width: 8),
+            // Text('嗖~', style: textStyle),
           ],
         ),
         onPressed: () => router.pushNamed(RoutePath.search),
@@ -118,6 +122,20 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 获取标题栏动作按钮集合
   List<Widget> _getAppbarActions(int showChildIndex) {
     return [
+      StreamBuilder<SourceChangeEvent>(
+        initialData: SourceChangeEvent(animeParser.currentSource),
+        stream: event.on<SourceChangeEvent>(),
+        builder: (_, snap) {
+          final source = snap.data?.source;
+          if (source == null) return const SizedBox();
+          return IconButton(
+            icon: CircleAvatar(
+              child: _buildSourceIcon(source),
+            ),
+            onPressed: () {},
+          );
+        },
+      ),
       IconButton(
         icon: const Icon(FontAwesomeIcons.heart),
         onPressed: () => router.pushNamed(RoutePath.collect),
@@ -139,6 +157,16 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         ),
       ),
     ];
+  }
+
+  // 构建数据源图标
+  Widget _buildSourceIcon(AnimeSource source) {
+    if (source.logoUrl.isNotEmpty) {
+      return ImageView.net(source.logoUrl);
+    }
+    if(source.name.isem
+    )
+    return const SizedBox();
   }
 
   // 构建番剧过滤配置组件
