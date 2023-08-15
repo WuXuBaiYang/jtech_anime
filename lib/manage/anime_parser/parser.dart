@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:brotli/brotli.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_js/flutter_js.dart';
@@ -230,6 +231,41 @@ class AnimeParserManage extends BaseManage {
 
   // 初始化自定义方法
   void _initialCustomFunctions() {
+    // 网络请求事件
+    _jsRuntime.onMessage('request', (args) async {
+      final url = args['url'] ?? '';
+      final options = args['options'] ?? {};
+      if (url.isEmpty) return null;
+      final resp = await Dio().request(url,
+          queryParameters: options['query'],
+          options: Options(
+            headers: options['headers'],
+            method: options['method'] ?? 'GET',
+            responseType: ResponseType.bytes,
+          ));
+      final contentEncoding = resp.headers['Content-Encoding']?.join(';');
+      // 如果是br压缩则
+      String data = resp.data.isNotEmpty
+          ? (contentEncoding == 'br'
+              ? brotli.decodeToString(resp.data)
+              : utf8.decode(resp.data))
+          : '';
+      dynamic json;
+      try {
+        json = jsonDecode(data);
+      } catch (_) {}
+      final headers = resp.headers.map.map(
+        (k, v) => MapEntry(k, v.join(';')),
+      );
+      return {
+        'ok': resp.statusCode == 200,
+        'error': resp.statusMessage,
+        'headers': headers,
+        'json': json,
+        'text': data,
+        'doc': data,
+      };
+    });
     // 从html中查询目标内容，返回集合
     _jsRuntime.onMessage('querySelectorAll', (args) {
       final attr = args['attr'] ?? '';
@@ -285,25 +321,13 @@ class AnimeParserManage extends BaseManage {
         // 请求
         '''
         async function request(url, options) {
-            let resp = await fetch(url, options)
+            let resp = await sendMessage('request', JSON.stringify({
+                  "url": url, "options": options
+            }))
             if (!resp.ok) throw new Error('请求失败,请重试')
             return resp
         }
-    ''',
-        // 请求返回字符串
-        '''
-        async function requestText(url, options) {
-            let resp = await request(url, options);
-            return resp.text()
-        }
-    ''',
-        // 请求返回json
-        '''   
-        async function requestJson(url, options) {
-            let resp = await request(url, options);
-            return resp.json()
-        }
-    '''
+        ''',
       ].join('\n');
 }
 

@@ -116,6 +116,9 @@ dependencies:
   # js运行时
   flutter_js: ^0.8.0
 
+  # br解压缩
+  brotli: ^0.6.0
+
   # html解析方法
   html: ^0.15.4
 
