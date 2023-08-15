@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:jtech_anime/tool/file.dart';
 
 /*
 * 静态资源/通用静态变量
