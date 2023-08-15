@@ -70,11 +70,9 @@ class AnimeModel extends BaseModel {
         'intro': intro,
         'updateTime': updateTime,
         'url': url,
-        'resources': resources
-            .map(
-              (e) => e.map((e) => e.to()),
-            )
-            .toList(),
+        'resources': resources.map((e) {
+          return e.map((e) => e.to()).toList();
+        }).toList(),
       };
 }
 

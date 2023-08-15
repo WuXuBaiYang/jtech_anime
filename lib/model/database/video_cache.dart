@@ -22,4 +22,11 @@ class VideoCache {
   // 原始资源信息
   @Ignore()
   ResourceItemModel? item;
+
+  static VideoCache from(obj, [ResourceItemModel? item]) {
+    return VideoCache()
+      ..url = obj['url'] ?? ''
+      ..playUrl = obj['playUrl'] ?? ''
+      ..item = item;
+  }
 }

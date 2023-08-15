@@ -4,8 +4,8 @@ import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
@@ -51,7 +51,6 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
     return CustomRefreshView(
       enableRefresh: true,
       enableLoadMore: true,
-      initialRefresh: true,
       onRefresh: (loadMore) => logic.loadCollectList(loadMore),
       child: ValueListenableBuilder<List<Collect>>(
         valueListenable: logic.collectList,
@@ -158,16 +157,22 @@ class _CollectLogic extends BaseLogic {
   // 当前页码
   int _pageIndex = 1;
 
+  @override
+  void init() {
+    super.init();
+    // 初始化加载收藏列表
+    loadCollectList(false);
+  }
+
   // 加载收藏列表
   Future<void> loadCollectList(bool loadMore) async {
     if (isLoading) return;
     try {
       loading.setValue(true);
       final index = loadMore ? _pageIndex + 1 : 1;
-      final result = await db.getCollectList(
-        parserHandle.currentSource,
-        pageIndex: index,
-      );
+      final source = animeParser.currentSource;
+      if (source == null) throw Exception('数据源不存在');
+      final result = await db.getCollectList(source, pageIndex: index);
       if (result.isNotEmpty) {
         _pageIndex = index;
         return loadMore
@@ -213,8 +218,9 @@ class _CollectLogic extends BaseLogic {
   // 更新收藏项排序
   Future<void> updateCollectOrder(Collect item, int to) async {
     try {
-      await db.updateCollectOrder(item.url,
-          source: parserHandle.currentSource, to: to);
+      final source = animeParser.currentSource;
+      if (source == null) return;
+      await db.updateCollectOrder(item.url, source: source, to: to);
     } catch (e) {
       SnackTool.showMessage(message: '排序更新失败,请重试~');
     }

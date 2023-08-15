@@ -29,7 +29,7 @@ doc/api/
 
 *.g.dart
 
-assets/filter/update_config.json
+assets/source/update_config.json
 publish
 publish/keystore
-assets/filter/update_config.json
+assets/source/update_config.json

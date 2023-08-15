@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
@@ -209,7 +209,7 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
   // 构建过滤配置列表
   Widget _buildFilterConfigList() {
     return CacheFutureBuilder<List<AnimeFilterModel>>(
-      future: parserHandle.loadFilterList,
+      future: animeParser.loadFilterList,
       builder: (_, snap) {
         if (!snap.hasData) return const SizedBox();
         final dataList = snap.data ?? [];
@@ -262,12 +262,14 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
           label: Text(sub.name),
           selected: selectItem != null,
           onSelected: (v) {
+            final source = animeParser.currentSource;
+            if (source == null) return;
             selectItem ??= FilterSelect()
               ..key = item.key
               ..value = sub.value
               ..parentName = item.name
               ..name = sub.name
-              ..source = parserHandle.currentSource;
+              ..source = source.key;
             widget.filterSelect(v, selectItem!, item.maxSelected);
           },
         );

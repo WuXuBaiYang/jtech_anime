@@ -4,7 +4,7 @@ import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
@@ -200,20 +200,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
 
   // 构建时间轴tabView
   Widget _buildTimetableTabView() {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<TimeTableModel?>(
       valueListenable: logic.timetableDataList,
-      builder: (_, dataList, __) {
-        if (dataList.isEmpty) {
-          return const Center(
-            child: StatusBox(
-              status: StatusBoxStatus.empty,
-            ),
-          );
-        }
+      builder: (_, timeTable, __) {
+        if (timeTable == null) return _buildEmpty();
         return TabBarView(
           controller: timetableTabController,
           children: List.generate(timetableTabController.length, (i) {
-            final items = i >= dataList.length ? [] : dataList[i];
+            final items = timeTable.getAnimeListByWeekday(i);
             return ListView.builder(
               primary: false,
               itemCount: items.length,
@@ -221,24 +215,19 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
               itemBuilder: (_, i) {
                 final item = items[i];
                 final updateIcon = item.isUpdate
-                    ? const Icon(
-                        FontAwesomeIcons.seedling,
-                        color: Colors.green,
-                        size: 18,
-                      )
+                    ? const Icon(FontAwesomeIcons.seedling,
+                        color: Colors.green, size: 18)
                     : null;
                 return ListTile(
                   dense: true,
                   trailing: updateIcon,
                   title: Text(item.name),
                   subtitle: Text(item.status),
-                  onTap: () {
-                    logic.goDetail(AnimeModel.from({
-                      'name': item.name,
-                      'url': item.url,
-                      'status': item.status,
-                    }));
-                  },
+                  onTap: () => logic.goDetail(AnimeModel.from({
+                    'name': item.name,
+                    'url': item.url,
+                    'status': item.status,
+                  })),
                 );
               },
             );
@@ -333,6 +322,15 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       onTap: () => logic.goDetail(item),
     );
   }
+
+  // 构建空内容
+  Widget _buildEmpty() {
+    return const Center(
+      child: StatusBox(
+        status: StatusBoxStatus.empty,
+      ),
+    );
+  }
 }
 
 /*
@@ -345,8 +343,7 @@ class _HomeLogic extends BaseLogic {
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
   // 时间轴数据
-  final timetableDataList =
-      ListValueChangeNotifier<List<TimeTableItemModel>>.empty();
+  final timetableDataList = ValueChangeNotifier<TimeTableModel?>(null);
 
   // 记录过滤条件
   final filterSelect = MapValueChangeNotifier<String, FilterSelect>.empty();
@@ -356,6 +353,12 @@ class _HomeLogic extends BaseLogic {
 
   // 动漫列表滚动控制器
   final animeController = ScrollController();
+
+  // 维护分页页码
+  int _pageIndex = 1;
+
+  // 维护分页数据量
+  final _pageSize = 25;
 
   @override
   void init() {
@@ -371,12 +374,22 @@ class _HomeLogic extends BaseLogic {
     if (isLoading) return;
     try {
       loading.setValue(true);
-      final filters = await db.getFilterSelectList(parserHandle.currentSource);
-      final params = filters.asMap().map((_, v) => MapEntry(v.key, v.value));
-      final result = await (loadMore
-          ? parserHandle.loadAnimeListNextPage(params: params)
-          : parserHandle.loadAnimeList(params: params));
+      final source = animeParser.currentSource;
+      if (source == null) throw Exception('数据源不存在');
+      final filters = await db.getFilterSelectList(source);
+      final filterSelect =
+          filters.asMap().map((_, v) => MapEntry(v.key, v.value));
+      final pageIndex = loadMore ? _pageIndex + 1 : 1;
+      final result = await animeParser.loadHomeList(
+        pageIndex: pageIndex,
+        pageSize: _pageSize,
+        filterSelect: filterSelect,
+      );
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
+      if (loadMore && result.isEmpty) {
+        SnackTool.showMessage(message: '没有更多番剧了~');
+      }
+      _pageIndex = pageIndex;
     } catch (e) {
       SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {
@@ -386,13 +399,15 @@ class _HomeLogic extends BaseLogic {
 
   // 加载时间轴数据
   Future<void> _loadTimetableDataList() async {
-    final result = await parserHandle.loadAnimeTimeTable();
+    final result = await animeParser.getTimeTable();
     timetableDataList.setValue(result);
   }
 
   // 加载过滤条件配置
   Future<void> _loadFilterConfig() async {
-    final result = await db.getFilterSelectList(parserHandle.currentSource);
+    final source = animeParser.currentSource;
+    if (source == null) return;
+    final result = await db.getFilterSelectList(source);
     filterSelect.setValue(result.asMap().map<String, FilterSelect>(
           (_, v) => MapEntry(_genFilterKey(v), v),
         ));

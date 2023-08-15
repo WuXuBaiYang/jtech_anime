@@ -6,7 +6,7 @@ import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/parser.dart';
+import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
@@ -206,9 +206,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
   }
 
   // 加载下载记录表
-  Future<Map<String, DownloadRecord>> _loadDownloadRecordMap() {
+  Future<Map<String, DownloadRecord>> _loadDownloadRecordMap() async {
+    final source = animeParser.currentSource;
+    if (source == null) return {};
     return db.getDownloadRecordList(
-      parserHandle.currentSource,
+      source,
       animeList: [widget.animeInfo.url],
     ).then((v) => v.asMap().map((_, v) => MapEntry(v.resUrl, v)));
   }
@@ -247,28 +249,26 @@ class _DownloadSheetState extends State<DownloadSheet> {
     if (widget.checkNetwork.value &&
         await Tool.checkNetworkInMobile() &&
         !await _showNetworkStatusDialog(context)) return;
-    final title = ValueChangeNotifier<String>('');
-    title.setValue('正在解析(1/${selectResources.length})');
     return Loading.show<void>(
-      title: title,
       loadFuture: Future(() async {
+        final source = animeParser.currentSource;
+        if (source == null) return;
         final selectList = selectResources.value;
         // 获取视频缓存
-        final videoCaches = await parserHandle.getAnimeVideoCache(
-          progress: (count, total) => title.setValue('正在解析($count/$total)'),
-          selectList..sort((l, r) => l.order.compareTo(r.order)),
-        );
+        final videoCaches = await animeParser.getPlayUrls(
+            selectList..sort((l, r) => l.order.compareTo(r.order)));
+        if (videoCaches.isEmpty) throw Exception('视频加载失败');
         // 将视频缓存封装为下载记录结构
         final downloadRecords = videoCaches
             .map((e) => DownloadRecord()
-              ..title = widget.animeInfo.name
-              ..cover = widget.animeInfo.cover
-              ..url = widget.animeInfo.url
-              ..source = parserHandle.currentSource
               ..resUrl = e.url
+              ..source = source.key
               ..downloadUrl = e.playUrl
               ..name = e.item?.name ?? ''
-              ..order = e.item?.order ?? 0)
+              ..order = e.item?.order ?? 0
+              ..url = widget.animeInfo.url
+              ..title = widget.animeInfo.name
+              ..cover = widget.animeInfo.cover)
             .toList();
         // 使用下载记录启动下载
         final results = await download.startTasks(downloadRecords);
@@ -283,6 +283,8 @@ class _DownloadSheetState extends State<DownloadSheet> {
         cacheController.refreshValue();
         selectResources.setValue([]);
       }),
-    );
+    )?.catchError((_) {
+      SnackTool.showMessage(message: '资源解析异常,请更换资源重试');
+    });
   }
 }
