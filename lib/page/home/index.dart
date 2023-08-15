@@ -130,9 +130,12 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           if (source == null) return const SizedBox();
           return IconButton(
             icon: CircleAvatar(
+              backgroundColor: Colors.white,
               child: _buildSourceIcon(source),
             ),
-            onPressed: () {},
+            onPressed: () {
+              /// 弹出资源选择导入弹窗
+            },
           );
         },
       ),
@@ -162,10 +165,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 构建数据源图标
   Widget _buildSourceIcon(AnimeSource source) {
     if (source.logoUrl.isNotEmpty) {
-      return ImageView.net(source.logoUrl);
+      return ImageView.net(source.logoUrl, size: 20);
     }
-    if(source.name.isem
-    )
+    if (source.name.isNotEmpty) {
+      return Text(source.name.substring(0, 1));
+    }
+    if (source.key.isNotEmpty) {
+      return Text(source.key.substring(0, 1));
+    }
     return const SizedBox();
   }
 
