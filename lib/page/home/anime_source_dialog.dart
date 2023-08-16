@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -78,34 +76,5 @@ class _AnimeSourceDialogState extends State<AnimeSourceDialog> {
       return router.pop(source);
     }
     SnackTool.showMessage(message: '解析源切换失败');
-  }
-
-  // 展示扫码sheet
-  Future<Map<String, dynamic>?> _showQRScanSheet(BuildContext context) {
-    return showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      builder: (_) {
-        return Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          clipBehavior: Clip.hardEdge,
-          child: ListView(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            children: [
-              if (Platform.isAndroid || Platform.isIOS)
-                ListTile(
-                  title: const Text('扫码'),
-                  onTap: () => _pickImage(ImageSource.camera),
-                ),
-              ListTile(
-                title: const Text('从相册中选择'),
-                onTap: () => _pickImage(ImageSource.gallery),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 }
