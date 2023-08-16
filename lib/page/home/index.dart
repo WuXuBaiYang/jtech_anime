@@ -7,18 +7,19 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
-import 'package:jtech_anime/model/database/source.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
+import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+
+import 'anime_source_dialog.dart';
 
 /*
 * 首页
@@ -67,7 +68,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
             return Scaffold(
               appBar: AppBar(
                 title: _buildSearchButton(),
-                actions: _getAppbarActions(showChildIndex),
+                actions: _getAppbarActions(context, showChildIndex),
                 bottom: (showChildIndex != 0 || filterSelect.isNotEmpty)
                     ? PreferredSize(
                         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -78,20 +79,20 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
                       )
                     : null,
               ),
-              body: IndexedStack(
-                index: showChildIndex,
-                children: [
-                  AnimeFilterConfigMenu(
-                    complete: () => Loading.show(
-                      loadFuture: logic.loadAnimeList(false),
-                    )?.then((_) => logic.animeController.jumpTo(0)),
-                    filterConfig: logic.filterSelect,
-                    filterSelect: logic.selectFilterConfig,
-                    body: _buildAnimeList(),
-                  ),
-                  _buildTimetableTabView(),
-                ],
-              ),
+              // body: IndexedStack(
+              //   index: showChildIndex,
+              //   children: [
+              //     AnimeFilterConfigMenu(
+              //       complete: () => Loading.show(
+              //         loadFuture: logic.loadAnimeList(false),
+              //       )?.then((_) => logic.animeController.jumpTo(0)),
+              //       filterConfig: logic.filterSelect,
+              //       filterSelect: logic.selectFilterConfig,
+              //       body: _buildAnimeList(),
+              //     ),
+              //     _buildTimetableTabView(),
+              //   ],
+              // ),
             );
           },
         );
@@ -120,7 +121,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   }
 
   // 获取标题栏动作按钮集合
-  List<Widget> _getAppbarActions(int showChildIndex) {
+  List<Widget> _getAppbarActions(BuildContext context, int showChildIndex) {
     return [
       StreamBuilder<SourceChangeEvent>(
         initialData: SourceChangeEvent(animeParser.currentSource),
@@ -129,13 +130,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           final source = snap.data?.source;
           if (source == null) return const SizedBox();
           return IconButton(
-            icon: CircleAvatar(
-              backgroundColor: source.getColor(),
-              child: _buildSourceIcon(source),
-            ),
-            onPressed: () {
-              /// 弹出资源选择导入弹窗
-            },
+            icon: AnimeSourceIcon(source: source),
+            onPressed: () => AnimeSourceDialog.show(context),
           );
         },
       ),
@@ -160,21 +156,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         ),
       ),
     ];
-  }
-
-  // 构建数据源图标
-  Widget _buildSourceIcon(AnimeSource source) {
-    if (source.logoUrl.isNotEmpty) {
-      return ImageView.net(source.logoUrl, size: 20);
-    }
-    final textStyle = TextStyle(color: kPrimaryColor);
-    if (source.name.isNotEmpty) {
-      return Text(source.name.substring(0, 1), style: textStyle);
-    }
-    if (source.key.isNotEmpty) {
-      return Text(source.key.substring(0, 1), style: textStyle);
-    }
-    return const SizedBox();
   }
 
   // 构建番剧过滤配置组件
