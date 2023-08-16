@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'date.dart';
+import 'log.dart';
 
 /*
 * 工具方法
@@ -66,5 +67,33 @@ class Tool {
   static Future<bool> checkNetworkInMobile() async {
     final result = await Connectivity().checkConnectivity();
     return result == ConnectivityResult.mobile;
+  }
+
+  // 解析字符串格式的色值
+  static Color parseColor(String colorString, [Color defaultColor = Colors.white]) {
+    try {
+      if (colorString.isEmpty) return defaultColor;
+      // 解析16进制格式的色值 0xffffff
+      if (colorString.contains(RegExp(r'#|0x'))) {
+        String hexColor = colorString.replaceAll(RegExp(r'#|0x'), '');
+        if (hexColor.length == 6) hexColor = 'ff$hexColor';
+        return Color(int.parse(hexColor, radix: 16));
+      }
+      // 解析rgb格式的色值 rgb(0,0,0)
+      if (colorString.toLowerCase().contains(RegExp(r'rgb(.*)'))) {
+        String valuesString = colorString.substring(4, colorString.length - 1);
+        List<String> values = valuesString.split(',');
+        if (values.length == 3) {
+          int red = int.parse(values[0].trim());
+          int green = int.parse(values[1].trim());
+          int blue = int.parse(values[2].trim());
+          return Color.fromARGB(255, red, green, blue);
+        }
+        return defaultColor;
+      }
+    } catch (e) {
+      LogTool.e('色值格式化失败', error: e);
+    }
+    return defaultColor;
   }
 }

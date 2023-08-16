@@ -7,6 +7,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/database/source.dart';
@@ -15,7 +16,6 @@ import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
@@ -130,7 +130,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           if (source == null) return const SizedBox();
           return IconButton(
             icon: CircleAvatar(
-              backgroundColor: Colors.white,
+              backgroundColor: source.getColor(),
               child: _buildSourceIcon(source),
             ),
             onPressed: () {
@@ -167,11 +167,12 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     if (source.logoUrl.isNotEmpty) {
       return ImageView.net(source.logoUrl, size: 20);
     }
+    final textStyle = TextStyle(color: kPrimaryColor);
     if (source.name.isNotEmpty) {
-      return Text(source.name.substring(0, 1));
+      return Text(source.name.substring(0, 1), style: textStyle);
     }
     if (source.key.isNotEmpty) {
-      return Text(source.key.substring(0, 1));
+      return Text(source.key.substring(0, 1), style: textStyle);
     }
     return const SizedBox();
   }
