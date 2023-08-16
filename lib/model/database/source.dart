@@ -1,8 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/tool.dart';
 
 part 'source.g.dart';
