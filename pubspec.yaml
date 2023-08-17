@@ -56,8 +56,7 @@ dependencies:
   dio: ^5.3.2
 
   # 图片框架
-  extended_image:
-    path: ./library/extended_image
+  extended_image: ^8.1.0
 
   # 图标
   font_awesome_flutter: ^10.5.0
@@ -105,8 +104,7 @@ dependencies:
   flutter_local_notifications: ^15.1.0+1
 
   # ffmpeg
-  ffmpeg_helper:
-    path: ./library/ffmpeg_helper
+  ffmpeg_helper: ^1.0.1
 
   # 连接状态检查
   connectivity_plus: ^4.0.2
