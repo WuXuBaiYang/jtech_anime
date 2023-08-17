@@ -16,10 +16,8 @@ import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/image_picker_sheet.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
-
 import 'anime_source_dialog.dart';
 
 /*
@@ -80,20 +78,20 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
                       )
                     : null,
               ),
-              // body: IndexedStack(
-              //   index: showChildIndex,
-              //   children: [
-              //     AnimeFilterConfigMenu(
-              //       complete: () => Loading.show(
-              //         loadFuture: logic.loadAnimeList(false),
-              //       )?.then((_) => logic.animeController.jumpTo(0)),
-              //       filterConfig: logic.filterSelect,
-              //       filterSelect: logic.selectFilterConfig,
-              //       body: _buildAnimeList(),
-              //     ),
-              //     _buildTimetableTabView(),
-              //   ],
-              // ),
+              body: IndexedStack(
+                index: showChildIndex,
+                children: [
+                  AnimeFilterConfigMenu(
+                    complete: () => Loading.show(
+                      loadFuture: logic.loadAnimeList(false),
+                    )?.then((_) => logic.animeController.jumpTo(0)),
+                    filterConfig: logic.filterSelect,
+                    filterSelect: logic.selectFilterConfig,
+                    body: _buildAnimeList(),
+                  ),
+                  _buildTimetableTabView(),
+                ],
+              ),
             );
           },
         );

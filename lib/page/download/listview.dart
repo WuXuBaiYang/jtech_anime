@@ -210,6 +210,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       shrinkWrap: true,
       itemCount: records.length,
       padding: const EdgeInsets.only(top: 4),
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (_, i) {
         final record = records[i];
         final task = downloadTask?.getDownloadTaskItem(record);
