@@ -4,7 +4,10 @@ import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 import 'date.dart';
 import 'log.dart';
 
@@ -70,7 +73,8 @@ class Tool {
   }
 
   // 解析字符串格式的色值
-  static Color parseColor(String colorString, [Color defaultColor = Colors.white]) {
+  static Color parseColor(String colorString,
+      [Color defaultColor = Colors.white]) {
     try {
       if (colorString.isEmpty) return defaultColor;
       // 解析16进制格式的色值 0xffffff
@@ -95,5 +99,16 @@ class Tool {
       LogTool.e('色值格式化失败', error: e);
     }
     return defaultColor;
+  }
+
+  // 选择图片并解码其中的二维码
+  static Future<String?> decoderQRCodeFromGallery() async {
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(source: ImageSource.gallery);
+    if (xFile == null) return null;
+    final decoder = QRCodeDartScanDecoder(formats: [BarcodeFormat.QR_CODE]);
+    final result = await decoder.decodeFile(xFile);
+    if (result == null) return null;
+    return result.text;
   }
 }

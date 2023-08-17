@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -8,6 +10,8 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/source.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/qr_code_sheet.dart';
 
 /*
 * 番剧解析源弹窗
@@ -43,7 +47,10 @@ class _AnimeSourceDialogState extends State<AnimeSourceDialog> {
     return AlertDialog(
       title: const Text('选择解析源'),
       actions: [
-        TextButton(onPressed: _importSource, child: const Text('导入解析源')),
+        TextButton(
+          onPressed: () => _importSource(context),
+          child: const Text('导入解析源'),
+        ),
         const Spacer(),
         TextButton(onPressed: router.pop, child: const Text('取消')),
         ValueListenableBuilder<AnimeSource?>(
@@ -63,7 +70,17 @@ class _AnimeSourceDialogState extends State<AnimeSourceDialog> {
   }
 
   // 导入解析源
-  Future<void> _importSource() async {}
+  Future<void> _importSource(BuildContext context) async {
+    final isMobilePhone = Platform.isAndroid || Platform.isIOS;
+    final result = await (isMobilePhone
+        ? QRCodeSheet.show(context)
+        : Tool.decoderQRCodeFromGallery());
+    if (result == null) return;
+
+    print('object');
+
+    /// 实现解析源导入
+  }
 
   // 切换解析源
   Future<void> _changeSource(AnimeSource? source, AnimeSource? current) async {

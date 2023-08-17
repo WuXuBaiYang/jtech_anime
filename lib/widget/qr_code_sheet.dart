@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
+import 'package:jtech_anime/tool/log.dart';
+import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/widget/qr_code_scanner.dart';
 
 /*
 * 二维码扫描sheet
@@ -12,8 +14,8 @@ import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 class QRCodeSheet extends StatefulWidget {
   const QRCodeSheet({super.key});
 
-  static Future<File?> show(BuildContext context) {
-    return showModalBottomSheet<File>(
+  static Future<String?> show(BuildContext context) {
+    return showModalBottomSheet<String>(
       builder: (_) => const QRCodeSheet(),
       context: context,
     );
@@ -40,24 +42,30 @@ class _QRCodeSheetState extends State<QRCodeSheet> {
         shrinkWrap: true,
         children: [
           if (Platform.isAndroid || Platform.isIOS)
-            ListTile(title: const Text('扫码'), onTap: _scanQRCode),
-          ListTile(title: const Text('从相册中选择'), onTap: _pickQRCode),
+            ListTile(
+              title: const Text('扫码'),
+              onTap: () async {
+                try {
+                  router.pop(await QRCodeScanner.start(context));
+                } catch (e) {
+                  LogTool.e('扫码失败', error: e);
+                  SnackTool.showMessage(message: '二维码扫描失败');
+                }
+              },
+            ),
+          ListTile(
+            title: const Text('从相册中选择'),
+            onTap: () async {
+              try {
+                router.pop(await Tool.decoderQRCodeFromGallery());
+              } catch (e) {
+                LogTool.e('二维码识别失败', error: e);
+                SnackTool.showMessage(message: '二维码识别失败');
+              }
+            },
+          ),
         ],
       ),
     );
-  }
-
-  // 扫描二维码
-  Future<void> _scanQRCode() async {}
-
-  // 选择二维码图片
-  Future<void> _pickQRCode() async {
-    final picker = ImagePicker();
-    final xFile = await picker.pickImage(source: ImageSource.gallery);
-    if (xFile == null) return router.pop();
-    final decoder = QRCodeDartScanDecoder(formats: [BarcodeFormat.QR_CODE]);
-    final result = await decoder.decodeFile(xFile);
-    if (result == null) return router.pop();
-    router.pop(result.text);
   }
 }
