@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -38,7 +39,7 @@ class HomePage extends StatefulWidget {
 * @Time 2023/7/6 10:03
 */
 class _HomePageState extends LogicState<HomePage, _HomeLogic>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   // 时间轴tab控制器
   late TabController timetableTabController = TabController(
       length: 7, vsync: this, initialIndex: DateTime.now().weekday - 1);
@@ -49,6 +50,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   @override
   void initState() {
     super.initState();
+    // 监听生命周期
+    WidgetsBinding.instance.addObserver(this);
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
@@ -346,6 +349,24 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         status: StatusBoxStatus.empty,
       ),
     );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 当页面恢复时强制切换竖屏
+    if (state == AppLifecycleState.resumed) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+  }
+
+  @override
+  void dispose() {
+    // 取消监听生命周期
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 }
 
