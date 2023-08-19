@@ -7,15 +7,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   file_selector_windows
   flutter_js
-  flutter_meedu_videoplayer
-  fullscreen_window
   isar_flutter_libs
   media_kit_libs_windows_video
   media_kit_video
   permission_handler_windows
   screen_brightness_windows
-  screen_retriever
-  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

@@ -3,7 +3,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_meedu_videoplayer/init_meedu_player.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.dart';
 import 'package:jtech_anime/common/route.dart';
@@ -18,13 +17,14 @@ import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/home/index.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:media_kit/media_kit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 初始化视频播放器
-  await initMeeduPlayer(androidUseMediaKit: true);
   // 初始化ffmpeg
   await FFMpegHelper.instance.initialize();
+  // 初始化视频播放器
+  MediaKit.ensureInitialized();
   // 初始化各种manage
   await router.init(); // 路由服务
   await cache.init(); // 缓存服务
