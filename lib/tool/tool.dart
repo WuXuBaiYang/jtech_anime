@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:jtech_anime/manage/router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 import 'date.dart';
@@ -110,5 +110,18 @@ class Tool {
     final result = await decoder.decodeFile(xFile);
     if (result == null) return null;
     return result.text;
+  }
+
+  // 修改屏幕朝向
+  static void toggleScreenOrientation(bool portrait) {
+    SystemChrome.setPreferredOrientations([
+      if (portrait) ...[
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ] else ...[
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]
+    ]);
   }
 }

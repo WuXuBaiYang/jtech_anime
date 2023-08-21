@@ -14,6 +14,7 @@ import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
@@ -354,10 +355,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面恢复时强制切换竖屏
     if (state == AppLifecycleState.resumed) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
+      Tool.toggleScreenOrientation(true);
     }
   }
 
