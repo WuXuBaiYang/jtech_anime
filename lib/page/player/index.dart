@@ -54,8 +54,6 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     super.initState();
     // 监听生命周期
     WidgetsBinding.instance.addObserver(this);
-    // 屏幕朝向强制为横向
-    Tool.toggleScreenOrientation(false);
   }
 
   @override
@@ -238,13 +236,11 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
       logic.resumeFlag.setValue(logic.controller.state.playing);
-      Tool.toggleScreenOrientation(true);
-      logic.stopTimer();
       logic.controller
         ..toggleScreenLock(false)
         ..pause();
+      logic.stopTimer();
     } else if (state == AppLifecycleState.resumed) {
-      Tool.toggleScreenOrientation(false);
       logic.resumePlayByFlag();
       logic.resumeTimer();
     }

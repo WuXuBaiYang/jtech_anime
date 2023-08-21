@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/model/database/video_cache.dart';
 import 'package:media_kit/media_kit.dart';
@@ -35,7 +34,8 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   PlayerState get state => _player.state;
 
   // 切换锁定状态
-  void toggleScreenLock(bool locked) => screenLocked.setValue(locked);
+  void toggleScreenLock([bool? locked]) =>
+      screenLocked.setValue(locked ?? !screenLocked.value);
 
   // 跳转到播放进度
   Future<void> seekTo(Duration duration) => _player.seek(duration);
@@ -43,12 +43,18 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 设置播放倍速
   Future<void> setRate(double rate) => _player.setRate(rate);
 
+  // 设置音量
+  Future<void> setVolume(double volume) => _player.setVolume(volume);
+
   // 加载视频并播放
   Future<void> play(String uri, [bool autoPlay = true]) =>
       _player.open(Media(uri), play: autoPlay);
 
   // 切换播放暂停状态
-  Future<void> resumeOrPause() => _player.playOrPause();
+  Future<bool> resumeOrPause() async {
+    await _player.playOrPause();
+    return state.playing;
+  }
 
   // 恢复播放
   Future<void> resume() => _player.play();

@@ -15,6 +15,7 @@ import 'package:jtech_anime/manage/notification.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/home/index.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:media_kit/media_kit.dart';
@@ -25,6 +26,8 @@ void main() async {
   await FFMpegHelper.instance.initialize();
   // 初始化视频播放器
   MediaKit.ensureInitialized();
+  // 强制竖屏
+  Tool.toggleScreenOrientation(true);
   // 初始化各种manage
   await router.init(); // 路由服务
   await cache.init(); // 缓存服务

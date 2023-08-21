@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -14,7 +13,6 @@ import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
@@ -51,8 +49,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   @override
   void initState() {
     super.initState();
-    // 监听生命周期
-    WidgetsBinding.instance.addObserver(this);
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
@@ -349,21 +345,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         status: StatusBoxStatus.empty,
       ),
     );
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // 当页面恢复时强制切换竖屏
-    if (state == AppLifecycleState.resumed) {
-      Tool.toggleScreenOrientation(true);
-    }
-  }
-
-  @override
-  void dispose() {
-    // 取消监听生命周期
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 }
 
