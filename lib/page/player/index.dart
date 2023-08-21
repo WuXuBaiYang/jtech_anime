@@ -20,6 +20,7 @@ import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 /*
 * 播放器页面（全屏播放）
@@ -51,6 +52,8 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     super.initState();
     // 监听生命周期
     WidgetsBinding.instance.addObserver(this);
+    // 启用锁屏控制
+    WakelockPlus.enable();
   }
 
   @override
@@ -250,11 +253,13 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
+      WakelockPlus.disable();
       logic.stopTimer();
       // logic.controller
       //   ..lockedControls.value = false
       //   ..pause();
     } else if (state == AppLifecycleState.resumed) {
+      WakelockPlus.enable();
       logic.resumeTimer();
     }
   }
