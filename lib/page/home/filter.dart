@@ -150,7 +150,8 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
         valueListenable: filterStatus,
         builder: (_, status, __) {
           final folded = status == FilterStatus.fold;
-          final expanded = status == FilterStatus.expanded;
+          final crossFadeState =
+              folded ? CrossFadeState.showFirst : CrossFadeState.showSecond;
           return AnimatedContainer(
             duration: duration,
             curve: Curves.fastOutSlowIn,
@@ -161,9 +162,12 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
             onEnd: () {
               if (!folded) filterStatus.setValue(FilterStatus.expanded);
             },
-            child: !folded
-                ? (expanded ? _buildFilterConfig() : const SizedBox())
-                : _buildFAButton(),
+            child: AnimatedCrossFade(
+              firstChild: _buildFAButton(),
+              secondChild: _buildFilterConfig(),
+              crossFadeState: crossFadeState,
+              duration: duration,
+            ),
           );
         },
       ),
