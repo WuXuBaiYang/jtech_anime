@@ -80,12 +80,30 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
                 ][childIndex],
               ),
             ),
-            body: IndexedStack(
-              index: childIndex,
-              children: [
-                _buildAnimeList(),
-                _buildTimetableTabView(),
-              ],
+            body: AnimatedCrossFade(
+              firstChild: _buildAnimeList(),
+              secondChild: _buildTimetableTabView(),
+              duration: const Duration(milliseconds: 150),
+              crossFadeState: [
+                CrossFadeState.showFirst,
+                CrossFadeState.showSecond,
+              ][childIndex],
+              layoutBuilder:
+                  (topChild, topChildKey, bottomChild, bottomChildKey) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    Positioned.fill(
+                      key: bottomChildKey,
+                      child: bottomChild,
+                    ),
+                    Positioned.fill(
+                      key: topChildKey,
+                      child: topChild,
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -96,16 +114,15 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 构建搜索按钮
   Widget _buildSearchButton() {
     const color = Colors.black38;
-    // const textStyle = TextStyle(color: color, fontSize: 16);
+    const textStyle = TextStyle(color: color, fontSize: 16);
     return Padding(
       padding: const EdgeInsets.only(left: 8),
       child: ElevatedButton(
         child: const Row(
           children: [
             Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
-            // 因为空间不够，展示不开了,所以隐藏下面提示
-            // SizedBox(width: 8),
-            // Text('嗖~', style: textStyle),
+            SizedBox(width: 8),
+            Text('嗖~', style: textStyle),
           ],
         ),
         onPressed: () => router.pushNamed(RoutePath.search),
@@ -156,19 +173,21 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     return ValueListenableBuilder<Map<String, FilterSelect>>(
       valueListenable: logic.filterSelect,
       builder: (_, filterMap, __) {
-        if (filterMap.isEmpty) {
-          filterMap['default'] = FilterSelect()
-            ..parentName = '默认'
-            ..name = '全部';
-        }
+        final tempFilter = filterMap.isNotEmpty
+            ? filterMap
+            : {
+                'default': FilterSelect()
+                  ..parentName = '默认'
+                  ..name = '全部'
+              };
         return Align(
           alignment: Alignment.centerLeft,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(right: 8),
             child: Row(
-              children: List.generate(filterMap.length, (i) {
-                final item = filterMap.values.elementAt(i);
+              children: List.generate(tempFilter.length, (i) {
+                final item = tempFilter.values.elementAt(i);
                 final text = '${item.parentName} · ${item.name}';
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
