@@ -181,6 +181,14 @@ class AnimeParserManage extends BaseManage {
     return tempList;
   }
 
+  // 检查是否支持目标方法
+  Future<bool> isSupportFunction(AnimeParserFunction function) async {
+    final source = currentSource;
+    if (source == null) return false;
+    return source.functions.contains(function.name);
+  }
+
+  /// 如果是从外部导入则需要检查必填方法是否满足
   // 将配置文件信息导入数据库
   Future<AnimeSource?> importAnimeSource(AnimeSource source) async {
     try {
@@ -230,7 +238,10 @@ class AnimeParserManage extends BaseManage {
   Future<AnimeSource?> _getDefaultSource() async {
     final sourceConfig = await rootBundle.loadString(defaultSourceConfigPath);
     if (sourceConfig.isEmpty) return null;
-    AnimeSource? source = AnimeSource.from(jsonDecode(sourceConfig));
+    AnimeSource? source = AnimeSource.from(
+      jsonDecode(sourceConfig),
+      AnimeParserFunction.values,
+    );
     final dbSource = await db.getAnimeSource(source.key);
     if (dbSource != null) return dbSource;
     return importAnimeSource(source);
