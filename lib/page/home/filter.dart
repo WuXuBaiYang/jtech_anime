@@ -30,12 +30,16 @@ class AnimeFilterConfigMenu extends StatefulWidget {
   // 内容体
   final Widget body;
 
+  // 控制过滤按钮的显示隐藏
+  final bool visible;
+
   const AnimeFilterConfigMenu({
     super.key,
     required this.filterConfig,
     required this.filterSelect,
     required this.complete,
     required this.body,
+    this.visible = true,
   });
 
   @override
@@ -58,18 +62,24 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Positioned.fill(child: widget.body),
-        Positioned.fill(child: _buildBackground()),
-        SafeArea(
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: _buildFAB(context),
+    return Material(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(child: widget.body),
+          Positioned.fill(child: _buildBackground()),
+          AnimatedOpacity(
+            opacity: widget.visible ? 1 : 0,
+            duration: duration,
+            child: SafeArea(
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: _buildFAB(context),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

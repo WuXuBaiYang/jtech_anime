@@ -77,6 +77,9 @@ class ThemeManage extends BaseManage {
         appBarTheme: const AppBarTheme(
           titleSpacing: 0,
         ),
+        chipTheme: const ChipThemeData(
+          pressElevation: 0,
+        ),
       );
 }
 

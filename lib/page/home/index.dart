@@ -63,40 +63,34 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   Widget buildWidget(BuildContext context) {
     return ValueListenableBuilder<int>(
       valueListenable: logic.showChildIndex,
-      builder: (_, showChildIndex, __) {
-        return ValueListenableBuilder(
-          valueListenable: logic.filterSelect,
-          builder: (_, filterSelect, __) {
-            return Scaffold(
-              appBar: AppBar(
-                title: _buildSearchButton(),
-                actions: _getAppbarActions(context, showChildIndex),
-                bottom: (showChildIndex != 0 || filterSelect.isNotEmpty)
-                    ? PreferredSize(
-                        preferredSize: const Size.fromHeight(kToolbarHeight),
-                        child: [
-                          _buildFilterChips(),
-                          _buildTimetableTabBar(),
-                        ][showChildIndex],
-                      )
-                    : null,
+      builder: (_, childIndex, __) {
+        return AnimeFilterConfigMenu(
+          complete: () => Loading.show(
+            loadFuture: logic.loadAnimeList(false),
+          )?.then((_) => logic.animeController.jumpTo(0)),
+          filterConfig: logic.filterSelect,
+          filterSelect: logic.selectFilterConfig,
+          visible: childIndex == 0,
+          body: Scaffold(
+            appBar: AppBar(
+              title: _buildSearchButton(),
+              actions: _getAppbarActions(context, childIndex),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(kToolbarHeight),
+                child: [
+                  _buildFilterChips(),
+                  _buildTimetableTabBar(),
+                ][childIndex],
               ),
-              body: IndexedStack(
-                index: showChildIndex,
-                children: [
-                  AnimeFilterConfigMenu(
-                    complete: () => Loading.show(
-                      loadFuture: logic.loadAnimeList(false),
-                    )?.then((_) => logic.animeController.jumpTo(0)),
-                    filterConfig: logic.filterSelect,
-                    filterSelect: logic.selectFilterConfig,
-                    body: _buildAnimeList(),
-                  ),
-                  _buildTimetableTabView(),
-                ],
-              ),
-            );
-          },
+            ),
+            body: IndexedStack(
+              index: childIndex,
+              children: [
+                _buildAnimeList(),
+                _buildTimetableTabView(),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -123,7 +117,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   }
 
   // 获取标题栏动作按钮集合
-  List<Widget> _getAppbarActions(BuildContext context, int showChildIndex) {
+  List<Widget> _getAppbarActions(BuildContext context, int childIndex) {
     return [
       StreamBuilder<SourceChangeEvent>(
         initialData: SourceChangeEvent(animeParser.currentSource),
@@ -150,11 +144,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         onPressed: () => router.pushNamed(RoutePath.download),
       ),
       AnimatedRotation(
-        turns: showChildIndex == 1 ? 0.5 : 1,
+        turns: childIndex == 1 ? 0.5 : 1,
         duration: const Duration(milliseconds: 200),
         child: IconButton(
           icon: const Icon(FontAwesomeIcons.handPointRight),
-          onPressed: () => logic.showChildIndex.setValue(showChildIndex ^ 1),
+          onPressed: () => logic.showChildIndex.setValue(childIndex ^ 1),
         ),
       ),
     ];
@@ -165,6 +159,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     return ValueListenableBuilder<Map<String, FilterSelect>>(
       valueListenable: logic.filterSelect,
       builder: (_, filterMap, __) {
+        if (filterMap.isEmpty) {
+          filterMap['default'] = FilterSelect()
+            ..parentName = '默认'
+            ..name = '全部';
+        }
         return Align(
           alignment: Alignment.centerLeft,
           child: SingleChildScrollView(

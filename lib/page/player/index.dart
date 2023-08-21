@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_meedu_videoplayer/meedu_player.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -104,15 +102,16 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return MeeduVideoPlayer(
-      controller: logic.controller,
-      header: (_, controller, responsive) {
-        return _buildVideoPlayerHeader();
-      },
-      bottomRight: (_, controller, responsive) {
-        return _buildVideoPlayerBottomRight();
-      },
-    );
+    return SizedBox();
+    // return MeeduVideoPlayer(
+    //   controller: logic.controller,
+    //   header: (_, controller, responsive) {
+    //     return _buildVideoPlayerHeader();
+    //   },
+    //   bottomRight: (_, controller, responsive) {
+    //     return _buildVideoPlayerBottomRight();
+    //   },
+    // );
   }
 
   // 构建视频播放器头部
@@ -252,9 +251,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
       logic.stopTimer();
-      logic.controller
-        ..lockedControls.value = false
-        ..pause();
+      // logic.controller
+      //   ..lockedControls.value = false
+      //   ..pause();
     } else if (state == AppLifecycleState.resumed) {
       logic.resumeTimer();
     }
@@ -280,8 +279,8 @@ class _PlayerLogic extends BaseLogic {
   // 当前播放的资源信息
   late ValueChangeNotifier<ResourceItemModel> resourceInfo;
 
-  // 播放器控制器
-  final controller = _createVideoController();
+  // // 播放器控制器
+  // final controller = _createVideoController();
 
   // 存储下一条视频信息
   final nextResourceInfo = ValueChangeNotifier<ResourceItemModel?>(null);
@@ -301,13 +300,13 @@ class _PlayerLogic extends BaseLogic {
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
-    controller.onPositionChanged.listen((e) {
-      // 更新当前播放进度
-      Throttle.c(
-        () => _updateVideoProgress(e),
-        'updateVideoProgress',
-      );
-    });
+    // controller.onPositionChanged.listen((e) {
+    //   // 更新当前播放进度
+    //   Throttle.c(
+    //     () => _updateVideoProgress(e),
+    //     'updateVideoProgress',
+    //   );
+    // });
   }
 
   @override
@@ -336,7 +335,7 @@ class _PlayerLogic extends BaseLogic {
         resourceInfo.setValue(item);
         nextResourceInfo.setValue(_findNextResourceItem(item));
         // 暂停现有播放器
-        await controller.pause();
+        // await controller.pause();
         // 根据当前资源获取播放记录
         final record = await db.getPlayRecord(animeInfo.value.url);
         // 根据资源与视频下标切换视频播放地址
@@ -346,15 +345,15 @@ class _PlayerLogic extends BaseLogic {
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
         // 解析完成之后实现视频播放
-        final dataSource = downloadRecord != null
-            ? DataSource(
-                type: DataSourceType.file, file: downloadRecord.playFile)
-            : DataSource(type: DataSourceType.network, source: playUrl);
-        final seekTo = playTheRecord && record != null
-            ? Duration(milliseconds: record.progress)
-            : Duration.zero;
-        await controller.setDataSource(dataSource, seekTo: seekTo);
-        if (!playTheRecord) playRecord.setValue(record);
+        // final dataSource = downloadRecord != null
+        //     ? DataSource(
+        //         type: DataSourceType.file, file: downloadRecord.playFile)
+        //     : DataSource(type: DataSourceType.network, source: playUrl);
+        // final seekTo = playTheRecord && record != null
+        //     ? Duration(milliseconds: record.progress)
+        //     : Duration.zero;
+        // await controller.setDataSource(dataSource, seekTo: seekTo);
+        // if (!playTheRecord) playRecord.setValue(record);
       } catch (e) {
         SnackTool.showMessage(message: '获取播放地址失败，请重试~');
         rethrow;
@@ -362,35 +361,6 @@ class _PlayerLogic extends BaseLogic {
         loading.setValue(false);
       }
     }));
-  }
-
-  // 创建视频播放器控制器
-  static MeeduPlayerController _createVideoController() {
-    const errorText = '视频加载失败，请重试~';
-    return MeeduPlayerController(
-      controlsStyle: ControlsStyle.primary,
-      enabledButtons: const EnabledButtons(
-        rewindAndfastForward: false,
-        playPauseAndRepeat: true,
-        playBackSpeed: false,
-        muteAndSound: true,
-        lockControls: true,
-        fullscreen: false,
-        videoFit: false,
-        pip: false,
-      ),
-      screenManager: const ScreenManager(
-        orientations: [
-          DeviceOrientation.landscapeRight,
-          DeviceOrientation.landscapeLeft,
-        ],
-        systemUiMode: SystemUiMode.immersiveSticky,
-      ),
-      initialFit: BoxFit.fitHeight,
-      colorTheme: kPrimaryColor,
-      errorText: errorText,
-      showLogs: kDebugMode,
-    );
   }
 
   // 进入播放页面设置(横向布局且不显示状态栏)
@@ -452,9 +422,9 @@ class _PlayerLogic extends BaseLogic {
     final record = playRecord.value;
     if (record == null) return;
     playRecord.setValue(null);
-    await controller.seekTo(Duration(
-      milliseconds: record.progress,
-    ));
+    // await controller.seekTo(Duration(
+    //   milliseconds: record.progress,
+    // ));
   }
 
   // 获取列表中的下一个资源
@@ -478,7 +448,7 @@ class _PlayerLogic extends BaseLogic {
     // 退出播放器状态
     quitPlayer();
     // 销毁控制器
-    controller.dispose();
+    // controller.dispose();
     super.dispose();
   }
 }
