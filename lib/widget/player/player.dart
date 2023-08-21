@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/theme.dart';
+import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
@@ -59,7 +61,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   final controlLocked = ValueChangeNotifier<bool>(false);
 
   // 是否展示控制
-  final controlVisible = ValueChangeNotifier<bool>(false);
+  final controlVisible = ValueChangeNotifier<bool>(true);
 
   // 音量调整
   final controlVolume = ValueChangeNotifier<bool>(false);
@@ -70,23 +72,15 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 静音状态
   final controlMute = ValueChangeNotifier<bool>(false);
 
+  // 音量变化流
+  final volumeStream = StreamController<double>.broadcast();
+
   // 定时器
   Timer? _timer;
-
-  // 记录静音前得音量
-  double? _lastVolume;
 
   @override
   void initState() {
     super.initState();
-    final controller = widget.controller;
-    // 监听播放状态，当暂停中则强制显示控制层
-    controller.stream.playing.listen((e) {
-      if (e) return;
-      controlVisible.setValue(true);
-      _timer?.cancel();
-      _timer = null;
-    });
     // 监听控制器变化控制层得显示隐藏
     controlVisible.addListener(() {
       if (!controlVisible.value) {
@@ -100,8 +94,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
       }
     });
     // 监听音量变化
-    controller.stream.volume.listen((_) {
-      controlVisible.setValue(false);
+    FlutterVolumeController.addListener((v) {
+      volumeStream.sink.add(v);
       controlVolume.setValue(true);
       Debounce.c(
         () => controlVolume.setValue(false),
@@ -111,7 +105,6 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     // 监听亮度变化
     ScreenBrightness().onCurrentBrightnessChanged.listen((_) {
       controlBrightness.setValue(true);
-      controlVisible.setValue(false);
       Debounce.c(
         () => controlBrightness.setValue(false),
         'updateBrightness',
@@ -119,12 +112,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     });
     // 监听静音状态变化
     controlMute.addListener(() {
-      if (controlMute.value) {
-        widget.controller.setVolume(_lastVolume ?? 0);
-      } else {
-        _lastVolume = widget.controller.state.volume;
-      }
-      controlMute.setValue(!controlMute.value);
+      FlutterVolumeController.setMute(controlMute.value);
     });
   }
 
@@ -140,57 +128,59 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建控制器
   Widget _buildControls(BuildContext context, VideoState state) {
-    final controller = widget.controller;
+    final brightness = ScreenBrightness();
     final screenWidth = Tool.getScreenWidth(context);
     final screenHeight = Tool.getScreenHeight(context);
-    return ValueListenableBuilder2(
-      first: controlVisible,
-      second: controlLocked,
-      builder: (_, visible, locked, __) {
-        return GestureDetector(
-          onDoubleTap: () async {
-            final playing = await widget.controller.resumeOrPause();
-            if (playing) controlVisible.setValue(false);
-          },
-          onTap: () {
-            // 暂停等状态则不通过点击显隐控制层
-            if (!controller.state.playing ||
-                controlVolume.value ||
-                controlBrightness.value) return;
-            controlVisible.setValue(!visible);
-          },
-          onVerticalDragUpdate: (details) {
-            // 如果当前锁屏则不执行操作
-            if (locked) return;
-            // 区分左右屏
-            final dragPercentage = details.delta.dy / screenHeight;
-            if (details.globalPosition.dx > screenWidth / 2) {
-              controller.setVolume(dragPercentage * 100);
-            } else {
-              ScreenBrightness().setScreenBrightness(dragPercentage);
-            }
-          },
-          child: AnimatedOpacity(
-            opacity: visible ? 1 : 0,
-            duration: const Duration(milliseconds: 150),
-            child: Container(
-              color: Colors.black38,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (!locked) ...[
-                    _buildVolume(),
-                    _buildBrightness(),
-                    _buildTopActions(),
-                    _buildBottomActions(),
-                  ],
-                  _buildLockButton(locked),
-                ],
+    return Stack(
+      children: [
+        ValueListenableBuilder2(
+          first: controlVisible,
+          second: controlLocked,
+          builder: (_, visible, locked, __) {
+            return GestureDetector(
+              onTap: () => controlVisible.setValue(!visible),
+              onVerticalDragStart: (_) => controlVisible.setValue(false),
+              onDoubleTap: () async {
+                final playing = await widget.controller.resumeOrPause();
+                if (playing) controlVisible.setValue(false);
+              },
+              onVerticalDragUpdate: (details) async {
+                // 如果当前锁屏则不执行操作
+                if (locked) return;
+                // 区分左右屏
+                final dragPercentage = details.delta.dy / screenHeight;
+                if (details.globalPosition.dx > screenWidth / 2) {
+                  final current =
+                      await FlutterVolumeController.getVolume() ?? 0;
+                  FlutterVolumeController.setVolume(current - dragPercentage);
+                } else {
+                  final current = await brightness.current;
+                  brightness.setScreenBrightness(current - dragPercentage);
+                }
+              },
+              child: AnimatedOpacity(
+                opacity: visible ? 1 : 0,
+                duration: const Duration(milliseconds: 150),
+                child: Container(
+                  color: Colors.black38,
+                  child: Stack(
+                    children: [
+                      if (!locked) ...[
+                        _buildTopActions(),
+                        _buildBottomActions(),
+                      ],
+                      _buildBuffingStatus(),
+                      _buildLockButton(locked),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+        _buildVolume(),
+        _buildBrightness(),
+      ],
     );
   }
 
@@ -200,10 +190,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     final iconData = locked ? FontAwesomeIcons.lock : FontAwesomeIcons.lockOpen;
     return Align(
       alignment: Alignment.centerRight,
-      child: IconButton(
-        icon: Icon(iconData),
-        color: locked ? kPrimaryColor : null,
-        onPressed: controller.toggleScreenLock,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: IconButton(
+          icon: Icon(iconData),
+          color: locked ? kPrimaryColor : null,
+          onPressed: controller.toggleScreenLock,
+        ),
       ),
     );
   }
@@ -217,6 +210,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         leading: widget.leading,
         subtitle: widget.subTitle,
         trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ...widget.topActions ?? [],
           ],
@@ -227,34 +221,85 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建底栏
   Widget _buildBottomActions() {
-    final controller = widget.controller;
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const MaterialSeekBar(),
-          Row(
-            children: [
-              StreamBuilder<bool>(
-                stream: controller.stream.playing,
-                builder: (_, snap) {
-                  final playing = snap.data ?? false;
-                  return IconButton(
-                      onPressed: snap.hasData ? controller.resumeOrPause : null,
-                      icon: Icon(playing
-                          ? FontAwesomeIcons.pause
-                          : FontAwesomeIcons.play));
-                },
-              ),
-              const Spacer(),
-              ...widget.bottomActions ?? [],
-              _buildBottomActionsRate(),
-              _buildBottomActionsMute(),
-            ],
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildBottomActionsProgress(),
+            Row(
+              children: [
+                _buildBottomActionsPlay(),
+                const Spacer(),
+                ...widget.bottomActions ?? [],
+                const SizedBox(width: 14),
+                _buildBottomActionsRate(),
+                const SizedBox(width: 14),
+                _buildBottomActionsMute(),
+              ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  // 构建底部状态播放按钮
+  Widget _buildBottomActionsPlay() {
+    final controller = widget.controller;
+    return StreamBuilder<bool>(
+      stream: controller.stream.playing,
+      builder: (_, snap) {
+        final playing = snap.data ?? false;
+        return IconButton(
+          onPressed: snap.hasData ? controller.resumeOrPause : null,
+          icon: Icon(playing ? FontAwesomeIcons.pause : FontAwesomeIcons.play),
+        );
+      },
+    );
+  }
+
+  // 构建底部
+  Widget _buildBottomActionsProgress() {
+    Duration? tempProgress;
+    final controller = widget.controller;
+    const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
+    return StatefulBuilder(
+      builder: (_, state) {
+        return StreamBuilder<Duration>(
+          stream: controller.stream.position,
+          builder: (_, snap) {
+            final buffer = controller.state.buffer;
+            final total = controller.state.duration;
+            final progress = tempProgress ?? controller.state.position;
+            return Row(
+              children: [
+                Text(progress.format(DurationPattern.fullTime),
+                    style: textStyle),
+                Expanded(
+                  child: Slider(
+                    inactiveColor: Colors.black26,
+                    max: total.inMilliseconds.toDouble(),
+                    value: progress.inMilliseconds.toDouble(),
+                    secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
+                    secondaryTrackValue: buffer.inMilliseconds.toDouble(),
+                    onChanged: (v) => state(
+                        () => tempProgress = Duration(milliseconds: v.toInt())),
+                    onChangeEnd: (v) {
+                      controller.seekTo(Duration(milliseconds: v.toInt()));
+                      tempProgress = null;
+                    },
+                  ),
+                ),
+                Text(total.format(DurationPattern.fullTime), style: textStyle),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -265,9 +310,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
       stream: controller.stream.rate,
       builder: (_, snap) {
         return DropdownButton<double>(
+          elevation: 0,
           value: snap.data ?? 1.0,
+          underline: const SizedBox(),
+          dropdownColor: Colors.black87,
           items: [0.5, 1.0, 2.0, 3.0, 4.0]
               .map((e) => DropdownMenuItem<double>(
+                    value: e,
                     child: Text('x$e'),
                   ))
               .toList(),
@@ -294,19 +343,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     );
   }
 
-  // 音量变化图标集合
-  final volumeIcons = const [
-    FontAwesomeIcons.volumeXmark,
-    FontAwesomeIcons.volumeOff,
-    FontAwesomeIcons.volumeLow,
-    FontAwesomeIcons.volumeHigh,
-  ];
-
   // 控制音量变化
   Widget _buildVolume() {
-    final controller = widget.controller;
-    final length = volumeIcons.length;
-    final pcie = 100 / length;
     return Align(
       alignment: Alignment.centerLeft,
       child: ValueListenableBuilder<bool>(
@@ -314,16 +352,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         builder: (_, showVolume, __) {
           return _buildVerticalProgress(
             showVolume,
-            controller.stream.volume,
-            icon: StreamBuilder(
-              stream: controller.stream.volume,
-              builder: (_, snap) {
-                final value = snap.data ?? 0;
-                int index = value ~/ pcie;
-                if (index >= length) index = length - 1;
-                return Icon(volumeIcons[index]);
-              },
-            ),
+            volumeStream.stream,
+            icon: const Icon(FontAwesomeIcons.volumeLow),
           );
         },
       ),
@@ -360,7 +390,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         angle: 270 * pi / 180,
         child: Card(
           elevation: 0,
-          color: Colors.black54,
+          color: Colors.black38,
           clipBehavior: Clip.hardEdge,
           margin: const EdgeInsets.all(24),
           shape: RoundedRectangleBorder(
@@ -386,6 +416,24 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  // 构建缓冲状态提示
+  Widget _buildBuffingStatus() {
+    final controller = widget.controller;
+    return Align(
+      alignment: Alignment.center,
+      child: StreamBuilder<bool>(
+        stream: controller.stream.buffering,
+        builder: (_, snap) {
+          if (!(snap.data ?? false)) return const SizedBox();
+          return const SizedBox.square(
+            dimension: 35,
+            child: CircularProgressIndicator(),
+          );
+        },
       ),
     );
   }

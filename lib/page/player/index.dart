@@ -115,7 +115,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       subTitle: _buildSubTitle(),
       topActions: [
         _buildTopActionsTime(),
+        const SizedBox(width: 14),
         _buildTopActionsBattery(),
+        const SizedBox(width: 8),
       ],
       bottomActions: [
         _buildBottomActionsNext(),

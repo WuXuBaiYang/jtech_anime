@@ -134,6 +134,9 @@ dependencies:
   # 屏幕亮度
   screen_brightness: ^0.2.2
 
+  # 控制音量
+  flutter_volume_controller: ^1.2.7
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
