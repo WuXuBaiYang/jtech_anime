@@ -23,7 +23,6 @@ class CacheManage extends BaseManage {
 
   @override
   Future<void> init() async {
-    // 创建sp单例
     _sp ??= await SharedPreferences.getInstance();
   }
 
@@ -54,7 +53,7 @@ class CacheManage extends BaseManage {
   // 获取StringList类型
   List<String>? getStringList(String key) {
     if (_checkExpiration(key)) return _sp?.getStringList(key);
-    return [];
+    return null;
   }
 
   // 获取json类型
