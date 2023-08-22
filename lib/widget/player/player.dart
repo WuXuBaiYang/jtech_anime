@@ -69,6 +69,9 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 长按快进状态
   final controlPlaySpeed = ValueChangeNotifier<bool>(false);
 
+  // 临时进度条拖动监听
+  final controlTempProgress = ValueChangeNotifier<Duration?>(null);
+
   // 音量变化流
   final volumeStream = StreamController<double>.broadcast();
 
@@ -159,6 +162,21 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                   brightness.setScreenBrightness(current - dragPercentage);
                 }
               },
+              onHorizontalDragStart: (_) {
+                if (locked) return;
+                controller.setControlVisible(true, ongoing: true);
+              },
+              onHorizontalDragUpdate: (details) {
+                if (locked) return;
+                final dragPercentage = details.delta.dx / screenHeight;
+                final current = controlTempProgress.value?.inMilliseconds ??
+                    controller.state.position.inMilliseconds;
+                final value =
+                    dragPercentage * controller.state.duration.inMilliseconds;
+                controlTempProgress
+                    .setValue(Duration(milliseconds: current - value.toInt()));
+              },
+              onHorizontalDragEnd: (_) => controller.setControlVisible(true),
               onTap: () => controller.setControlVisible(!visible),
               onLongPressEnd: (_) => controlPlaySpeed.setValue(false),
               onLongPressStart: (_) {
@@ -278,11 +296,11 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建底部
   Widget _buildBottomActionsProgress() {
-    Duration? tempProgress;
     final controller = widget.controller;
     const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
-    return StatefulBuilder(
-      builder: (_, state) {
+    return ValueListenableBuilder<Duration?>(
+      valueListenable: controlTempProgress,
+      builder: (_, tempProgress, __) {
         return StreamBuilder<Duration>(
           stream: controller.stream.position,
           builder: (_, snap) {
@@ -302,8 +320,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                     secondaryTrackValue: buffer.inMilliseconds.toDouble(),
                     onChangeStart: (_) =>
                         controller.setControlVisible(true, ongoing: true),
-                    onChanged: (v) => state(
-                        () => tempProgress = Duration(milliseconds: v.toInt())),
+                    onChanged: (v) => controlTempProgress
+                        .setValue(Duration(milliseconds: v.toInt())),
                     onChangeEnd: (v) {
                       controller.seekTo(Duration(milliseconds: v.toInt()));
                       controller.setControlVisible(true);
