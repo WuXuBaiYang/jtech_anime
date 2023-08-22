@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/model/database/video_cache.dart';
 import 'package:media_kit/media_kit.dart';
@@ -12,11 +14,14 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 播放器
   final _player = Player();
 
-  // 控制器
-  late final VideoController controller = VideoController(_player);
+  // 是否展示控制
+  final controlVisible = ValueChangeNotifier<bool>(true);
 
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);
+
+  // 控制器
+  late final VideoController controller = VideoController(_player);
 
   CustomVideoPlayerController({
     VideoCache? initialVideo,
@@ -33,9 +38,28 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 获取播放状态
   PlayerState get state => _player.state;
 
+  // 计时器管理控制组件的显隐时间
+  Timer? _timer;
+
+  // 销毁定时器
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  // 切换控制组件
+  void setControlVisible(bool visible, {bool ongoing = false}) {
+    controlVisible.setValue(visible);
+    _cancelTimer();
+    if (!visible || ongoing) return;
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      controlVisible.setValue(false);
+      _cancelTimer();
+    });
+  }
+
   // 切换锁定状态
-  void toggleScreenLock([bool? locked]) =>
-      screenLocked.setValue(locked ?? !screenLocked.value);
+  void setScreenLocked(bool locked) => screenLocked.setValue(locked);
 
   // 跳转到播放进度
   Future<void> seekTo(Duration duration) => _player.seek(duration);

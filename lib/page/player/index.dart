@@ -18,7 +18,6 @@ import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/player.dart';
@@ -95,6 +94,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
           currentItem: item,
           animeInfo: logic.animeInfo.value,
           onResourceSelect: (item) {
+            logic.controller.setControlVisible(true);
             pageKey.currentState?.closeEndDrawer();
             logic.changeVideo(item);
           },
@@ -180,7 +180,10 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         if (resource == null) return const SizedBox();
         return TextButton(
           onPressed: Throttle.click(
-            () => logic.changeVideo(resource),
+            () {
+              logic.controller.setControlVisible(true);
+              logic.changeVideo(resource);
+            },
             'playNextResource',
           ),
           child: const Text('下一集'),
@@ -193,7 +196,10 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   Widget _buildBottomActionsChoice() {
     return TextButton(
       child: const Text('选集'),
-      onPressed: () => pageKey.currentState?.openEndDrawer(),
+      onPressed: () {
+        logic.controller.setControlVisible(true, ongoing: true);
+        pageKey.currentState?.openEndDrawer();
+      },
     );
   }
 
@@ -211,7 +217,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         return Card(
           elevation: 0,
           color: Colors.black26,
-          margin: const EdgeInsets.only(bottom: 110, left: 8),
+          margin: const EdgeInsets.only(bottom: 130, left: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -239,7 +245,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     if (state == AppLifecycleState.paused) {
       logic.resumeFlag.setValue(logic.controller.state.playing);
       logic.controller
-        ..toggleScreenLock(false)
+        ..setScreenLocked(false)
         ..pause();
       logic.stopTimer();
     } else if (state == AppLifecycleState.resumed) {

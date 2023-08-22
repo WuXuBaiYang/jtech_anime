@@ -57,12 +57,6 @@ class CustomVideoPlayer extends StatefulWidget {
 * @Time 2023/8/19 14:30
 */
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
-  // 锁定状态
-  final controlLocked = ValueChangeNotifier<bool>(false);
-
-  // 是否展示控制
-  final controlVisible = ValueChangeNotifier<bool>(true);
-
   // 音量调整
   final controlVolume = ValueChangeNotifier<bool>(false);
 
@@ -72,25 +66,24 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 静音状态
   final controlMute = ValueChangeNotifier<bool>(false);
 
+  // 长按快进状态
+  final controlPlaySpeed = ValueChangeNotifier<bool>(false);
+
   // 音量变化流
   final volumeStream = StreamController<double>.broadcast();
-
-  // 定时器
-  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    // 监听控制器变化控制层得显示隐藏
-    controlVisible.addListener(() {
-      if (!controlVisible.value) {
-        _timer?.cancel();
-        _timer = null;
+    // 长按快进状态监听
+    double speed = 1.0;
+    controlPlaySpeed.addListener(() {
+      if (controlPlaySpeed.value) {
+        speed = widget.controller.state.rate;
+        widget.controller.setRate(3.0);
       } else {
-        _timer ??= Timer.periodic(
-          const Duration(milliseconds: 1500),
-          (_) => controlVisible.setValue(false),
-        );
+        widget.controller.setRate(speed);
+        speed = 1.0;
       }
     });
     // 监听音量变化
@@ -98,6 +91,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
       volumeStream.sink.add(v);
       controlVolume.setValue(true);
       Debounce.c(
+        delay: const Duration(milliseconds: 200),
         () => controlVolume.setValue(false),
         'updateVolume',
       );
@@ -106,6 +100,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     ScreenBrightness().onCurrentBrightnessChanged.listen((_) {
       controlBrightness.setValue(true);
       Debounce.c(
+        delay: const Duration(milliseconds: 200),
         () => controlBrightness.setValue(false),
         'updateBrightness',
       );
@@ -128,35 +123,47 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建控制器
   Widget _buildControls(BuildContext context, VideoState state) {
+    final controller = widget.controller;
     final brightness = ScreenBrightness();
     final screenWidth = Tool.getScreenWidth(context);
     final screenHeight = Tool.getScreenHeight(context);
     return Stack(
       children: [
         ValueListenableBuilder2(
-          first: controlVisible,
-          second: controlLocked,
+          second: controller.screenLocked,
+          first: controller.controlVisible,
           builder: (_, visible, locked, __) {
             return GestureDetector(
-              onTap: () => controlVisible.setValue(!visible),
-              onVerticalDragStart: (_) => controlVisible.setValue(false),
               onDoubleTap: () async {
+                if (locked) return;
                 final playing = await widget.controller.resumeOrPause();
-                if (playing) controlVisible.setValue(false);
+                if (playing) controller.setControlVisible(false);
+              },
+              onVerticalDragStart: (_) {
+                if (locked) return;
+                controller.setControlVisible(false);
               },
               onVerticalDragUpdate: (details) async {
-                // 如果当前锁屏则不执行操作
                 if (locked) return;
                 // 区分左右屏
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
-                  final current =
-                      await FlutterVolumeController.getVolume() ?? 0;
-                  FlutterVolumeController.setVolume(current - dragPercentage);
+                  if (dragPercentage > 0) {
+                    FlutterVolumeController.lowerVolume(dragPercentage * 5);
+                  } else {
+                    FlutterVolumeController.raiseVolume(
+                        dragPercentage.abs() * 5);
+                  }
                 } else {
                   final current = await brightness.current;
                   brightness.setScreenBrightness(current - dragPercentage);
                 }
+              },
+              onTap: () => controller.setControlVisible(!visible),
+              onLongPressEnd: (_) => controlPlaySpeed.setValue(false),
+              onLongPressStart: (_) {
+                if (!controller.state.playing || locked) return;
+                controlPlaySpeed.setValue(true);
               },
               child: AnimatedOpacity(
                 opacity: visible ? 1 : 0,
@@ -179,6 +186,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
           },
         ),
         _buildVolume(),
+        _buildPlaySpeed(),
         _buildBrightness(),
       ],
     );
@@ -195,7 +203,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         child: IconButton(
           icon: Icon(iconData),
           color: locked ? kPrimaryColor : null,
-          onPressed: controller.toggleScreenLock,
+          onPressed: () {
+            controller.setControlVisible(true);
+            controller.setScreenLocked(!locked);
+          },
         ),
       ),
     );
@@ -253,9 +264,12 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     return StreamBuilder<bool>(
       stream: controller.stream.playing,
       builder: (_, snap) {
-        final playing = snap.data ?? false;
+        final playing = controller.state.playing;
         return IconButton(
-          onPressed: snap.hasData ? controller.resumeOrPause : null,
+          onPressed: () {
+            controller.setControlVisible(true);
+            controller.resumeOrPause();
+          },
           icon: Icon(playing ? FontAwesomeIcons.pause : FontAwesomeIcons.play),
         );
       },
@@ -286,10 +300,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                     value: progress.inMilliseconds.toDouble(),
                     secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
                     secondaryTrackValue: buffer.inMilliseconds.toDouble(),
+                    onChangeStart: (_) =>
+                        controller.setControlVisible(true, ongoing: true),
                     onChanged: (v) => state(
                         () => tempProgress = Duration(milliseconds: v.toInt())),
                     onChangeEnd: (v) {
                       controller.seekTo(Duration(milliseconds: v.toInt()));
+                      controller.setControlVisible(true);
                       tempProgress = null;
                     },
                   ),
@@ -314,6 +331,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
           value: snap.data ?? 1.0,
           underline: const SizedBox(),
           dropdownColor: Colors.black87,
+          onTap: () => controller.setControlVisible(true, ongoing: true),
           items: [0.5, 1.0, 2.0, 3.0, 4.0]
               .map((e) => DropdownMenuItem<double>(
                     value: e,
@@ -322,6 +340,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
               .toList(),
           onChanged: (v) {
             if (v != null) controller.setRate(v);
+            controller.setControlVisible(true);
           },
         );
       },
@@ -330,16 +349,51 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建底部静音按钮
   Widget _buildBottomActionsMute() {
+    final controller = widget.controller;
     return ValueListenableBuilder<bool>(
       valueListenable: controlMute,
       builder: (_, isMute, __) {
         return IconButton(
-          onPressed: () => controlMute.setValue(!controlMute.value),
+          onPressed: () {
+            controlMute.setValue(!controlMute.value);
+            controller.setControlVisible(true);
+          },
           icon: Icon(isMute
               ? FontAwesomeIcons.volumeXmark
               : FontAwesomeIcons.volumeLow),
         );
       },
+    );
+  }
+
+  // 构建长按播放倍速提示
+  Widget _buildPlaySpeed() {
+    return Align(
+      alignment: Alignment.center,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: controlPlaySpeed,
+        builder: (_, showPlaySpeed, __) {
+          return AnimatedOpacity(
+            opacity: showPlaySpeed ? 1.0 : 0,
+            duration: const Duration(milliseconds: 150),
+            child: const Card(
+              elevation: 0,
+              color: Colors.black38,
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('快进中', style: TextStyle(fontSize: 14)),
+                    SizedBox(width: 4),
+                    Icon(FontAwesomeIcons.anglesRight, size: 18),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
