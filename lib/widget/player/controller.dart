@@ -15,7 +15,7 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   final _player = Player();
 
   // 是否展示控制
-  final controlVisible = ValueChangeNotifier<bool>(true);
+  final controlVisible = ValueChangeNotifier<bool>(false);
 
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);

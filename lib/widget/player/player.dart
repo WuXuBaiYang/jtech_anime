@@ -73,7 +73,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   final controlTempProgress = ValueChangeNotifier<Duration?>(null);
 
   // 音量变化流
-  final volumeStream = StreamController<double>.broadcast();
+  final volumeValue = ValueChangeNotifier<double>(0);
 
   @override
   void initState() {
@@ -90,14 +90,16 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
       }
     });
     // 监听音量变化
-    FlutterVolumeController.addListener((v) {
-      volumeStream.sink.add(v);
-      controlVolume.setValue(true);
-      Debounce.c(
-        delay: const Duration(milliseconds: 200),
-        () => controlVolume.setValue(false),
-        'updateVolume',
-      );
+    FlutterVolumeController.getVolume().then((v) {
+      if (v != null) volumeValue.setValue(v);
+      volumeValue.addListener(() {
+        controlVolume.setValue(true);
+        Debounce.c(
+          delay: const Duration(milliseconds: 200),
+          () => controlVolume.setValue(false),
+          'updateVolume',
+        );
+      });
     });
     // 监听亮度变化
     ScreenBrightness().onCurrentBrightnessChanged.listen((_) {
@@ -151,15 +153,16 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                 // 区分左右屏
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
-                  if (dragPercentage > 0) {
-                    FlutterVolumeController.lowerVolume(dragPercentage * 5);
-                  } else {
-                    FlutterVolumeController.raiseVolume(
-                        dragPercentage.abs() * 5);
-                  }
+                  final current = volumeValue.value;
+                  final value = current - dragPercentage;
+                  if (value < 0 || value > 1) return;
+                  FlutterVolumeController.setVolume(value);
+                  volumeValue.setValue(value);
                 } else {
                   final current = await brightness.current;
-                  brightness.setScreenBrightness(current - dragPercentage);
+                  final value = current - dragPercentage;
+                  if (value < 0 || value > 1) return;
+                  brightness.setScreenBrightness(value);
                 }
               },
               onHorizontalDragStart: (_) {
@@ -168,15 +171,19 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
               },
               onHorizontalDragUpdate: (details) {
                 if (locked) return;
-                final dragPercentage = details.delta.dx / screenHeight;
                 final current = controlTempProgress.value?.inMilliseconds ??
                     controller.state.position.inMilliseconds;
-                final value =
-                    dragPercentage * controller.state.duration.inMilliseconds;
-                controlTempProgress
-                    .setValue(Duration(milliseconds: current - value.toInt()));
+                final total = controller.state.duration.inMilliseconds;
+                final value = current +
+                    (details.delta.dx / screenHeight * total * 0.5).toInt();
+                if (value < 0 || value > total) return;
+                controlTempProgress.setValue(Duration(milliseconds: value));
               },
-              onHorizontalDragEnd: (_) => controller.setControlVisible(true),
+              onHorizontalDragEnd: (_) {
+                final duration = controlTempProgress.value;
+                if (duration == null) return;
+                _delaySeekVideo(duration);
+              },
               onTap: () => controller.setControlVisible(!visible),
               onLongPressEnd: (_) => controlPlaySpeed.setValue(false),
               onLongPressStart: (_) {
@@ -194,7 +201,6 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                         _buildTopActions(),
                         _buildBottomActions(),
                       ],
-                      _buildBuffingStatus(),
                       _buildLockButton(locked),
                     ],
                   ),
@@ -206,6 +212,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         _buildVolume(),
         _buildPlaySpeed(),
         _buildBrightness(),
+        _buildBuffingStatus(),
       ],
     );
   }
@@ -322,11 +329,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                         controller.setControlVisible(true, ongoing: true),
                     onChanged: (v) => controlTempProgress
                         .setValue(Duration(milliseconds: v.toInt())),
-                    onChangeEnd: (v) {
-                      controller.seekTo(Duration(milliseconds: v.toInt()));
-                      controller.setControlVisible(true);
-                      tempProgress = null;
-                    },
+                    onChangeEnd: (v) =>
+                        _delaySeekVideo(Duration(milliseconds: v.toInt())),
                   ),
                 ),
                 Text(total.format(DurationPattern.fullTime), style: textStyle),
@@ -419,14 +423,12 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   Widget _buildVolume() {
     return Align(
       alignment: Alignment.centerLeft,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: controlVolume,
-        builder: (_, showVolume, __) {
-          return _buildVerticalProgress(
-            showVolume,
-            volumeStream.stream,
-            icon: const Icon(FontAwesomeIcons.volumeLow),
-          );
+      child: ValueListenableBuilder2<bool, double>(
+        first: controlVolume,
+        second: volumeValue,
+        builder: (_, showVolume, value, __) {
+          return _buildVerticalProgress(showVolume, value,
+              icon: const Icon(FontAwesomeIcons.volumeLow));
         },
       ),
     );
@@ -439,10 +441,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
       child: ValueListenableBuilder<bool>(
         valueListenable: controlBrightness,
         builder: (_, showBrightness, __) {
-          return _buildVerticalProgress(
-            showBrightness,
-            ScreenBrightness().onCurrentBrightnessChanged,
-            icon: const Icon(FontAwesomeIcons.sun),
+          return StreamBuilder<double>(
+            stream: ScreenBrightness().onCurrentBrightnessChanged,
+            builder: (_, snap) {
+              final value = snap.data ?? 0;
+              return _buildVerticalProgress(showBrightness, value,
+                  icon: const Icon(FontAwesomeIcons.sun));
+            },
           );
         },
       ),
@@ -450,11 +455,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   }
 
   // 构建垂直进度条
-  Widget _buildVerticalProgress(
-    bool visible,
-    Stream<double> progress, {
-    Widget? icon,
-  }) {
+  Widget _buildVerticalProgress(bool visible, double progress, {Widget? icon}) {
     return AnimatedOpacity(
       opacity: visible ? 1 : 0,
       duration: const Duration(milliseconds: 150),
@@ -468,24 +469,18 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          child: StreamBuilder<double>(
-            stream: progress,
-            builder: (_, snap) {
-              final value = snap.data ?? 0;
-              return Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  SizedBox.fromSize(
-                    size: const Size(160, 40),
-                    child: LinearProgressIndicator(
-                      backgroundColor: Colors.transparent,
-                      value: value,
-                    ),
-                  ),
-                  Padding(padding: const EdgeInsets.all(8), child: icon),
-                ],
-              );
-            },
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              SizedBox.fromSize(
+                size: const Size(160, 40),
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  value: progress,
+                ),
+              ),
+              Padding(padding: const EdgeInsets.all(8), child: icon),
+            ],
           ),
         ),
       ),
@@ -508,5 +503,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         },
       ),
     );
+  }
+
+  // 跳转到视频位置
+  Future<void> _delaySeekVideo(Duration duration) async {
+    await widget.controller.seekTo(duration);
+    await Future.delayed(const Duration(milliseconds: 100));
+    widget.controller.setControlVisible(true);
+    controlTempProgress.setValue(null);
   }
 }

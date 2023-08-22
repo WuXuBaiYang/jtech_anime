@@ -283,14 +283,14 @@ class _PlayerLogic extends BaseLogic {
   // 播放记录
   final playRecord = ValueChangeNotifier<PlayRecord?>(null);
 
-  // 获取资源列表
-  List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
-
   // 当前时间
   final currentTime = ValueChangeNotifier<DateTime>(DateTime.now());
 
   // 播放恢复标记
   final resumeFlag = ValueChangeNotifier<bool>(false);
+
+  // 获取资源列表
+  List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
   @override
   void init() {
@@ -335,7 +335,8 @@ class _PlayerLogic extends BaseLogic {
         // 暂停现有播放器
         await controller.pause();
         // 根据当前资源获取播放记录
-        final record = await db.getPlayRecord(animeInfo.value.url);
+        PlayRecord? record = await db.getPlayRecord(animeInfo.value.url);
+        if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
         final result = await animeParser.getPlayUrls([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
@@ -349,6 +350,7 @@ class _PlayerLogic extends BaseLogic {
           final duration = Duration(
             milliseconds: record.progress,
           );
+          await _waitVideoDuration();
           controller.seekTo(duration);
         }
         if (!playTheRecord) playRecord.setValue(record);
@@ -427,9 +429,16 @@ class _PlayerLogic extends BaseLogic {
     final record = playRecord.value;
     if (record == null) return;
     playRecord.setValue(null);
+    await _waitVideoDuration();
     await controller.seekTo(Duration(
       milliseconds: record.progress,
     ));
+  }
+
+  // 等待获取视频时长
+  Future<void> _waitVideoDuration() async {
+    if (controller.state.duration > Duration.zero) return;
+    await controller.stream.duration.first;
   }
 
   // 获取列表中的下一个资源
