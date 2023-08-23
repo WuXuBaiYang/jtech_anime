@@ -120,8 +120,10 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
                         _showDeleteDialog(context, records),
                     onStartDownloads: (records) async {
                       // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-                      if (!await Tool.checkNetwork(context, logic.checkNetwork))
+                      if (!await Tool.checkNetwork(
+                          context, logic.checkNetwork)) {
                         return;
+                      }
                       download.startTasks(records);
                     },
                     onStopDownloads: download.stopTasks,
@@ -281,7 +283,7 @@ class _DownloadLogic extends BaseLogic {
     final group = DownloadGroup.fromRecords(subList);
     if (group != null) groupList.add(group);
     // 对分组数据进行排序(按时间)
-    return groupList..sort((l, r) => l.updateTime.compareTo(r.updateTime));
+    return groupList..sort((l, r) => r.updateTime.compareTo(l.updateTime));
   }
 
   // 根据已下载列表获取播放记录并转换成map
