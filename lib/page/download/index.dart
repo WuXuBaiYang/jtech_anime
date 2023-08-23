@@ -120,9 +120,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
                         _showDeleteDialog(context, records),
                     onStartDownloads: (records) async {
                       // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-                      if (logic.checkNetwork.value &&
-                          await Tool.checkNetworkInMobile() &&
-                          !await _showNetworkStatusDialog(context)) return;
+                      if (!await Tool.checkNetwork(context, logic.checkNetwork))
+                        return;
                       download.startTasks(records);
                     },
                     onStopDownloads: download.stopTasks,
@@ -158,9 +157,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           IconButton(
             onPressed: () async {
               // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-              if (logic.checkNetwork.value &&
-                  await Tool.checkNetworkInMobile() &&
-                  !await _showNetworkStatusDialog(context)) return;
+              if (!await Tool.checkNetwork(context, logic.checkNetwork)) return;
               download.startTasks(
                   groups.expand<DownloadRecord>((e) => e.records).toList());
             },
@@ -222,34 +219,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
         },
       ),
     );
-  }
-
-  // 展示网络状态提示dialog
-  Future<bool> _showNetworkStatusDialog(BuildContext context) {
-    return MessageDialog.show<bool>(
-      context,
-      title: const Text('流量提醒'),
-      content: const Text('当前正在使用手机流量下载，是否继续？'),
-      actionLeft: TextButton(
-        child: const Text('不再提醒'),
-        onPressed: () {
-          cache.setBool(Common.checkNetworkStatusKey, false);
-          logic.checkNetwork.setValue(false);
-          router.pop(true);
-        },
-      ),
-      actionMiddle: TextButton(
-        child: const Text('取消'),
-        onPressed: () => router.pop(false),
-      ),
-      actionRight: TextButton(
-        child: const Text('继续下载'),
-        onPressed: () {
-          logic.checkNetwork.setValue(false);
-          router.pop(true);
-        },
-      ),
-    ).then((v) => v ?? false);
   }
 }
 

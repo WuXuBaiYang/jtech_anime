@@ -6,6 +6,11 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jtech_anime/common/common.dart';
+import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/cache.dart';
+import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/widget/message_dialog.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 import 'date.dart';
@@ -123,5 +128,44 @@ class Tool {
         DeviceOrientation.landscapeRight,
       ]
     ]);
+  }
+
+  // 检查网络状态(检查通过)
+  static Future<bool> checkNetwork(BuildContext context,
+      [ValueChangeNotifier<bool>? checkNetwork]) async {
+    if (!(checkNetwork?.value ?? false)) return true;
+    return checkNetworkInMobile().then((v) {
+      if (!v) return true;
+      return showNetworkStatusDialog(context);
+    });
+  }
+
+  // 展示网络状态提示dialog
+  static Future<bool> showNetworkStatusDialog(BuildContext context,
+      [ValueChangeNotifier<bool>? checkNetwork]) {
+    return MessageDialog.show<bool>(
+      context,
+      title: const Text('流量提醒'),
+      content: const Text('当前正在使用手机流量下载，是否继续？'),
+      actionLeft: TextButton(
+        child: const Text('不再提醒'),
+        onPressed: () {
+          cache.setBool(Common.checkNetworkStatusKey, false);
+          checkNetwork?.setValue(false);
+          router.pop(true);
+        },
+      ),
+      actionMiddle: TextButton(
+        child: const Text('取消'),
+        onPressed: () => router.pop(false),
+      ),
+      actionRight: TextButton(
+        child: const Text('继续下载'),
+        onPressed: () {
+          checkNetwork?.setValue(false);
+          router.pop(true);
+        },
+      ),
+    ).then((v) => v ?? false);
   }
 }

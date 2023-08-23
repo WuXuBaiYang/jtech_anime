@@ -73,7 +73,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       valueListenable: expandedStatus,
       builder: (_, expandedList, __) {
         return ListView.builder(
-          shrinkWrap: true,
           itemCount: widget.groupList.length,
           padding: const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
           itemBuilder: (_, i) {

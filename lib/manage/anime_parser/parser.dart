@@ -175,7 +175,7 @@ class AnimeParserManage extends BaseManage {
       final result = await _doJSFunction(content, request);
       for (final e in jsonDecode(result)) {
         final result = await db.cachePlayUrl(url, e['playUrl']);
-        tempList.add(result ?? VideoCache.from(e, item));
+        tempList.add((result ?? VideoCache.from(e))..item = item);
       }
     }
     return tempList;
