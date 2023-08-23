@@ -80,6 +80,12 @@ class ThemeManage extends BaseManage {
         chipTheme: const ChipThemeData(
           pressElevation: 0,
         ),
+        dialogTheme: const DialogTheme(
+          actionsPadding: EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+        ),
       );
 }
 

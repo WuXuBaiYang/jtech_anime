@@ -38,11 +38,9 @@ class MessageDialog extends StatelessWidget {
     Widget? actionRight,
     Widget? title,
     Widget? content,
-    bool barrierDismissible = true,
   }) {
     return showCupertinoDialog<V>(
       context: context,
-      barrierDismissible: barrierDismissible,
       builder: (_) => MessageDialog(
         actionLeft: actionLeft,
         actionMiddle: actionMiddle,
@@ -59,8 +57,6 @@ class MessageDialog extends StatelessWidget {
       title: title,
       content: content,
       actions: _dialogActions,
-      actionsAlignment: MainAxisAlignment.spaceBetween,
-      actionsPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
   }
 
