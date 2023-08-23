@@ -45,25 +45,13 @@ class _AnimeSourceDialogState extends State<AnimeSourceDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: const Text('选择解析源'),
       actions: [
+        TextButton(onPressed: router.pop, child: const Text('取消')),
         TextButton(
           onPressed: () => _importSource(context),
           child: const Text('导入解析源'),
-        ),
-        const Spacer(),
-        TextButton(onPressed: router.pop, child: const Text('取消')),
-        ValueListenableBuilder<AnimeSource?>(
-          valueListenable: currentSource,
-          builder: (_, source, __) {
-            final current = animeParser.currentSource;
-            return TextButton(
-              onPressed: source?.id == current?.id
-                  ? () => _changeSource(source, current)
-                  : null,
-              child: const Text('选择'),
-            );
-          },
         ),
       ],
     );
@@ -76,8 +64,6 @@ class _AnimeSourceDialogState extends State<AnimeSourceDialog> {
         ? QRCodeSheet.show(context)
         : Tool.decoderQRCodeFromGallery());
     if (result == null) return;
-
-    print('object');
 
     /// 实现解析源导入
   }
