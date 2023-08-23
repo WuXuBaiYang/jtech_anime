@@ -141,7 +141,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   // 构建视频播放器头部时间
   Widget _buildTopActionsTime() {
     return StreamBuilder<DateTime>(
-      stream: logic.timeClock,
+      stream: logic.timeClock.stream,
       builder: (_, snap) {
         final dateTime = snap.data ?? DateTime.now();
         return Text(dateTime.format(DatePattern.time));
@@ -289,12 +289,16 @@ class _PlayerLogic extends BaseLogic {
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
   // 计时器
-  final timeClock =
-      Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
+  final timeClock = StreamController<DateTime>.broadcast();
 
   @override
   void init() {
     super.init();
+    // 转化定时流到计时器中
+    Stream<DateTime>.periodic(
+      const Duration(seconds: 1),
+      (_) => DateTime.now(),
+    ).pipe(timeClock);
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度

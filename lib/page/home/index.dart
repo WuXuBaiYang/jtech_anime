@@ -133,18 +133,18 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 获取标题栏动作按钮集合
   List<Widget> _getAppbarActions(BuildContext context, int childIndex) {
     return [
-      StreamBuilder<SourceChangeEvent>(
-        initialData: SourceChangeEvent(animeParser.currentSource),
-        stream: event.on<SourceChangeEvent>(),
-        builder: (_, snap) {
-          final source = snap.data?.source;
-          if (source == null) return const SizedBox();
-          return IconButton(
-            icon: AnimeSourceIcon(source: source),
-            onPressed: () => AnimeSourceDialog.show(context),
-          );
-        },
-      ),
+      // StreamBuilder<SourceChangeEvent>(
+      //   initialData: SourceChangeEvent(animeParser.currentSource),
+      //   stream: event.on<SourceChangeEvent>(),
+      //   builder: (_, snap) {
+      //     final source = snap.data?.source;
+      //     if (source == null) return const SizedBox();
+      //     return IconButton(
+      //       icon: AnimeSourceIcon(source: source),
+      //       onPressed: () => AnimeSourceDialog.show(context),
+      //     );
+      //   },
+      // ),
       IconButton(
         icon: const Icon(FontAwesomeIcons.heart),
         onPressed: () => router.pushNamed(RoutePath.collect),
