@@ -16,6 +16,9 @@ class MessageDialog extends StatelessWidget {
   // 右侧按钮
   final Widget? actionRight;
 
+  // 主轴对齐方式
+  final MainAxisAlignment? actionsAlignment;
+
   // 标题
   final Widget? title;
 
@@ -29,6 +32,7 @@ class MessageDialog extends StatelessWidget {
     this.actionRight,
     this.title,
     this.content,
+    this.actionsAlignment,
   });
 
   static Future<V?> show<V>(
@@ -38,6 +42,7 @@ class MessageDialog extends StatelessWidget {
     Widget? actionRight,
     Widget? title,
     Widget? content,
+    MainAxisAlignment? actionsAlignment,
   }) {
     return showCupertinoDialog<V>(
       context: context,
@@ -47,6 +52,7 @@ class MessageDialog extends StatelessWidget {
         actionRight: actionRight,
         title: title,
         content: content,
+        actionsAlignment: actionsAlignment,
       ),
     );
   }
@@ -57,6 +63,7 @@ class MessageDialog extends StatelessWidget {
       title: title,
       content: content,
       actions: _dialogActions,
+      actionsAlignment: actionsAlignment,
     );
   }
 

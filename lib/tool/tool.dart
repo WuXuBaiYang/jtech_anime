@@ -136,7 +136,7 @@ class Tool {
     if (!(checkNetwork?.value ?? false)) return true;
     return checkNetworkInMobile().then((v) {
       if (!v) return true;
-      return showNetworkStatusDialog(context);
+      return showNetworkStatusDialog(context, checkNetwork);
     });
   }
 
@@ -146,6 +146,7 @@ class Tool {
     return MessageDialog.show<bool>(
       context,
       title: const Text('流量提醒'),
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       content: const Text('当前正在使用手机流量下载，是否继续？'),
       actionLeft: TextButton(
         child: const Text('不再提醒'),
