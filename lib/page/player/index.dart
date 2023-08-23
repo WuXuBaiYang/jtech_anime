@@ -140,10 +140,11 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器头部时间
   Widget _buildTopActionsTime() {
-    return ValueListenableBuilder<DateTime>(
-      valueListenable: logic.currentTime,
-      builder: (_, time, __) {
-        return Text(time.format(DatePattern.time));
+    return StreamBuilder<DateTime>(
+      stream: logic.timeClock,
+      builder: (_, snap) {
+        final dateTime = snap.data ?? DateTime.now();
+        return Text(dateTime.format(DatePattern.time));
       },
     );
   }
@@ -247,10 +248,8 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       logic.controller
         ..setScreenLocked(false)
         ..pause();
-      logic.stopTimer();
     } else if (state == AppLifecycleState.resumed) {
       logic.resumePlayByFlag();
-      logic.resumeTimer();
     }
   }
 
@@ -283,14 +282,15 @@ class _PlayerLogic extends BaseLogic {
   // 播放记录
   final playRecord = ValueChangeNotifier<PlayRecord?>(null);
 
-  // 当前时间
-  final currentTime = ValueChangeNotifier<DateTime>(DateTime.now());
-
   // 播放恢复标记
   final resumeFlag = ValueChangeNotifier<bool>(false);
 
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
+
+  // 计时器
+  final timeClock =
+      Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 
   @override
   void init() {
@@ -385,21 +385,6 @@ class _PlayerLogic extends BaseLogic {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
-  // 计时器
-  Timer? _timer;
-
-  // 启动计时器
-  void resumeTimer() {
-    _timer ??= Timer.periodic(const Duration(seconds: 1),
-        (t) => currentTime.setValue(DateTime.now()));
-  }
-
-  // 停止计时器
-  void stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
   // 一定时间后关闭播放记录弹窗
   void time2CloseRecord() => Debounce.c(
         () => playRecord.setValue(null),
@@ -457,8 +442,6 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
-    // 关闭计时器
-    stopTimer();
     // 退出播放器状态
     quitPlayer();
     // 销毁控制器
