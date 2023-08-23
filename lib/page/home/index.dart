@@ -18,7 +18,7 @@ import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
-import 'anime_source_dialog.dart';
+import 'anime_source.dart';
 
 /*
 * 首页
