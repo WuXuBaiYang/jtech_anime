@@ -446,10 +446,12 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
-    // 退出播放器状态
-    quitPlayer();
     // 销毁控制器
     controller.dispose();
+    // 销毁计时器
+    timeClock.close();
+    // 退出播放器状态
+    quitPlayer();
     super.dispose();
   }
 }
