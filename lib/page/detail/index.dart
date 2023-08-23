@@ -18,7 +18,6 @@ import 'package:jtech_anime/page/detail/download.dart';
 import 'package:jtech_anime/page/detail/info.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
@@ -100,8 +99,8 @@ class _AnimeDetailPageState
                       ? const SizedBox.square(
                           dimension: 20, child: CircularProgressIndicator())
                       : const Icon(FontAwesomeIcons.arrowsRotate),
-                  onPressed: () => Loading.show(
-                      loadFuture: logic.loadAnimeDetail(useCache: false)),
+                  onPressed: () =>
+                      Loading.show(loadFuture: logic.loadAnimeDetail(false)),
                 );
               },
             ),
@@ -223,7 +222,7 @@ class _AnimeDetailPageState
                     );
                   }),
                 ),
-                onRefresh: (_) => logic.loadAnimeDetail(useCache: false),
+                onRefresh: (_) => logic.loadAnimeDetail(false),
               );
             },
           );
@@ -275,9 +274,6 @@ class _AnimeDetailPageState
 * @Time 2023/7/12 9:07
 */
 class _AnimeDetailLogic extends BaseLogic {
-  // 缓存视频详情key
-  final String _cacheAnimeDetailKey = 'cache_anime_detail_';
-
   // 折叠高度
   static const double expandedHeight = 350.0;
 
@@ -343,7 +339,7 @@ class _AnimeDetailLogic extends BaseLogic {
   }
 
   // 加载番剧详情
-  Future<void> loadAnimeDetail({bool useCache = true}) async {
+  Future<void> loadAnimeDetail([bool useCache = true]) async {
     if (isLoading) return;
     final animeUrl = animeDetail.value.url;
     if (animeUrl.isEmpty) return;
@@ -353,11 +349,7 @@ class _AnimeDetailLogic extends BaseLogic {
       final record = await db.getPlayRecord(animeUrl);
       playRecord.setValue(record);
       // 获取番剧详细信息，是否使用缓存加载
-      final cacheKey = '$_cacheAnimeDetailKey${Tool.md5(animeUrl)}';
-      Map? cacheData = cache.getJson(cacheKey);
-      final result = (useCache && cacheData != null)
-          ? AnimeModel.from(cacheData)
-          : await animeParser.getAnimeDetail(animeUrl);
+      final result = await animeParser.getAnimeDetail(animeUrl, useCache);
       if (result == null) throw Exception('番剧详情获取失败');
       animeDetail.setValue(result);
       // 根据番剧信息添加收藏信息
@@ -371,8 +363,6 @@ class _AnimeDetailLogic extends BaseLogic {
             ..name = result.name
             ..source = source.key
             ..cover = result.cover));
-      await cache.setJsonMap(cacheKey, result.to(),
-          expiration: const Duration(hours: 6));
     } catch (e) {
       SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {

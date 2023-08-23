@@ -30,6 +30,9 @@ class AnimeParserManage extends BaseManage {
   // 当前选中的源缓存key
   static const String currentSourceKey = 'current_source';
 
+  // 缓存视频详情key
+  final String _cacheAnimeDetailKey = 'cache_anime_detail_';
+
   // 默认资源配置文件路径
   static const String defaultSourceConfigPath = 'assets/source/default.json';
 
@@ -132,30 +135,60 @@ class AnimeParserManage extends BaseManage {
     return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
   }
 
-  // 获取详情页数据
-  Future<AnimeModel?> getAnimeDetail(String animeUrl) async {
+  // 获取详情页数据(缓存时间：6小时)
+  Future<AnimeModel?> getAnimeDetail(String animeUrl,
+      [bool useCache = true]) async {
     final content = await _readParserFileContent();
     if (content == null) return null;
+    Map? animeDetail;
+    final cacheKey = '$_cacheAnimeDetailKey${Tool.md5(animeUrl)}';
+    if (useCache) animeDetail = cache.getJson(cacheKey);
+    if (animeDetail != null) return AnimeModel.from(animeDetail);
     final request = AnimeParserRequestModel.fromDetail(animeUrl: animeUrl);
-    final result = await _doJSFunction(content, request);
-    return AnimeModel.from(jsonDecode(result));
+    animeDetail = jsonDecode(await _doJSFunction(content, request));
+    if (animeDetail == null) return null;
+    await cache.setJsonMap(cacheKey, animeDetail,
+        expiration: const Duration(hours: 6));
+    return AnimeModel.from(animeDetail);
   }
 
-  // 获取视频播放地址
-  Future<List<VideoCache>> getPlayUrls(List<ResourceItemModel> items) async {
+  // 获取视频播放地址（缓存时间：永久）
+  Future<List<VideoCache>> getPlayUrls(List<ResourceItemModel> items,
+      [bool useCache = true]) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
-    final request = AnimeParserRequestModel.fromPlayUrl(
-        resourceUrls: items.map((e) => e.url).toList());
-    final result = await _doJSFunction(content, request);
-    return jsonDecode(result).map<VideoCache>((e) {
-      final item = items.firstWhere(
-        (it) => it.url == e['url'],
-      );
-      return VideoCache.from(e, item);
-    }).toList();
+    final tempList = <VideoCache>[];
+    for (var item in items) {
+      String? playUrl;
+      final url = item.url;
+      // 先从缓存中提取播放地址，如果存在则直接封装
+      if (useCache) playUrl = await db.getCachePlayUrl(url);
+      if (playUrl != null) {
+        tempList.add(VideoCache()
+          ..url = url
+          ..playUrl = playUrl
+          ..item = item);
+        continue;
+      }
+      // 如果不存在缓存地址则去获取播放地址并封装
+      final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
+      final result = await _doJSFunction(content, request);
+      for (final e in jsonDecode(result)) {
+        final result = await db.cachePlayUrl(url, e['playUrl']);
+        tempList.add((result ?? VideoCache.from(e))..item = item);
+      }
+    }
+    return tempList;
   }
 
+  // 检查是否支持目标方法
+  Future<bool> isSupportFunction(AnimeParserFunction function) async {
+    final source = currentSource;
+    if (source == null) return false;
+    return source.functions.contains(function.name);
+  }
+
+  /// 如果是从外部导入则需要检查必填方法是否满足
   // 将配置文件信息导入数据库
   Future<AnimeSource?> importAnimeSource(AnimeSource source) async {
     try {
@@ -205,7 +238,10 @@ class AnimeParserManage extends BaseManage {
   Future<AnimeSource?> _getDefaultSource() async {
     final sourceConfig = await rootBundle.loadString(defaultSourceConfigPath);
     if (sourceConfig.isEmpty) return null;
-    AnimeSource? source = AnimeSource.from(jsonDecode(sourceConfig));
+    AnimeSource? source = AnimeSource.from(
+      jsonDecode(sourceConfig),
+      AnimeParserFunction.values,
+    );
     final dbSource = await db.getAnimeSource(source.key);
     if (dbSource != null) return dbSource;
     return importAnimeSource(source);
@@ -348,7 +384,7 @@ final animeParser = AnimeParserManage();
 */
 class SourceChangeEvent extends EventModel {
   // 当前的数据源配置
-  final AnimeSource source;
+  final AnimeSource? source;
 
   SourceChangeEvent(this.source);
 }

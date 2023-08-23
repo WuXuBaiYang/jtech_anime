@@ -73,7 +73,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       valueListenable: expandedStatus,
       builder: (_, expandedList, __) {
         return ListView.builder(
-          shrinkWrap: true,
           itemCount: widget.groupList.length,
           padding: const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
           itemBuilder: (_, i) {
@@ -100,11 +99,14 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ImageView.net(
-                  width: 70,
-                  height: 80,
-                  item.cover,
-                  fit: BoxFit.cover,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: ImageView.net(
+                    width: 70,
+                    height: 80,
+                    item.cover,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 Expanded(
                   child: ListTile(
@@ -206,56 +208,50 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   Widget _buildGroupItemDownloadingRecords(
       List<DownloadRecord> records, DownloadTask? downloadTask) {
     const textStyle = TextStyle(color: Colors.black38, fontSize: 12);
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
       itemCount: records.length,
       padding: const EdgeInsets.only(top: 4),
+      physics: const NeverScrollableScrollPhysics(),
+      separatorBuilder: (_, i) => const SizedBox(height: 4),
       itemBuilder: (_, i) {
         final record = records[i];
         final task = downloadTask?.getDownloadTaskItem(record);
         final speedText =
             task != null ? '  ·  ${FileTool.formatSize(task.speed)}' : '';
-        return Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 4).copyWith(bottom: 4),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(4),
-            child: SizedBox.fromSize(
-              size: const Size.fromHeight(40),
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  if (task != null)
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: task.ratio,
-                          backgroundColor: Colors.transparent,
-                          color: kPrimaryColor.withOpacity(0.2),
-                        ),
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text('${record.name}$speedText', style: textStyle),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Icon(_getDownloadingStatusIcon(task, record),
-                          color: kPrimaryColor, size: 22),
+        return InkWell(
+          child: SizedBox.fromSize(
+            size: const Size.fromHeight(40),
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                if (task != null)
+                  Positioned.fill(
+                    child: LinearProgressIndicator(
+                      value: task.ratio,
+                      backgroundColor: Colors.transparent,
+                      color: kPrimaryColor.withOpacity(0.2),
                     ),
                   ),
-                ],
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text('${record.name}$speedText', style: textStyle),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Icon(_getDownloadingStatusIcon(task, record),
+                        color: kPrimaryColor, size: 22),
+                  ),
+                ),
+              ],
             ),
-            onLongPress: () => widget.onRemoveRecords?.call([record]),
-            onTap: () => task != null
-                ? widget.onStopDownloads?.call([record])
-                : widget.onStartDownloads?.call([record]),
           ),
+          onLongPress: () => widget.onRemoveRecords?.call([record]),
+          onTap: () => task != null
+              ? widget.onStopDownloads?.call([record])
+              : widget.onStartDownloads?.call([record]),
         );
       },
     );

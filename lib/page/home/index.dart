@@ -5,6 +5,7 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
+import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
@@ -13,9 +14,11 @@ import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
+import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+import '../../widget/source_dialog.dart';
 
 /*
 * 首页
@@ -35,7 +38,7 @@ class HomePage extends StatefulWidget {
 * @Time 2023/7/6 10:03
 */
 class _HomePageState extends LogicState<HomePage, _HomeLogic>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   // 时间轴tab控制器
   late TabController timetableTabController = TabController(
       length: 7, vsync: this, initialIndex: DateTime.now().weekday - 1);
@@ -57,40 +60,52 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   Widget buildWidget(BuildContext context) {
     return ValueListenableBuilder<int>(
       valueListenable: logic.showChildIndex,
-      builder: (_, showChildIndex, __) {
-        return ValueListenableBuilder(
-          valueListenable: logic.filterSelect,
-          builder: (_, filterSelect, __) {
-            return Scaffold(
-              appBar: AppBar(
-                title: _buildSearchButton(),
-                actions: _getAppbarActions(showChildIndex),
-                bottom: (showChildIndex != 0 || filterSelect.isNotEmpty)
-                    ? PreferredSize(
-                        preferredSize: const Size.fromHeight(kToolbarHeight),
-                        child: [
-                          _buildFilterChips(),
-                          _buildTimetableTabBar(),
-                        ][showChildIndex],
-                      )
-                    : null,
+      builder: (_, childIndex, __) {
+        return AnimeFilterConfigMenu(
+          complete: () => Loading.show(
+            loadFuture: logic.loadAnimeList(false),
+          )?.then((_) => logic.animeController.jumpTo(0)),
+          filterConfig: logic.filterSelect,
+          filterSelect: logic.selectFilterConfig,
+          visible: childIndex == 0,
+          body: Scaffold(
+            appBar: AppBar(
+              title: _buildSearchButton(),
+              actions: _getAppbarActions(context, childIndex),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(kToolbarHeight),
+                child: [
+                  _buildFilterChips(),
+                  _buildTimetableTabBar(),
+                ][childIndex],
               ),
-              body: IndexedStack(
-                index: showChildIndex,
-                children: [
-                  AnimeFilterConfigMenu(
-                    complete: () => Loading.show(
-                      loadFuture: logic.loadAnimeList(false),
-                    )?.then((_) => logic.animeController.jumpTo(0)),
-                    filterConfig: logic.filterSelect,
-                    filterSelect: logic.selectFilterConfig,
-                    body: _buildAnimeList(),
-                  ),
-                  _buildTimetableTabView(),
-                ],
-              ),
-            );
-          },
+            ),
+            body: AnimatedCrossFade(
+              firstChild: _buildAnimeList(),
+              secondChild: _buildTimetableTabView(),
+              duration: const Duration(milliseconds: 150),
+              crossFadeState: [
+                CrossFadeState.showFirst,
+                CrossFadeState.showSecond,
+              ][childIndex],
+              layoutBuilder:
+                  (topChild, topChildKey, bottomChild, bottomChildKey) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    Positioned.fill(
+                      key: bottomChildKey,
+                      child: bottomChild,
+                    ),
+                    Positioned.fill(
+                      key: topChildKey,
+                      child: topChild,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         );
       },
     );
@@ -107,7 +122,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           children: [
             Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
             SizedBox(width: 8),
-            Text('嗖嗖嗖~', style: textStyle),
+            Text('嗖~', style: textStyle),
           ],
         ),
         onPressed: () => router.pushNamed(RoutePath.search),
@@ -116,8 +131,20 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   }
 
   // 获取标题栏动作按钮集合
-  List<Widget> _getAppbarActions(int showChildIndex) {
+  List<Widget> _getAppbarActions(BuildContext context, int childIndex) {
     return [
+      // StreamBuilder<SourceChangeEvent>(
+      //   initialData: SourceChangeEvent(animeParser.currentSource),
+      //   stream: event.on<SourceChangeEvent>(),
+      //   builder: (_, snap) {
+      //     final source = snap.data?.source;
+      //     if (source == null) return const SizedBox();
+      //     return IconButton(
+      //       icon: AnimeSourceIcon(source: source),
+      //       onPressed: () => AnimeSourceDialog.show(context),
+      //     );
+      //   },
+      // ),
       IconButton(
         icon: const Icon(FontAwesomeIcons.heart),
         onPressed: () => router.pushNamed(RoutePath.collect),
@@ -131,11 +158,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         onPressed: () => router.pushNamed(RoutePath.download),
       ),
       AnimatedRotation(
-        turns: showChildIndex == 1 ? 0.5 : 1,
+        turns: childIndex == 1 ? 0.5 : 1,
         duration: const Duration(milliseconds: 200),
         child: IconButton(
           icon: const Icon(FontAwesomeIcons.handPointRight),
-          onPressed: () => logic.showChildIndex.setValue(showChildIndex ^ 1),
+          onPressed: () => logic.showChildIndex.setValue(childIndex ^ 1),
         ),
       ),
     ];
@@ -146,14 +173,21 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     return ValueListenableBuilder<Map<String, FilterSelect>>(
       valueListenable: logic.filterSelect,
       builder: (_, filterMap, __) {
+        final tempFilter = filterMap.isNotEmpty
+            ? filterMap
+            : {
+                'default': FilterSelect()
+                  ..parentName = '默认'
+                  ..name = '全部'
+              };
         return Align(
           alignment: Alignment.centerLeft,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(right: 8),
             child: Row(
-              children: List.generate(filterMap.length, (i) {
-                final item = filterMap.values.elementAt(i);
+              children: List.generate(tempFilter.length, (i) {
+                final item = tempFilter.values.elementAt(i);
                 final text = '${item.parentName} · ${item.name}';
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),

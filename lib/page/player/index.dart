@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_meedu_videoplayer/meedu_player.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -21,6 +19,8 @@ import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/player/controller.dart';
+import 'package:jtech_anime/widget/player/player.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
 
 /*
@@ -94,6 +94,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
           currentItem: item,
           animeInfo: logic.animeInfo.value,
           onResourceSelect: (item) {
+            logic.controller.setControlVisible(true);
             pageKey.currentState?.closeEndDrawer();
             logic.changeVideo(item);
           },
@@ -104,44 +105,29 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return MeeduVideoPlayer(
+    return CustomVideoPlayer(
+      leading: const BackButton(),
       controller: logic.controller,
-      header: (_, controller, responsive) {
-        return _buildVideoPlayerHeader();
-      },
-      bottomRight: (_, controller, responsive) {
-        return _buildVideoPlayerBottomRight();
-      },
-    );
-  }
-
-  // 构建视频播放器头部
-  Widget _buildVideoPlayerHeader() {
-    const titleStyle = TextStyle(fontSize: 18);
-    return Row(
-      children: [
-        const BackButton(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomScrollText.slow(
-              logic.animeInfo.value.name,
-              style: titleStyle,
-            ),
-            _buildVideoPlayerHeaderSubTitle(),
-          ],
-        ),
-        const Spacer(),
-        _buildVideoPlayerHeaderTime(),
+      title: CustomScrollText.slow(
+        logic.animeInfo.value.name,
+        style: const TextStyle(fontSize: 18),
+      ),
+      subTitle: _buildSubTitle(),
+      topActions: [
+        _buildTopActionsTime(),
+        const SizedBox(width: 14),
+        _buildTopActionsBattery(),
         const SizedBox(width: 8),
-        _buildVideoPlayerHeaderBattery(),
-        const SizedBox(width: 8),
+      ],
+      bottomActions: [
+        _buildBottomActionsNext(),
+        _buildBottomActionsChoice(),
       ],
     );
   }
 
   // 构建视频播放器头部子标题
-  Widget _buildVideoPlayerHeaderSubTitle() {
+  Widget _buildSubTitle() {
     return ValueListenableBuilder<ResourceItemModel>(
       valueListenable: logic.resourceInfo,
       builder: (_, resource, __) {
@@ -153,11 +139,12 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   }
 
   // 构建视频播放器头部时间
-  Widget _buildVideoPlayerHeaderTime() {
-    return ValueListenableBuilder<DateTime>(
-      valueListenable: logic.currentTime,
-      builder: (_, time, __) {
-        return Text(time.format(DatePattern.time));
+  Widget _buildTopActionsTime() {
+    return StreamBuilder<DateTime>(
+      stream: logic.timeClock.stream,
+      builder: (_, snap) {
+        final dateTime = snap.data ?? DateTime.now();
+        return Text(dateTime.format(DatePattern.time));
       },
     );
   }
@@ -172,7 +159,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   ];
 
   // 构建视频播放器头部电池
-  Widget _buildVideoPlayerHeaderBattery() {
+  Widget _buildTopActionsBattery() {
     return CacheFutureBuilder<int>(
       future: () => Battery().batteryLevel,
       builder: (_, snap) {
@@ -186,28 +173,34 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     );
   }
 
-  // 构建视频播放器底部右侧
-  Widget _buildVideoPlayerBottomRight() {
-    return Row(
-      children: [
-        ValueListenableBuilder<ResourceItemModel?>(
-          valueListenable: logic.nextResourceInfo,
-          builder: (_, resource, __) {
-            if (resource == null) return const SizedBox();
-            return TextButton(
-              onPressed: Throttle.click(
-                () => logic.changeVideo(resource),
-                'playNextResource',
-              ),
-              child: const Text('下一集'),
-            );
-          },
-        ),
-        TextButton(
-          child: const Text('选集'),
-          onPressed: () => pageKey.currentState?.openEndDrawer(),
-        ),
-      ],
+  // 构建底部下一集按钮
+  Widget _buildBottomActionsNext() {
+    return ValueListenableBuilder<ResourceItemModel?>(
+      valueListenable: logic.nextResourceInfo,
+      builder: (_, resource, __) {
+        if (resource == null) return const SizedBox();
+        return TextButton(
+          onPressed: Throttle.click(
+            () {
+              logic.controller.setControlVisible(true);
+              logic.changeVideo(resource);
+            },
+            'playNextResource',
+          ),
+          child: const Text('下一集'),
+        );
+      },
+    );
+  }
+
+  // 构建底部选集按钮
+  Widget _buildBottomActionsChoice() {
+    return TextButton(
+      child: const Text('选集'),
+      onPressed: () {
+        logic.controller.setControlVisible(true, ongoing: true);
+        pageKey.currentState?.openEndDrawer();
+      },
     );
   }
 
@@ -225,7 +218,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         return Card(
           elevation: 0,
           color: Colors.black26,
-          margin: const EdgeInsets.only(bottom: 110, left: 8),
+          margin: const EdgeInsets.only(bottom: 130, left: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -251,12 +244,12 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 当页面退出时暂停视频播放
     if (state == AppLifecycleState.paused) {
-      logic.stopTimer();
+      logic.resumeFlag.setValue(logic.controller.state.playing);
       logic.controller
-        ..lockedControls.value = false
+        ..setScreenLocked(false)
         ..pause();
     } else if (state == AppLifecycleState.resumed) {
-      logic.resumeTimer();
+      logic.resumePlayByFlag();
     }
   }
 
@@ -274,14 +267,14 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 * @Time 2023/7/12 9:10
 */
 class _PlayerLogic extends BaseLogic {
+  // 播放器控制器
+  final controller = CustomVideoPlayerController();
+
   // 当前番剧信息
   late ValueChangeNotifier<AnimeModel> animeInfo;
 
   // 当前播放的资源信息
   late ValueChangeNotifier<ResourceItemModel> resourceInfo;
-
-  // 播放器控制器
-  final controller = _createVideoController();
 
   // 存储下一条视频信息
   final nextResourceInfo = ValueChangeNotifier<ResourceItemModel?>(null);
@@ -289,19 +282,27 @@ class _PlayerLogic extends BaseLogic {
   // 播放记录
   final playRecord = ValueChangeNotifier<PlayRecord?>(null);
 
+  // 播放恢复标记
+  final resumeFlag = ValueChangeNotifier<bool>(false);
+
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
-  // 当前时间
-  final currentTime = ValueChangeNotifier<DateTime>(DateTime.now());
+  // 计时器
+  final timeClock = StreamController<DateTime>.broadcast();
 
   @override
   void init() {
     super.init();
+    // 转化定时流到计时器中
+    Stream<DateTime>.periodic(
+      const Duration(seconds: 1),
+      (_) => DateTime.now(),
+    ).pipe(timeClock);
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
-    controller.onPositionChanged.listen((e) {
+    controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
         () => _updateVideoProgress(e),
@@ -338,22 +339,24 @@ class _PlayerLogic extends BaseLogic {
         // 暂停现有播放器
         await controller.pause();
         // 根据当前资源获取播放记录
-        final record = await db.getPlayRecord(animeInfo.value.url);
+        PlayRecord? record = await db.getPlayRecord(animeInfo.value.url);
+        if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
         final result = await animeParser.getPlayUrls([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         final playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
-        // 解析完成之后实现视频播放
-        final dataSource = downloadRecord != null
-            ? DataSource(
-                type: DataSourceType.file, file: downloadRecord.playFile)
-            : DataSource(type: DataSourceType.network, source: playUrl);
-        final seekTo = playTheRecord && record != null
-            ? Duration(milliseconds: record.progress)
-            : Duration.zero;
-        await controller.setDataSource(dataSource, seekTo: seekTo);
+        // 播放已下载视频或者在线视频并跳转到指定位置
+        await controller.play(
+            downloadRecord != null ? downloadRecord.playFilePath : playUrl);
+        if (playTheRecord && record != null) {
+          final duration = Duration(
+            milliseconds: record.progress,
+          );
+          await _waitVideoDuration();
+          controller.seekTo(duration);
+        }
         if (!playTheRecord) playRecord.setValue(record);
       } catch (e) {
         SnackTool.showMessage(message: '获取播放地址失败，请重试~');
@@ -364,33 +367,11 @@ class _PlayerLogic extends BaseLogic {
     }));
   }
 
-  // 创建视频播放器控制器
-  static MeeduPlayerController _createVideoController() {
-    const errorText = '视频加载失败，请重试~';
-    return MeeduPlayerController(
-      controlsStyle: ControlsStyle.primary,
-      enabledButtons: const EnabledButtons(
-        rewindAndfastForward: false,
-        playPauseAndRepeat: true,
-        playBackSpeed: false,
-        muteAndSound: true,
-        lockControls: true,
-        fullscreen: false,
-        videoFit: false,
-        pip: false,
-      ),
-      screenManager: const ScreenManager(
-        orientations: [
-          DeviceOrientation.landscapeRight,
-          DeviceOrientation.landscapeLeft,
-        ],
-        systemUiMode: SystemUiMode.immersiveSticky,
-      ),
-      initialFit: BoxFit.fitHeight,
-      colorTheme: kPrimaryColor,
-      errorText: errorText,
-      showLogs: kDebugMode,
-    );
+  // 根据标记恢复播放
+  Future<void> resumePlayByFlag() async {
+    if (!resumeFlag.value) return;
+    resumeFlag.setValue(false);
+    return controller.resume();
   }
 
   // 进入播放页面设置(横向布局且不显示状态栏)
@@ -406,21 +387,6 @@ class _PlayerLogic extends BaseLogic {
   void quitPlayer() {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  }
-
-  // 计时器
-  Timer? _timer;
-
-  // 启动计时器
-  void resumeTimer() {
-    _timer ??= Timer.periodic(const Duration(seconds: 1),
-        (t) => currentTime.setValue(DateTime.now()));
-  }
-
-  // 停止计时器
-  void stopTimer() {
-    _timer?.cancel();
-    _timer = null;
   }
 
   // 一定时间后关闭播放记录弹窗
@@ -452,9 +418,16 @@ class _PlayerLogic extends BaseLogic {
     final record = playRecord.value;
     if (record == null) return;
     playRecord.setValue(null);
+    await _waitVideoDuration();
     await controller.seekTo(Duration(
       milliseconds: record.progress,
     ));
+  }
+
+  // 等待获取视频时长
+  Future<void> _waitVideoDuration() async {
+    if (controller.state.duration > Duration.zero) return;
+    await controller.stream.duration.first;
   }
 
   // 获取列表中的下一个资源
@@ -473,8 +446,6 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
-    // 关闭计时器
-    stopTimer();
     // 退出播放器状态
     quitPlayer();
     // 销毁控制器

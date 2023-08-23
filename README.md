@@ -1,4 +1,4 @@
-# 看番咩？ - Flutter 开源项目
+# <img alt="app-logo" height="50" width="50" src="./readme/app_logo.png"/> 看番咩？ - Flutter 开源项目
 
 欢迎使用 '看番咩？' 开源项目！这个项目是基于 Flutter 3.10.6 版本开发的。
 
@@ -45,6 +45,9 @@
 - 如果问题仍然存在，请查看项目的文档或提交问题到项目的 GitHub 页面以获取帮助。
 
 ## 贡献
+
+- <img alt="猫男的头像" height="20" width="20" src="./readme/avatar_mao.jpg"/> 猫男(的老婆)
+    - 来自'煎蛋发大财' QQ群
 
 如果您对 '看番咩？' 项目有任何改进或建议，我们非常欢迎您的贡献！请在 GitHub 上提交拉取请求或问题以帮助改进这个项目。
 

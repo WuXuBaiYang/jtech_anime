@@ -1,10 +1,10 @@
+import 'dart:convert';
+
 /*
 * 解析方法枚举
 * @author wuxubaiyang
 * @Time 2023/8/9 17:23
 */
-import 'dart:convert';
-
 enum AnimeParserFunction {
   // 番剧时间表
   timeTable,
