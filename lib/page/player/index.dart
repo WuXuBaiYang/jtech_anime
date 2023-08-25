@@ -16,6 +16,7 @@ import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/loading.dart';
+import 'package:jtech_anime/tool/m3u8.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
@@ -344,12 +345,19 @@ class _PlayerLogic extends BaseLogic {
         // 根据资源与视频下标切换视频播放地址
         final result = await animeParser.getPlayUrls([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
-        final playUrl = result.first.playUrl;
+        String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
+        // 如果视频已下载则使用本地路径；
+        // 如果播放地址为m3u8则使用本地过滤缓存机制;
+        if (downloadRecord != null) {
+          playUrl = downloadRecord.playFilePath;
+        } else if (playUrl.endsWith('.m3u8')) {
+          final result = await M3U8Parser().cacheFile(playUrl);
+          if (result != null) playUrl = result.path;
+        }
         // 播放已下载视频或者在线视频并跳转到指定位置
-        await controller.play(
-            downloadRecord != null ? downloadRecord.playFilePath : playUrl);
+        await controller.play(playUrl);
         if (playTheRecord && record != null) {
           final duration = Duration(
             milliseconds: record.progress,

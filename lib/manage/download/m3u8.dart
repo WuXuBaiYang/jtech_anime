@@ -7,7 +7,6 @@ import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/manage/download/base.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/m3u8.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:path/path.dart';
 
 /*
@@ -29,9 +28,9 @@ class M3U8Downloader extends Downloader {
     CancelToken? cancelToken,
     DownloaderProgressCallback? receiveProgress,
   }) async {
-    savePath = join(savePath, _m3u8CachePath, Tool.md5(url));
+    final cachePath = join(savePath, _m3u8CachePath);
     // 解析索引文件并遍历要下载的资源集合
-    final result = await M3U8Parser().download(url, savePath: savePath);
+    final result = await M3U8Parser().download(url, savePath: cachePath);
     if (result == null) throw Exception('m3u8文件解析失败，内容为空');
     // 获取要下载的文件总量
     File? playFile = result.indexFile;
@@ -39,17 +38,17 @@ class M3U8Downloader extends Downloader {
     final total = downloadsMap.length;
     final fileList = <File>[];
     downloadsMap.removeWhere((k, _) {
-      fileList.add(File(join(savePath, k)));
+      fileList.add(File(join(cachePath, k)));
       return fileList.last.existsSync();
     });
-    final startIndex = savePath.indexOf(FileDirPath.videoCachePath);
+    final startIndex = cachePath.indexOf(FileDirPath.videoCachePath);
     int initCount = total - downloadsMap.length;
     await downloadBatch(
       receiveProgress: (count, _, speed) {
         if (isCanceled(cancelToken)) return;
         receiveProgress?.call(min(initCount + count, total), total, speed);
       },
-      fileDir: savePath.substring(startIndex),
+      fileDir: cachePath.substring(startIndex),
       root: FileDir.applicationDocuments,
       cancelToken: cancelToken,
       downloadsMap,
@@ -62,7 +61,7 @@ class M3U8Downloader extends Downloader {
     playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
     if (playFile == null) throw Exception('视频合并失败');
     // 清空缓存目录
-    FileTool.clearDir(savePath);
+    FileTool.clearDir(cachePath);
     return playFile;
   }
 

@@ -55,6 +55,7 @@ class M3U8Parser {
       final dir = Directory(savePath ??= join(
           (await getTemporaryDirectory()).path, _cachePath, Tool.md5(url)));
       if (!dir.existsSync()) dir.createSync(recursive: true);
+      // 如果索引文件存在则不重复解析
       final result = await parse(url);
       if (result == null) return null;
       // 如果存在key则写入key
