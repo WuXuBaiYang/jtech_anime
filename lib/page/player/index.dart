@@ -353,7 +353,7 @@ class _PlayerLogic extends BaseLogic {
         if (downloadRecord != null) {
           playUrl = downloadRecord.playFilePath;
         } else if (playUrl.endsWith('.m3u8')) {
-          final result = await M3U8Parser().cacheFile(playUrl);
+          final result = await M3U8Parser().cacheFilter(playUrl);
           if (result != null) playUrl = result.path;
         }
         // 播放已下载视频或者在线视频并跳转到指定位置

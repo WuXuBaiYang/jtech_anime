@@ -22,7 +22,7 @@ class M3U8Parser {
   static const _cachePath = 'm3u8';
 
   // 缓存m3u8文件提供本地播放
-  Future<File?> cacheFile(String url, {String? filePath}) async {
+  Future<File?> cacheFilter(String url, {String? filePath}) async {
     try {
       filePath ??= join((await getTemporaryDirectory()).path, _cachePath,
           '${Tool.md5(url)}.m3u8');
