@@ -130,9 +130,9 @@ class M3U8Parser {
       final temp = _absoluteIndex(filename);
       if (prev != -1 && temp != prev + 1) {
         content = content.replaceAll(filename, '');
-        prev = temp;
         continue;
       }
+      prev = temp;
       resources[filename] = url;
       // 替换m3u8文件中得分片地址为本地或远程地址
       content = content.replaceAll(item.url ?? '', filename);

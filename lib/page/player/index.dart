@@ -19,6 +19,7 @@ import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/m3u8.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/player.dart';
@@ -142,7 +143,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   // 构建视频播放器头部时间
   Widget _buildTopActionsTime() {
     return StreamBuilder<DateTime>(
-      stream: logic.timeClock.stream,
+      stream: logic.timeClock,
       builder: (_, snap) {
         final dateTime = snap.data ?? DateTime.now();
         return Text(dateTime.format(DatePattern.time));
@@ -286,20 +287,16 @@ class _PlayerLogic extends BaseLogic {
   // 播放恢复标记
   final resumeFlag = ValueChangeNotifier<bool>(false);
 
+  // 计时器
+  final timeClock = Stream<DateTime>.periodic(
+      const Duration(seconds: 1), (_) => DateTime.now()).asBroadcastStream();
+
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
-
-  // 计时器
-  final timeClock = StreamController<DateTime>.broadcast();
 
   @override
   void init() {
     super.init();
-    // 转化定时流到计时器中
-    Stream<DateTime>.periodic(
-      const Duration(seconds: 1),
-      (_) => DateTime.now(),
-    ).pipe(timeClock);
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
@@ -384,17 +381,14 @@ class _PlayerLogic extends BaseLogic {
 
   // 进入播放页面设置(横向布局且不显示状态栏)
   void entryPlayer() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    Tool.toggleScreenOrientation(false);
   }
 
   // 退出播放页面设置(恢复布局并显示状态栏)
   void quitPlayer() {
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    Tool.toggleScreenOrientation(true);
   }
 
   // 一定时间后关闭播放记录弹窗
@@ -456,8 +450,6 @@ class _PlayerLogic extends BaseLogic {
   void dispose() {
     // 销毁控制器
     controller.dispose();
-    // 销毁计时器
-    timeClock.close();
     // 退出播放器状态
     quitPlayer();
     super.dispose();
