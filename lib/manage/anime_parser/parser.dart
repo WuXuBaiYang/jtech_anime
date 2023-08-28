@@ -182,7 +182,7 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 检查是否支持目标方法
-  Future<bool> isSupportFunction(AnimeParserFunction function) async {
+  bool isSupport(AnimeParserFunction function) {
     final source = currentSource;
     if (source == null) return false;
     return source.functions.contains(function.name);

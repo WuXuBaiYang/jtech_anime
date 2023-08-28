@@ -1,12 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/tool/brightness.dart';
 import 'package:jtech_anime/tool/debounce.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
+import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 
 /*
 * 自定义播放器控制层-状态层
@@ -17,16 +16,12 @@ class CustomPlayerControlsStatus extends StatefulWidget {
   // 播放器控制器
   final CustomVideoPlayerController controller;
 
-  // 音量控制
-  final ValueChangeNotifier<double> volumeValue;
-
   // 倍速播放控制
   final ValueChangeNotifier<bool> controlPlaySpeed;
 
   const CustomPlayerControlsStatus({
     super.key,
     required this.controller,
-    required this.volumeValue,
     required this.controlPlaySpeed,
   });
 
@@ -62,19 +57,16 @@ class _CustomPlayerControlsStatusState
       }
     });
     // 监听音量变化
-    FlutterVolumeController.getVolume().then((v) {
-      if (v != null) widget.volumeValue.setValue(v);
-      widget.volumeValue.addListener(() {
-        controlVolume.setValue(true);
-        Debounce.c(
-          delay: const Duration(milliseconds: 200),
-          () => controlVolume.setValue(false),
-          'updateVolume',
-        );
-      });
+    VolumeTool.stream.listen((_) {
+      controlVolume.setValue(true);
+      Debounce.c(
+        delay: const Duration(milliseconds: 200),
+        () => controlVolume.setValue(false),
+        'updateVolume',
+      );
     });
     // 监听亮度变化
-    ScreenBrightness().onCurrentBrightnessChanged.listen((_) {
+    BrightnessTool.stream.listen((_) {
       controlBrightness.setValue(true);
       Debounce.c(
         delay: const Duration(milliseconds: 200),
@@ -133,12 +125,16 @@ class _CustomPlayerControlsStatusState
   Widget _buildVolume() {
     return Align(
       alignment: Alignment.centerLeft,
-      child: ValueListenableBuilder2<bool, double>(
-        first: controlVolume,
-        second: widget.volumeValue,
-        builder: (_, showVolume, value, __) {
-          return _buildVerticalProgress(showVolume, value,
-              icon: const Icon(FontAwesomeIcons.volumeLow));
+      child: ValueListenableBuilder<bool>(
+        valueListenable: controlVolume,
+        builder: (_, showVolume, __) {
+          return StreamBuilder<double>(
+              stream: VolumeTool.stream,
+              builder: (_, snap) {
+                final value = snap.data ?? 0;
+                return _buildVerticalProgress(showVolume, value,
+                    icon: const Icon(FontAwesomeIcons.volumeLow));
+              });
         },
       ),
     );
@@ -152,7 +148,7 @@ class _CustomPlayerControlsStatusState
         valueListenable: controlBrightness,
         builder: (_, showBrightness, __) {
           return StreamBuilder<double>(
-            stream: ScreenBrightness().onCurrentBrightnessChanged,
+            stream: BrightnessTool.stream,
             builder: (_, snap) {
               final value = snap.data ?? 0;
               return _buildVerticalProgress(showBrightness, value,

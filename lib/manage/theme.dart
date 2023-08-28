@@ -35,7 +35,7 @@ class ThemeManage extends BaseManage {
   Future<void> switchTheme(Brightness brightness) async {
     if (await cache.setInt(_themeCacheKey, brightness.index)) {
       _currentTheme = getThemeByBrightness(brightness);
-      event.send(ThemeEvent(data: _currentTheme!));
+      event.send(ThemeEvent(_currentTheme!));
     }
   }
 
@@ -74,9 +74,6 @@ class ThemeManage extends BaseManage {
       ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
-        appBarTheme: const AppBarTheme(
-          titleSpacing: 0,
-        ),
         chipTheme: const ChipThemeData(
           pressElevation: 0,
         ),
@@ -110,5 +107,5 @@ class ThemeEvent extends EventModel {
   // 全局样式
   final ThemeData data;
 
-  ThemeEvent({required this.data});
+  ThemeEvent(this.data);
 }

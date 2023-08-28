@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/tool/date.dart';
+import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
 /*
@@ -57,9 +57,7 @@ class _CustomPlayerControlsBottomState
       }
     });
     // 监听静音状态变化
-    controlMute.addListener(() {
-      FlutterVolumeController.setMute(controlMute.value);
-    });
+    controlMute.addListener(VolumeTool.mute);
   }
 
   @override

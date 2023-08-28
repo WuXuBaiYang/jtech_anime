@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/tool/brightness.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/controls/bottom.dart';
@@ -10,7 +11,6 @@ import 'package:jtech_anime/widget/player/controls/side.dart';
 import 'package:jtech_anime/widget/player/controls/status.dart';
 import 'package:jtech_anime/widget/player/controls/top.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 
 /*
 * 自定义视频播放器
@@ -56,9 +56,6 @@ class CustomVideoPlayer extends StatefulWidget {
 * @Time 2023/8/19 14:30
 */
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
-  // 音量变化流
-  final volumeValue = ValueChangeNotifier<double>(0);
-
   // 倍速播放控制
   final controlPlaySpeed = ValueChangeNotifier<bool>(false);
 
@@ -78,7 +75,6 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 构建控制器
   Widget _buildControls(BuildContext context, VideoState state) {
     final controller = widget.controller;
-    final brightness = ScreenBrightness();
     final screenWidth = Tool.getScreenWidth(context);
     final screenHeight = Tool.getScreenHeight(context);
     Duration? tempPosition;
@@ -104,16 +100,15 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                 // 区分左右屏
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
-                  final current = volumeValue.value;
+                  final current = await VolumeTool.current();
                   final value = current - dragPercentage;
                   if (value < 0 || value > 1) return;
-                  FlutterVolumeController.setVolume(value);
-                  volumeValue.setValue(value);
+                  VolumeTool.set(value);
                 } else {
-                  final current = await brightness.current;
+                  final current = await BrightnessTool.current();
                   final value = current - dragPercentage;
                   if (value < 0 || value > 1) return;
-                  brightness.setScreenBrightness(value);
+                  BrightnessTool.set(value);
                 }
               },
               onHorizontalDragStart: (_) {
@@ -196,7 +191,6 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 构建控制器状态
   Widget _buildControlsStatus() {
     return CustomPlayerControlsStatus(
-      volumeValue: volumeValue,
       controller: widget.controller,
       controlPlaySpeed: controlPlaySpeed,
     );

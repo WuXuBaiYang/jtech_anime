@@ -25,15 +25,6 @@ class Common {
 
   // 是否检查网络状态
   static const String checkNetworkStatusKey = 'check_network_status';
-
-  // m3u8视频中需要忽略的碎片列表（插入的广告）
-  static const List<String> m3u8FileIgnores = [
-    '1o357.ts',
-    '1o358.ts',
-    '1o359.ts',
-    '1o360.ts',
-    '1o361.ts',
-  ];
 }
 
 /*
