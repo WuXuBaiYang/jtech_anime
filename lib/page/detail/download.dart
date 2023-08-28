@@ -45,7 +45,6 @@ class DownloadSheet extends StatefulWidget {
   }) {
     PermissionTool.checkNotification(context);
     return showModalBottomSheet(
-      clipBehavior: Clip.hardEdge,
       context: context,
       builder: (_) {
         return DownloadSheet(

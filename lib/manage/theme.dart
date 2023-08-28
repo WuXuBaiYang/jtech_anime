@@ -77,6 +77,9 @@ class ThemeManage extends BaseManage {
         chipTheme: const ChipThemeData(
           pressElevation: 0,
         ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          clipBehavior: Clip.hardEdge,
+        ),
         dialogTheme: const DialogTheme(
           actionsPadding: EdgeInsets.symmetric(
             horizontal: 8,
