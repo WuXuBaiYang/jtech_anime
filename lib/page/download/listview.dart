@@ -240,7 +240,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 14),
                     child: Icon(_getDownloadingStatusIcon(task, record),
                         color: kPrimaryColor, size: 22),
                   ),
