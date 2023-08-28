@@ -5,7 +5,6 @@ import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
@@ -14,11 +13,9 @@ import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
-import 'package:jtech_anime/widget/anime_source_icon.dart';
 import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
-import '../../widget/source_dialog.dart';
 
 /*
 * 首页
@@ -133,18 +130,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   // 获取标题栏动作按钮集合
   List<Widget> _getAppbarActions(BuildContext context, int childIndex) {
     return [
-      // StreamBuilder<SourceChangeEvent>(
-      //   initialData: SourceChangeEvent(animeParser.currentSource),
-      //   stream: event.on<SourceChangeEvent>(),
-      //   builder: (_, snap) {
-      //     final source = snap.data?.source;
-      //     if (source == null) return const SizedBox();
-      //     return IconButton(
-      //       icon: AnimeSourceIcon(source: source),
-      //       onPressed: () => AnimeSourceDialog.show(context),
-      //     );
-      //   },
-      // ),
       IconButton(
         icon: const Icon(FontAwesomeIcons.heart),
         onPressed: () => router.pushNamed(RoutePath.collect),

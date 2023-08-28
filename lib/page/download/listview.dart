@@ -240,7 +240,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 14),
                     child: Icon(_getDownloadingStatusIcon(task, record),
                         color: kPrimaryColor, size: 22),
                   ),
@@ -249,9 +249,12 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
             ),
           ),
           onLongPress: () => widget.onRemoveRecords?.call([record]),
-          onTap: () => task != null
-              ? widget.onStopDownloads?.call([record])
-              : widget.onStartDownloads?.call([record]),
+          onTap: () {
+            if (download.inStoppingBuffed(record)) return;
+            return (task != null || download.inStartingBuffed(record))
+                ? widget.onStopDownloads?.call([record])
+                : widget.onStartDownloads?.call([record]);
+          },
         );
       },
     );

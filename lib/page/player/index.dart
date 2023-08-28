@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,12 +15,12 @@ import 'package:jtech_anime/page/player/resource.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/loading.dart';
+import 'package:jtech_anime/tool/m3u8.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/throttle.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/player.dart';
-import 'package:jtech_anime/widget/text_scroll.dart';
 
 /*
 * 播放器页面（全屏播放）
@@ -106,19 +105,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
   // 构建视频播放器
   Widget _buildVideoPlayer() {
     return CustomVideoPlayer(
-      leading: const BackButton(),
-      controller: logic.controller,
-      title: CustomScrollText.slow(
-        logic.animeInfo.value.name,
-        style: const TextStyle(fontSize: 18),
-      ),
       subTitle: _buildSubTitle(),
-      topActions: [
-        _buildTopActionsTime(),
-        const SizedBox(width: 14),
-        _buildTopActionsBattery(),
-        const SizedBox(width: 8),
-      ],
+      controller: logic.controller,
+      title: Text(logic.animeInfo.value.name),
       bottomActions: [
         _buildBottomActionsNext(),
         _buildBottomActionsChoice(),
@@ -134,41 +123,6 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         final subTitle = logic.resourceInfo.value.name;
         const subTitleStyle = TextStyle(fontSize: 12, color: Colors.white70);
         return Text(subTitle, style: subTitleStyle);
-      },
-    );
-  }
-
-  // 构建视频播放器头部时间
-  Widget _buildTopActionsTime() {
-    return StreamBuilder<DateTime>(
-      stream: logic.timeClock.stream,
-      builder: (_, snap) {
-        final dateTime = snap.data ?? DateTime.now();
-        return Text(dateTime.format(DatePattern.time));
-      },
-    );
-  }
-
-  // 电池容量图标集合
-  final _batteryIcons = [
-    FontAwesomeIcons.batteryEmpty,
-    FontAwesomeIcons.batteryQuarter,
-    FontAwesomeIcons.batteryHalf,
-    FontAwesomeIcons.batteryThreeQuarters,
-    FontAwesomeIcons.batteryFull,
-  ];
-
-  // 构建视频播放器头部电池
-  Widget _buildTopActionsBattery() {
-    return CacheFutureBuilder<int>(
-      future: () => Battery().batteryLevel,
-      builder: (_, snap) {
-        if (snap.hasData) {
-          final value = snap.data! - 1;
-          final per = 100 / _batteryIcons.length;
-          return Icon(_batteryIcons[value ~/ per]);
-        }
-        return const SizedBox();
       },
     );
   }
@@ -288,17 +242,9 @@ class _PlayerLogic extends BaseLogic {
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
-  // 计时器
-  final timeClock = StreamController<DateTime>.broadcast();
-
   @override
   void init() {
     super.init();
-    // 转化定时流到计时器中
-    Stream<DateTime>.periodic(
-      const Duration(seconds: 1),
-      (_) => DateTime.now(),
-    ).pipe(timeClock);
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
@@ -344,12 +290,19 @@ class _PlayerLogic extends BaseLogic {
         // 根据资源与视频下标切换视频播放地址
         final result = await animeParser.getPlayUrls([item]);
         if (result.isEmpty) throw Exception('视频地址解析失败');
-        final playUrl = result.first.playUrl;
+        String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
+        // 如果视频已下载则使用本地路径；
+        // 如果播放地址为m3u8则使用本地过滤缓存机制;
+        if (downloadRecord != null) {
+          playUrl = downloadRecord.playFilePath;
+        } else if (playUrl.endsWith('.m3u8')) {
+          final result = await M3U8Parser().cacheFilter(playUrl);
+          if (result != null) playUrl = result.path;
+        }
         // 播放已下载视频或者在线视频并跳转到指定位置
-        await controller.play(
-            downloadRecord != null ? downloadRecord.playFilePath : playUrl);
+        await controller.play(playUrl);
         if (playTheRecord && record != null) {
           final duration = Duration(
             milliseconds: record.progress,
@@ -376,17 +329,14 @@ class _PlayerLogic extends BaseLogic {
 
   // 进入播放页面设置(横向布局且不显示状态栏)
   void entryPlayer() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    Tool.toggleScreenOrientation(false);
   }
 
   // 退出播放页面设置(恢复布局并显示状态栏)
   void quitPlayer() {
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    Tool.toggleScreenOrientation(true);
   }
 
   // 一定时间后关闭播放记录弹窗
@@ -446,10 +396,10 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
-    // 退出播放器状态
-    quitPlayer();
     // 销毁控制器
     controller.dispose();
+    // 退出播放器状态
+    quitPlayer();
     super.dispose();
   }
 }
