@@ -249,9 +249,12 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
             ),
           ),
           onLongPress: () => widget.onRemoveRecords?.call([record]),
-          onTap: () => task != null
-              ? widget.onStopDownloads?.call([record])
-              : widget.onStartDownloads?.call([record]),
+          onTap: () {
+            if (download.inStoppingBuffed(record)) return;
+            return (task != null || download.inStartingBuffed(record))
+                ? widget.onStopDownloads?.call([record])
+                : widget.onStartDownloads?.call([record]);
+          },
         );
       },
     );
