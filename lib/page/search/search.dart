@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
@@ -31,12 +32,16 @@ class SearchBarView extends StatelessWidget {
   // 加载状态管理
   final ValueChangeNotifier<bool> inSearching;
 
+  // 动作按钮集合
+  final List<Widget> actions;
+
   const SearchBarView({
     super.key,
     required this.searchRecordList,
     required this.recordDelete,
     required this.inSearching,
     required this.search,
+    this.actions = const [],
   });
 
   @override
@@ -84,7 +89,13 @@ class SearchBarView extends StatelessWidget {
               icon: const Icon(FontAwesomeIcons.arrowLeft),
               onPressed: () => router.pop(),
             ),
-            suffixIcon: _buildFieldViewSubmit(controller, focusNode),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildFieldViewSubmit(controller, focusNode),
+                ...actions,
+              ],
+            ),
           ),
         ),
       ),
