@@ -28,7 +28,7 @@ class HomeLatestAnimeList extends StatefulWidget {
   final ListValueChangeNotifier<AnimeModel> animeList;
 
   // 过滤条件
-  final MapValueChangeNotifier<String, FilterSelect> filterSelect;
+  final ListValueChangeNotifier<FilterSelect> filterSelect;
 
   // 过滤条件变化回调
   final HomeLatestAnimeFilterChange? onFilterChange;
@@ -51,9 +51,11 @@ class HomeLatestAnimeList extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/8/28 16:26
 */
-class _HomeLatestAnimeListState extends State<HomeLatestAnimeList> {
+class _HomeLatestAnimeListState extends State<HomeLatestAnimeList>
+    with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return _buildAnimeList();
   }
 
@@ -79,16 +81,16 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList> {
   // 构建番剧过滤配置组件
   Widget? _buildFilterChips() {
     if (!animeParser.isSupport(AnimeParserFunction.filter)) return null;
-    return ValueListenableBuilder<Map<String, FilterSelect>>(
+    return ValueListenableBuilder<List<FilterSelect>>(
       valueListenable: widget.filterSelect,
-      builder: (_, filterMap, __) {
-        final tempFilter = filterMap.isNotEmpty
-            ? filterMap
-            : {
-                'default': FilterSelect()
+      builder: (_, filters, __) {
+        final tempFilters = filters.isNotEmpty
+            ? filters
+            : [
+                FilterSelect()
                   ..parentName = '默认'
-                  ..name = '全部'
-              };
+                  ..name = '全部',
+              ];
         return Row(
           children: [
             Expanded(
@@ -96,8 +98,8 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(right: 8),
                 child: Row(
-                  children: List.generate(tempFilter.length, (i) {
-                    final item = tempFilter.values.elementAt(i);
+                  children: List.generate(tempFilters.length, (i) {
+                    final item = tempFilters[i];
                     final text = '${item.parentName} · ${item.name}';
                     return Padding(
                       padding: const EdgeInsets.only(left: 8),
@@ -112,7 +114,7 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList> {
               onPressed: () {
                 HomeLatestAnimeFilterSheet.show(
                   context,
-                  selectMap: filterMap,
+                  selectFilters: filters,
                 ).then((v) {
                   if (v != null) widget.onFilterChange?.call(v);
                 });
@@ -123,4 +125,7 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList> {
       },
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

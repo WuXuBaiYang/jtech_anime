@@ -12,6 +12,7 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/list.dart';
+import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
@@ -111,39 +112,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     );
   }
 
-  // 构建番剧过滤配置组件
-  // Widget _buildFilterChips() {
-  //   return ValueListenableBuilder<Map<String, FilterSelect>>(
-  //     valueListenable: logic.filterSelect,
-  //     builder: (_, filterMap, __) {
-  //       final tempFilter = filterMap.isNotEmpty
-  //           ? filterMap
-  //           : {
-  //               'default': FilterSelect()
-  //                 ..parentName = '默认'
-  //                 ..name = '全部'
-  //             };
-  //       return Align(
-  //         alignment: Alignment.centerLeft,
-  //         child: SingleChildScrollView(
-  //           scrollDirection: Axis.horizontal,
-  //           padding: const EdgeInsets.only(right: 8),
-  //           child: Row(
-  //             children: List.generate(tempFilter.length, (i) {
-  //               final item = tempFilter.values.elementAt(i);
-  //               final text = '${item.parentName} · ${item.name}';
-  //               return Padding(
-  //                 padding: const EdgeInsets.only(left: 8),
-  //                 child: RawChip(label: Text(text)),
-  //               );
-  //             }),
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
   // 周/天换算表
   final _weekdayMap = <IconData, String>{
     FontAwesomeIcons.faceDizzy: '周一',
@@ -221,6 +189,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       animeList: logic.animeList,
       onRefresh: logic.loadAnimeList,
       filterSelect: logic.filterSelect,
+      onFilterChange: (filters) => Loading.show(
+        loadFuture: logic.updateFilterSelect(filters),
+      ),
     );
   }
 }
@@ -238,7 +209,7 @@ class _HomeLogic extends BaseLogic {
   final timetableList = ValueChangeNotifier<TimeTableModel?>(null);
 
   // 记录过滤条件
-  final filterSelect = MapValueChangeNotifier<String, FilterSelect>.empty();
+  final filterSelect = ListValueChangeNotifier<FilterSelect>.empty();
 
   // 维护分页页码
   int _pageIndex = 1;
@@ -250,9 +221,9 @@ class _HomeLogic extends BaseLogic {
   void init() {
     super.init();
     // 获取过滤条件
-    _loadFilterConfig();
+    _loadFilterSelect();
     // 加载时间轴数据
-    _loadTimetableDataList();
+    _loadTimetableList();
   }
 
   // 加载番剧列表
@@ -284,44 +255,27 @@ class _HomeLogic extends BaseLogic {
   }
 
   // 加载时间轴数据
-  Future<void> _loadTimetableDataList() async {
+  Future<void> _loadTimetableList() async {
     final result = await animeParser.getTimeTable();
     timetableList.setValue(result);
   }
 
   // 加载过滤条件配置
-  Future<void> _loadFilterConfig() async {
+  Future<void> _loadFilterSelect() async {
     final source = animeParser.currentSource;
     if (source == null) return;
     final result = await db.getFilterSelectList(source);
-    filterSelect.setValue(result.asMap().map<String, FilterSelect>(
-          (_, v) => MapEntry(_genFilterKey(v), v),
-        ));
+    filterSelect.setValue(result);
   }
 
-  // 选择过滤条件
-  Future<void> selectFilterConfig(
-      bool selected, FilterSelect item, int maxSelected) async {
-    if (selected) {
-      final result = await db.addFilterSelect(item, maxSelected);
-      if (result != null) {
-        final temp = filterSelect.value;
-        if (maxSelected == 1) {
-          temp.removeWhere((_, v) => v.key == item.key);
-        }
-        filterSelect.setValue({
-          ...temp,
-          _genFilterKey(result): result,
-        });
-      }
-    } else {
-      final result = await db.removeFilterSelect(item.id);
-      if (result) filterSelect.removeValue(_genFilterKey(item));
-    }
+  // 更新过滤条件
+  Future<void> updateFilterSelect(List<FilterSelect> filters) async {
+    final source = animeParser.currentSource;
+    if (source == null) return;
+    final result = await db.replaceFilterSelectList(source, filters);
+    filterSelect.setValue(result);
+    return loadAnimeList(false);
   }
-
-  // 生成过滤条件唯一key
-  String _genFilterKey(FilterSelect item) => '${item.key}${item.value}';
 
   // 跳转到详情页
   Future<void>? goDetail(AnimeModel item) {
