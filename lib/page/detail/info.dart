@@ -36,7 +36,7 @@ class AnimeDetailInfo extends StatelessWidget {
   // 构建背景图
   Widget _buildInfoBackground() {
     return Blur(
-      blur: 14,
+      blur: 20,
       blurColor: Colors.white,
       child: Image.network(
         animeInfo.cover,
@@ -116,8 +116,8 @@ class AnimeDetailInfo extends StatelessWidget {
           animeInfo.name,
           style: textStyle.copyWith(color: Colors.black, fontSize: 20),
         ),
-        const SizedBox(height: 14),
-        CustomScrollText.slow(animeInfo.status),
+        const SizedBox(height: 8),
+        Text(animeInfo.status, maxLines: 2),
         const SizedBox(height: 4),
         Text('时间：${animeInfo.updateTime}'),
         const SizedBox(height: 4),

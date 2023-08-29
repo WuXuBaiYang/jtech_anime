@@ -14,6 +14,7 @@ import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/tab.dart';
 
 /*
 * 资源下载弹窗
@@ -77,17 +78,18 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(FontAwesomeIcons.xmark),
-          onPressed: () => router.pop(),
-        ),
         title: const Text('番剧缓存'),
+        automaticallyImplyLeading: false,
         actions: [
           TextButton(
             onPressed: () => router
                 .pushNamed(RoutePath.download)
                 ?.then((_) => cacheController.refreshValue()),
             child: const Text('缓存管理'),
+          ),
+          IconButton(
+            icon: const Icon(FontAwesomeIcons.xmark),
+            onPressed: () => router.pop(),
           ),
           _buildSubmitButton(context),
         ],
@@ -96,7 +98,12 @@ class _DownloadSheetState extends State<DownloadSheet> {
           child: _buildResourceTab(),
         ),
       ),
-      body: _buildResourceTabView(),
+      body: Column(
+        children: [
+          const Divider(),
+          Expanded(child: _buildResourceTabView()),
+        ],
+      ),
     );
   }
 
@@ -115,7 +122,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
                 style: const TextStyle(fontSize: 10),
               ),
             IconButton(
-              icon: const Icon(FontAwesomeIcons.check),
+              icon: const Icon(FontAwesomeIcons.download),
               onPressed: selectList.isNotEmpty
                   ? () => _addDownloadTask(context)
                   : null,
@@ -131,13 +138,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
     final resources = widget.animeInfo.resources;
     return Align(
       alignment: Alignment.centerLeft,
-      child: TabBar(
+      child: CustomTabBar(
         isScrollable: true,
-        indicatorColor: kPrimaryColor,
         controller: widget.tabController,
-        dividerColor: Colors.transparent,
         tabs: List.generate(resources.length, (i) {
-          return Tab(text: '资源${i + 1}');
+          return Tab(text: '资源${i + 1}', height: 35);
         }),
       ),
     );

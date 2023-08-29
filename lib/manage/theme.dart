@@ -95,6 +95,13 @@ class ThemeManage extends BaseManage {
           thickness: 0.2,
           space: 1,
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            elevation: const MaterialStatePropertyAll(0),
+            backgroundColor:
+                MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
+          ),
+        ),
       );
 }
 

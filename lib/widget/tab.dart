@@ -10,7 +10,22 @@ class CustomTabBar extends StatelessWidget {
   // tab集合
   final List<Widget> tabs;
 
-  const CustomTabBar({super.key, required this.tabs});
+  // 是否为滚动状态
+  final bool isScrollable;
+
+  // 点击事件
+  final ValueChanged<int>? onTap;
+
+  // 控制器
+  final TabController? controller;
+
+  const CustomTabBar({
+    super.key,
+    required this.tabs,
+    this.onTap,
+    this.controller,
+    this.isScrollable = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +38,11 @@ class CustomTabBar extends StatelessWidget {
       ),
       child: TabBar(
         tabs: tabs,
+        onTap: onTap,
         indicatorWeight: 0,
+        controller: controller,
         labelColor: Colors.white,
+        isScrollable: isScrollable,
         dividerColor: Colors.transparent,
         splashBorderRadius: borderRadius,
         unselectedLabelColor: kPrimaryColor,
