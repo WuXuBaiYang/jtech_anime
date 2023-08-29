@@ -60,6 +60,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           appBar: AppBar(
             actions: _appBarActions,
             title: const Text(Common.appName),
+            notificationPredicate: (_) => true,
             bottom: _buildAppBarBottom(),
           ),
           body: _buildContent(),
