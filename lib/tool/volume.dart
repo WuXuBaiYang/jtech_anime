@@ -11,7 +11,7 @@ class VolumeTool {
   static final _controller = VolumeController();
 
   // 数值变化
-  static final _streamController = StreamController<double>();
+  static final _streamController = StreamController<double>.broadcast();
 
   // 初始化设置
   static void setup() {

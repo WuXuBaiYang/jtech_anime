@@ -97,7 +97,8 @@ class _AnimeDetailPageState
               builder: (_, collect, __) {
                 if (collect == null) return const SizedBox();
                 return IconButton(
-                  color: collect.collected ? kPrimaryColor : null,
+                  color:
+                      collect.collected ? kPrimaryColor.withOpacity(0.8) : null,
                   icon: Icon(collect.collected
                       ? FontAwesomeIcons.heartCircleCheck
                       : FontAwesomeIcons.heart),
@@ -122,13 +123,11 @@ class _AnimeDetailPageState
                         ? ElevatedButton(
                             style: ButtonStyle(
                               backgroundColor: MaterialStatePropertyAll(
-                                  kPrimaryColor.withOpacity(0.4)),
+                                  kPrimaryColor.withOpacity(0.8)),
                             ),
                             onPressed: () => logic.playTheRecord(),
-                            child: Text('继续观看',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                )),
+                            child: const Text('继续观看',
+                                style: TextStyle(color: Colors.white)),
                           )
                         : null,
                   );

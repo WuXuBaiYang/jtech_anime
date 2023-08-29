@@ -6,6 +6,7 @@ import 'package:jtech_anime/tool/brightness.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 /*
 * 自定义播放器控制层-状态层
@@ -202,9 +203,9 @@ class _CustomPlayerControlsStatusState
         stream: controller.stream.buffering,
         builder: (_, snap) {
           if (!(snap.data ?? false)) return const SizedBox();
-          return const SizedBox.square(
-            dimension: 35,
-            child: CircularProgressIndicator(),
+          return const StatusBox(
+            animSize: 30,
+            status: StatusBoxStatus.loading,
           );
         },
       ),

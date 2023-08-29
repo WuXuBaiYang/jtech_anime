@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/tool/brightness.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/controls/bottom.dart';
+import 'package:jtech_anime/widget/player/controls/progress.dart';
 import 'package:jtech_anime/widget/player/controls/side.dart';
 import 'package:jtech_anime/widget/player/controls/status.dart';
 import 'package:jtech_anime/widget/player/controls/top.dart';
@@ -138,7 +140,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
               },
               child: AnimatedOpacity(
                 opacity: visible ? 1 : 0,
-                duration: const Duration(milliseconds: 150),
+                duration: const Duration(milliseconds: 80),
                 child: Container(
                   color: Colors.black38,
                   child: Stack(
@@ -148,6 +150,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                         _buildBottomActions(),
                       ],
                       _buildSideActions(locked),
+                      if (locked) _buildLockProgress(),
                     ],
                   ),
                 ),
@@ -193,6 +196,13 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
     return CustomPlayerControlsStatus(
       controller: widget.controller,
       controlPlaySpeed: controlPlaySpeed,
+    );
+  }
+
+  // 构建锁屏状态下的进度条
+  Widget _buildLockProgress() {
+    return CustomPlayerLockProgress(
+      controller: widget.controller,
     );
   }
 }

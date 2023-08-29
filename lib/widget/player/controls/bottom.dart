@@ -110,40 +110,49 @@ class _CustomPlayerControlsBottomState
   Widget _buildProgressAction() {
     final controller = widget.controller;
     const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
-    return ValueListenableBuilder<Duration?>(
-      valueListenable: tempProgress,
-      builder: (_, temp, __) {
-        return StreamBuilder<Duration>(
-          stream: controller.stream.position,
-          builder: (_, snap) {
-            final buffer = controller.state.buffer;
-            final total = controller.state.duration;
-            final progress = temp ?? controller.state.position;
-            return Row(
-              children: [
-                Text(progress.format(DurationPattern.fullTime),
-                    style: textStyle),
-                Expanded(
-                  child: Slider(
-                    inactiveColor: Colors.black26,
-                    max: total.inMilliseconds.toDouble(),
-                    value: progress.inMilliseconds.toDouble(),
-                    secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
-                    secondaryTrackValue: buffer.inMilliseconds.toDouble(),
-                    onChangeStart: (_) =>
-                        controller.setControlVisible(true, ongoing: true),
-                    onChanged: (v) => tempProgress
-                        .setValue(Duration(milliseconds: v.toInt())),
-                    onChangeEnd: (v) =>
-                        _delaySeekVideo(Duration(milliseconds: v.toInt())),
+    return SliderTheme(
+      data: const SliderThemeData(
+        trackHeight: 2,
+        thumbShape: RoundSliderThumbShape(
+          enabledThumbRadius: 6,
+        ),
+      ),
+      child: ValueListenableBuilder<Duration?>(
+        valueListenable: tempProgress,
+        builder: (_, temp, __) {
+          return StreamBuilder<Duration>(
+            stream: controller.stream.position,
+            builder: (_, snap) {
+              final buffer = controller.state.buffer;
+              final total = controller.state.duration;
+              final progress = temp ?? controller.state.position;
+              return Row(
+                children: [
+                  Text(progress.format(DurationPattern.fullTime),
+                      style: textStyle),
+                  Expanded(
+                    child: Slider(
+                      inactiveColor: Colors.black26,
+                      max: total.inMilliseconds.toDouble(),
+                      value: progress.inMilliseconds.toDouble(),
+                      secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
+                      secondaryTrackValue: buffer.inMilliseconds.toDouble(),
+                      onChangeStart: (_) =>
+                          controller.setControlVisible(true, ongoing: true),
+                      onChanged: (v) => tempProgress
+                          .setValue(Duration(milliseconds: v.toInt())),
+                      onChangeEnd: (v) =>
+                          _delaySeekVideo(Duration(milliseconds: v.toInt())),
+                    ),
                   ),
-                ),
-                Text(total.format(DurationPattern.fullTime), style: textStyle),
-              ],
-            );
-          },
-        );
-      },
+                  Text(total.format(DurationPattern.fullTime),
+                      style: textStyle),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
