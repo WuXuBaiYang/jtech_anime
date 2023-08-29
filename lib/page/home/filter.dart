@@ -52,6 +52,7 @@ class _HomeLatestAnimeFilterSheetState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         title: const Text('番剧筛选'),
         automaticallyImplyLeading: false,
         actions: [
@@ -67,7 +68,12 @@ class _HomeLatestAnimeFilterSheetState
           ),
         ],
       ),
-      body: _buildFilterList(),
+      body: Column(
+        children: [
+          const Divider(),
+          Expanded(child: _buildFilterList()),
+        ],
+      ),
     );
   }
 

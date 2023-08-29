@@ -90,6 +90,11 @@ class ThemeManage extends BaseManage {
         bottomSheetTheme: const BottomSheetThemeData(
           clipBehavior: Clip.hardEdge,
         ),
+        dividerTheme: const DividerThemeData(
+          color: Colors.black12,
+          thickness: 0.2,
+          space: 1,
+        ),
       );
 }
 

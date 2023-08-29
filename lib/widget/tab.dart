@@ -17,10 +17,9 @@ class CustomTabBar extends StatelessWidget {
     final borderRadius = BorderRadius.circular(100);
     return Container(
       margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        color: kPrimaryColor.withOpacity(0.15),
+        color: kPrimaryColor.withOpacity(0.12),
       ),
       child: TabBar(
         tabs: tabs,

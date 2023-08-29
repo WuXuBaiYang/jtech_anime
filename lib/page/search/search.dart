@@ -70,6 +70,8 @@ class SearchBarView extends StatelessWidget {
   Widget _buildFieldView(BuildContext context, TextEditingController controller,
       FocusNode focusNode, VoidCallback _) {
     return Card(
+      elevation: 0,
+      color: kPrimaryColor.withOpacity(0.12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(100),
       ),
@@ -82,7 +84,7 @@ class SearchBarView extends StatelessWidget {
           controller: controller,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-            hintStyle: const TextStyle(color: Colors.black38),
+            hintStyle: const TextStyle(color: Colors.black12),
             border: InputBorder.none,
             hintText: '嗖嗖嗖~',
             prefixIcon: IconButton(
