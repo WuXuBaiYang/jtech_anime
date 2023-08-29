@@ -85,7 +85,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
             onPressed: () => router
                 .pushNamed(RoutePath.download)
                 ?.then((_) => cacheController.refreshValue()),
-            child: const Text('缓存管理'),
+            child: const Text('番剧缓存'),
           ),
           IconButton(
             icon: const Icon(FontAwesomeIcons.xmark),

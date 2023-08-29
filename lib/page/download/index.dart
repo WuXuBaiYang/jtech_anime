@@ -16,13 +16,14 @@ import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/model/download.dart';
 import 'package:jtech_anime/model/download_group.dart';
-import 'package:jtech_anime/page/download/listview.dart';
+import 'package:jtech_anime/page/download/list.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
+import 'package:jtech_anime/widget/tab.dart';
 
 /*
 * 下载管理页
@@ -79,10 +80,12 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
     return Scaffold(
       appBar: AppBar(
         title: const Text('番剧缓存'),
+        notificationPredicate: (notification) {
+          return notification.depth == 1;
+        },
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: TabBar(
-            indicatorSize: TabBarIndicatorSize.tab,
+          preferredSize: const Size.fromHeight(kToolbarHeight + 14),
+          child: CustomTabBar(
             controller: tabController,
             tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
           ),
@@ -107,29 +110,19 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
         return StreamBuilder<DownloadTask?>(
           stream: download.downloadProgress,
           builder: (_, snap) {
-            return Column(
-              children: [
-                if (groups.isNotEmpty)
-                  _buildDownloadingListHead(groups, snap.data),
-                Expanded(
-                  child: DownloadRecordListView(
-                    groupList: groups,
-                    initialExpanded: expandedList,
-                    downloadTask: snap.data ?? DownloadTask(),
-                    onRemoveRecords: (records) =>
-                        _showDeleteDialog(context, records),
-                    onStartDownloads: (records) async {
-                      // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-                      if (!await Tool.checkNetwork(
-                          context, logic.checkNetwork)) {
-                        return;
-                      }
-                      download.startTasks(records);
-                    },
-                    onStopDownloads: download.stopTasks,
-                  ),
-                ),
-              ],
+            return DownloadRecordListView(
+              groupList: groups,
+              initialExpanded: expandedList,
+              downloadTask: snap.data ?? DownloadTask(),
+              onRemoveRecords: (records) => _showDeleteDialog(context, records),
+              onStartDownloads: (records) async {
+                // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
+                if (!await Tool.checkNetwork(context, logic.checkNetwork)) {
+                  return;
+                }
+                download.startTasks(records);
+              },
+              onStopDownloads: download.stopTasks,
             );
           },
         );

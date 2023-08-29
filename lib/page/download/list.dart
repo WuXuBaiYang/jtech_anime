@@ -89,7 +89,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   Widget _buildGroupItem(DownloadGroup item, bool expanded) {
     final downloadTask = widget.downloadTask;
     return Card(
-      elevation: 0.6,
       clipBehavior: Clip.hardEdge,
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
@@ -276,7 +275,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     return GridView.builder(
       shrinkWrap: true,
       itemCount: records.length,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(4),
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         mainAxisExtent: 40,
@@ -298,7 +297,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black12),
+              border: Border.all(color: Colors.white.withOpacity(0.8)),
             ),
             child: hasPlayRecord
                 ? CustomScrollText.slow('上次看到 ${item.name}',

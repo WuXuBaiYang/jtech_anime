@@ -74,8 +74,9 @@ class ThemeManage extends BaseManage {
       ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
-        cardTheme: const CardTheme(
-          elevation: 0.8,
+        cardTheme: CardTheme(
+          elevation: 0,
+          color: colorScheme.primary.withOpacity(0.12),
         ),
         chipTheme: const ChipThemeData(
           pressElevation: 0,
@@ -101,6 +102,9 @@ class ThemeManage extends BaseManage {
             backgroundColor:
                 MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
           ),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          elevation: 1,
         ),
       );
 }
