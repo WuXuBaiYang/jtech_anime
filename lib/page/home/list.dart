@@ -110,7 +110,7 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList>
               ),
             ),
             IconButton(
-              icon: const Icon(FontAwesomeIcons.filter),
+              icon: const Icon(Icons.sort),
               onPressed: () {
                 HomeLatestAnimeFilterSheet.show(
                   context,

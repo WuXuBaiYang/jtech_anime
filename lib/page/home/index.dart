@@ -12,6 +12,7 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/list.dart';
+import 'package:jtech_anime/page/home/timetable.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
@@ -108,79 +109,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       physics: !animeParser.isSupport(AnimeParserFunction.timeTable)
           ? const NeverScrollableScrollPhysics()
           : null,
-      children: [_buildAnimeList(), _buildAnimeList()],
+      children: [_buildAnimeList(), _buildAnimeTimeTable()],
     );
   }
-
-  // 周/天换算表
-  final _weekdayMap = <IconData, String>{
-    FontAwesomeIcons.faceDizzy: '周一',
-    FontAwesomeIcons.faceFrown: '周二',
-    FontAwesomeIcons.faceFlushed: '周三',
-    FontAwesomeIcons.faceGrimace: '周四',
-    FontAwesomeIcons.faceGrinStars: '周五',
-    FontAwesomeIcons.faceLaughWink: '周六',
-    FontAwesomeIcons.faceSadTear: '周日',
-  };
-
-  // 构建时间轴tabBar
-  // PreferredSizeWidget _buildTimetableTabBar() {
-  //   return TabBar(
-  //     isScrollable: true,
-  //     controller: timetableTabController,
-  //     tabs: List.generate(timetableTabController.length, (i) {
-  //       final item = _weekdayMap.entries.elementAt(i);
-  //       return Tab(
-  //         child: Row(
-  //           children: [
-  //             Text(item.value),
-  //             const SizedBox(width: 4),
-  //             Icon(item.key, size: 14),
-  //           ],
-  //         ),
-  //       );
-  //     }),
-  //   );
-  // }
-
-  // 构建时间轴tabView
-  // Widget _buildTimetableTabView() {
-  //   return ValueListenableBuilder<TimeTableModel?>(
-  //     valueListenable: logic.timetableDataList,
-  //     builder: (_, timeTable, __) {
-  //       if (timeTable == null) return _buildEmpty();
-  //       return TabBarView(
-  //         controller: timetableTabController,
-  //         children: List.generate(timetableTabController.length, (i) {
-  //           final items = timeTable.getAnimeListByWeekday(i);
-  //           return ListView.builder(
-  //             primary: false,
-  //             itemCount: items.length,
-  //             padding: EdgeInsets.zero,
-  //             itemBuilder: (_, i) {
-  //               final item = items[i];
-  //               final updateIcon = item.isUpdate
-  //                   ? const Icon(FontAwesomeIcons.seedling,
-  //                       color: Colors.green, size: 18)
-  //                   : null;
-  //               return ListTile(
-  //                 dense: true,
-  //                 trailing: updateIcon,
-  //                 title: Text(item.name),
-  //                 subtitle: Text(item.status),
-  //                 onTap: () => logic.goDetail(AnimeModel.from({
-  //                   'name': item.name,
-  //                   'url': item.url,
-  //                   'status': item.status,
-  //                 })),
-  //               );
-  //             },
-  //           );
-  //         }),
-  //       );
-  //     },
-  //   );
-  // }
 
   // 构建番剧列表
   Widget _buildAnimeList() {
@@ -192,6 +123,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       onFilterChange: (filters) => Loading.show(
         loadFuture: logic.updateFilterSelect(filters),
       ),
+    );
+  }
+
+  // 构建番剧时间表
+  Widget _buildAnimeTimeTable() {
+    return HomeAnimeTimeTable(
+      itemTap: logic.goDetail,
     );
   }
 }

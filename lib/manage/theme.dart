@@ -83,6 +83,7 @@ class ThemeManage extends BaseManage {
             vertical: 4,
           ),
         ),
+        iconTheme: const IconThemeData(size: 30),
         bottomSheetTheme: const BottomSheetThemeData(
           clipBehavior: Clip.hardEdge,
         ),
