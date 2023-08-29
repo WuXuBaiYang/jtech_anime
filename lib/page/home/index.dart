@@ -59,9 +59,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         return Scaffold(
           appBar: AppBar(
             actions: _appBarActions,
-            title: const Text(Common.appName),
-            notificationPredicate: (_) => true,
             bottom: _buildAppBarBottom(),
+            title: const Text(Common.appName),
+            notificationPredicate: (notification) {
+              return notification.depth == 1;
+            },
           ),
           body: _buildContent(),
         );
