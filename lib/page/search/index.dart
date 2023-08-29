@@ -71,7 +71,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
               icon: Icon([
                 Icons.format_list_bulleted_rounded,
                 Icons.drag_indicator_rounded,
-                Icons.view_column,
+                Icons.apps_rounded,
               ][columnCount - 1]),
             );
           },
