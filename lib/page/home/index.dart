@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
@@ -12,10 +13,12 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/list.dart';
+import 'package:jtech_anime/page/home/source.dart';
 import 'package:jtech_anime/page/home/timetable.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
+import 'package:jtech_anime/widget/anime_source.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
 import 'package:jtech_anime/widget/tab.dart';
 
@@ -104,6 +107,23 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => router.pushNamed(RoutePath.download),
         ),
+        SourceStreamView(
+          builder: (c, snap) {
+            final event = snap.data;
+            if (event?.source == null) return const SizedBox();
+            return GestureDetector(
+              child: AnimeSourceView(
+                source: event!.source!,
+              ),
+              onTap: () => router.pushNamed(RoutePath.animeSource),
+              onLongPress: () {
+                AnimeSourceChangeDialog.show(c);
+                HapticFeedback.vibrate();
+              },
+            );
+          },
+        ),
+        const SizedBox(width: 14),
       ];
 
   // 构建首页内容体

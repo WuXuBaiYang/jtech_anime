@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/collect/index.dart';
 import 'package:jtech_anime/page/detail/index.dart';
 import 'package:jtech_anime/page/download/index.dart';
@@ -7,6 +6,7 @@ import 'package:jtech_anime/page/home/index.dart';
 import 'package:jtech_anime/page/player/index.dart';
 import 'package:jtech_anime/page/record/index.dart';
 import 'package:jtech_anime/page/search/index.dart';
+import 'package:jtech_anime/page/source/index.dart';
 
 /*
 * 路由路径静态变量
@@ -23,6 +23,7 @@ class RoutePath {
         record: (_) => const PlayRecordPage(),
         download: (_) => const DownloadPage(),
         animeDetail: (_) => const AnimeDetailPage(),
+        animeSource: (_) => const AnimeSourcePage(),
       };
 
   // 首页
@@ -45,4 +46,7 @@ class RoutePath {
 
   // 动漫详情页
   static const String animeDetail = '/anime/detail';
+
+  // 番剧解析源管理页
+  static const String animeSource = 'anime/source';
 }

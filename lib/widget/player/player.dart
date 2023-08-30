@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/tool/brightness.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/tool/volume.dart';
@@ -137,6 +137,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
               onLongPressStart: (_) {
                 if (!controller.state.playing || locked) return;
                 controlPlaySpeed.setValue(true);
+                HapticFeedback.vibrate();
               },
               child: AnimatedOpacity(
                 opacity: visible ? 1 : 0,

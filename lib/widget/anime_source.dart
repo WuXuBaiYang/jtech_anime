@@ -8,11 +8,11 @@ import 'image.dart';
 * @author wuxubaiyang
 * @Time 2023/8/16 14:43
 */
-class AnimeSourceButton extends StatelessWidget {
+class AnimeSourceView extends StatelessWidget {
   // 番剧解析源
   final AnimeSource source;
 
-  const AnimeSourceButton({super.key, required this.source});
+  const AnimeSourceView({super.key, required this.source});
 
   @override
   Widget build(BuildContext context) {
