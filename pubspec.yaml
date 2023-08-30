@@ -154,6 +154,9 @@ dev_dependencies:
   # 构建器
   build_runner: any
 
+  # 原生启动页
+  flutter_native_splash: ^2.3.2
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
