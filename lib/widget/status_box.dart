@@ -127,7 +127,7 @@ class StatusBoxCacheFuture<T> extends StatelessWidget {
     CacheFutureBuilderController<T>? controller,
     this.title,
     this.subTitle,
-    this.animSize = 55,
+    this.animSize = 45,
   }) : controller = controller ?? CacheFutureBuilderController<T>();
 
   @override

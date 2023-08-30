@@ -89,6 +89,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
         return AnimeListView(
           animeList: searchList,
           onRefresh: logic.search,
+          itemTap: logic.goDetail,
           columnCount: columnCount,
           refreshController: logic.controller,
         );

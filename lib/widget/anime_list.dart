@@ -44,10 +44,14 @@ class AnimeListView extends StatefulWidget {
   // 添加头部组件
   final Widget? header;
 
+  // 内间距
+  final EdgeInsetsGeometry? padding;
+
   const AnimeListView({
     super.key,
     this.header,
     this.itemTap,
+    this.padding,
     this.emptyHint,
     this.columnCount = 3,
     this.refreshController,
@@ -96,13 +100,16 @@ class _AnimeListViewState extends State<AnimeListView> {
                 ),
               ),
             SliverPadding(
-              padding: const EdgeInsets.all(8),
+              padding: widget.padding ??
+                  (widget.columnCount > 1
+                      ? const EdgeInsets.all(8)
+                      : EdgeInsets.zero),
               sliver: SliverGrid.builder(
                 itemCount: widget.animeList.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: widget.columnCount,
-                  mainAxisSpacing: isMultiLine ? 14 : 0,
-                  crossAxisSpacing: isMultiLine ? 14 : 0,
+                  mainAxisSpacing: isMultiLine ? 4 : 0,
+                  crossAxisSpacing: isMultiLine ? 4 : 0,
                   mainAxisExtent: isMultiLine ? (isThird ? 160 : 240) : 120,
                 ),
                 itemBuilder: (_, i) {
@@ -142,13 +149,14 @@ class _AnimeListViewState extends State<AnimeListView> {
                   children: [
                     const SizedBox(height: 8),
                     Text(item.name,
+                        maxLines: 1,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black87,
                         )),
-                    const SizedBox(height: 14),
-                    Text('${item.status} · ${item.types.join('/')}'),
                     const SizedBox(height: 8),
+                    Text('${item.status} · ${item.types.join('/')}'),
+                    const SizedBox(height: 4),
                     Text(item.intro),
                   ],
                 ),
@@ -165,41 +173,45 @@ class _AnimeListViewState extends State<AnimeListView> {
   Widget _buildAnimeItemMulti(AnimeModel item) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Positioned.fill(
-                    child: ImageView.net(item.cover, fit: BoxFit.cover),
-                  ),
-                  Container(
-                    width: double.maxFinite,
-                    color: Colors.black.withOpacity(0.6),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    child: Text(
-                      item.status,
-                      textAlign: TextAlign.right,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Colors.white),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Positioned.fill(
+                      child: ImageView.net(item.cover, fit: BoxFit.cover),
                     ),
-                  ),
-                ],
+                    Container(
+                      width: double.maxFinite,
+                      color: Colors.black.withOpacity(0.6),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 8),
+                      child: Text(
+                        item.status,
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            item.name,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              item.name,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
       ),
       onTap: () => widget.itemTap?.call(item),
     );

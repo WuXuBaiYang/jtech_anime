@@ -136,7 +136,8 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
       final currentContext =
           _weekdayKeys[DateTime.now().weekday - 1].currentContext;
       if (currentContext == null) return;
-      Scrollable.ensureVisible(currentContext);
+      Scrollable.ensureVisible(currentContext,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart);
     });
   }
 
