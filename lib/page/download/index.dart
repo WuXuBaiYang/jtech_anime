@@ -10,7 +10,6 @@ import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/model/database/play_record.dart';
@@ -73,31 +72,44 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
       // 主动推送一次最新的下载进度
       download.pushLatestProgress();
     });
+    // 监听tab变化
+    tabController.animation?.addListener(() {
+      if (tabController.animation == null) return;
+      final inDownloadingTab = tabController.animation!.value <= 0.5;
+      logic.downloadingTab.setValue(inDownloadingTab);
+    });
   }
 
   @override
   Widget buildWidget(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('番剧缓存'),
-        notificationPredicate: (notification) {
-          return notification.depth == 1;
-        },
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight + 14),
-          child: CustomTabBar(
-            controller: tabController,
-            tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.downloadingTab,
+      builder: (_, downloadingTab, __) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('番剧缓存'),
+            notificationPredicate: (notification) {
+              return notification.depth == 1;
+            },
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight + 14),
+              child: CustomTabBar(
+                controller: tabController,
+                tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
+              ),
+            ),
           ),
-        ),
-      ),
-      body: TabBarView(
-        controller: tabController,
-        children: [
-          _buildDownloadingList(context),
-          _buildDownloadedList(context),
-        ],
-      ),
+          body: TabBarView(
+            controller: tabController,
+            children: [
+              _buildDownloadingList(context),
+              _buildDownloadedList(context),
+            ],
+          ),
+          floatingActionButton:
+              downloadingTab ? _buildDownloadingStatusFAB() : null,
+        );
+      },
     );
   }
 
@@ -130,37 +142,35 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
     );
   }
 
-  // 构建下载队列头部
-  Widget _buildDownloadingListHead(
-      List<DownloadGroup> groups, DownloadTask? task) {
-    final padding =
-        const EdgeInsets.symmetric(horizontal: 14).copyWith(top: 18, right: 8);
-    final textStyle = TextStyle(color: kPrimaryColor, fontSize: 20);
-    final totalSpeed = '${FileTool.formatSize(task?.totalSpeed ?? 0)}/s';
-    return Padding(
-      padding: padding,
-      child: Row(
-        children: [
-          Text(totalSpeed, style: textStyle),
-          const Spacer(),
-          IconButton(
-            onPressed: () => download.stopTasks(
-                groups.expand<DownloadRecord>((e) => e.records).toList()),
-            icon: const Icon(FontAwesomeIcons.pause),
-            color: kPrimaryColor,
+  // 构建下载状态fab
+  Widget _buildDownloadingStatusFAB() {
+    return StreamBuilder<DownloadTask?>(
+      stream: download.downloadProgress,
+      builder: (_, snap) {
+        final task = snap.data;
+        final hasDownloadTask = download.downloadQueue.isNotEmpty ||
+            download.prepareQueue.isNotEmpty;
+        final totalSpeed = '${FileTool.formatSize(task?.totalSpeed ?? 0)}/s';
+        return FloatingActionButton.extended(
+          label: Text(totalSpeed),
+          isExtended: hasDownloadTask,
+          extendedPadding:
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+          icon: Center(
+            child: Icon(hasDownloadTask
+                ? FontAwesomeIcons.pause
+                : FontAwesomeIcons.play),
           ),
-          IconButton(
-            onPressed: () async {
-              // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-              if (!await Tool.checkNetwork(context, logic.checkNetwork)) return;
-              download.startTasks(
-                  groups.expand<DownloadRecord>((e) => e.records).toList());
-            },
-            icon: const Icon(FontAwesomeIcons.play),
-            color: kPrimaryColor,
-          ),
-        ],
-      ),
+          onPressed: () {
+            final records = logic.downloadingList.value
+                .expand<DownloadRecord>((e) => e.records)
+                .toList();
+            hasDownloadTask
+                ? download.stopTasks(records)
+                : download.startTasks(records);
+          },
+        );
+      },
     );
   }
 
@@ -228,6 +238,9 @@ class _DownloadLogic extends BaseLogic {
 
   // 已下载记录
   final downloadedList = ListValueChangeNotifier<DownloadGroup>.empty();
+
+  // 判断当前是否在下载tab
+  final downloadingTab = ValueChangeNotifier(true);
 
   // 是否检查网络状态
   final checkNetwork = ValueChangeNotifier<bool>(
