@@ -113,6 +113,38 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
     );
   }
 
+  // 构建下载状态fab
+  Widget _buildDownloadingStatusFAB() {
+    return StreamBuilder<DownloadTask?>(
+      stream: download.downloadProgress,
+      builder: (_, snap) {
+        final task = snap.data;
+        final hasDownloadTask = download.downloadQueue.isNotEmpty ||
+            download.prepareQueue.isNotEmpty;
+        final totalSpeed = '${FileTool.formatSize(task?.totalSpeed ?? 0)}/s';
+        return FloatingActionButton.extended(
+          label: Text(totalSpeed),
+          isExtended: hasDownloadTask,
+          extendedPadding:
+          const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+          icon: Center(
+            child: Icon(hasDownloadTask
+                ? FontAwesomeIcons.pause
+                : FontAwesomeIcons.play),
+          ),
+          onPressed: () {
+            final records = logic.downloadingList.value
+                .expand<DownloadRecord>((e) => e.records)
+                .toList();
+            hasDownloadTask
+                ? download.stopTasks(records)
+                : download.startTasks(records);
+          },
+        );
+      },
+    );
+  }
+
   // 构建下载队列
   Widget _buildDownloadingList(BuildContext context) {
     return ValueListenableBuilder<List<DownloadGroup>>(
@@ -136,38 +168,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
               },
               onStopDownloads: download.stopTasks,
             );
-          },
-        );
-      },
-    );
-  }
-
-  // 构建下载状态fab
-  Widget _buildDownloadingStatusFAB() {
-    return StreamBuilder<DownloadTask?>(
-      stream: download.downloadProgress,
-      builder: (_, snap) {
-        final task = snap.data;
-        final hasDownloadTask = download.downloadQueue.isNotEmpty ||
-            download.prepareQueue.isNotEmpty;
-        final totalSpeed = '${FileTool.formatSize(task?.totalSpeed ?? 0)}/s';
-        return FloatingActionButton.extended(
-          label: Text(totalSpeed),
-          isExtended: hasDownloadTask,
-          extendedPadding:
-              const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-          icon: Center(
-            child: Icon(hasDownloadTask
-                ? FontAwesomeIcons.pause
-                : FontAwesomeIcons.play),
-          ),
-          onPressed: () {
-            final records = logic.downloadingList.value
-                .expand<DownloadRecord>((e) => e.records)
-                .toList();
-            hasDownloadTask
-                ? download.stopTasks(records)
-                : download.startTasks(records);
           },
         );
       },
