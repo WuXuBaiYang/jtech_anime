@@ -6,5 +6,7 @@
   "lastEditDate": "2023-08-26T17:19:42.113727",
   "logoUrl": "https://cdn.jsdelivr.net/gh/jokogebai/jokogebai@v1.0.0/tab_logo.jpg",
   "fileUri": "assets/source/default_1.js",
-  "color": "0xffffff"
+  "color": "0xffffff",
+  "nsfw": true,
+  "proxy": true
 }

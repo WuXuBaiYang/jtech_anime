@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/source.dart';
-
 import 'image.dart';
 
 /*
@@ -9,11 +8,11 @@ import 'image.dart';
 * @author wuxubaiyang
 * @Time 2023/8/16 14:43
 */
-class AnimeSourceIcon extends StatelessWidget {
+class AnimeSourceButton extends StatelessWidget {
   // 番剧解析源
   final AnimeSource source;
 
-  const AnimeSourceIcon({super.key, required this.source});
+  const AnimeSourceButton({super.key, required this.source});
 
   @override
   Widget build(BuildContext context) {
