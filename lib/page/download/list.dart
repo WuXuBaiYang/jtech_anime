@@ -102,7 +102,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
                   borderRadius: BorderRadius.circular(4),
                   child: ImageView.net(
                     width: 70,
-                    height: 80,
+                    height: 85,
                     item.cover,
                     fit: BoxFit.cover,
                   ),
@@ -210,7 +210,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     return ListView.separated(
       shrinkWrap: true,
       itemCount: records.length,
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: 2),
       physics: const NeverScrollableScrollPhysics(),
       separatorBuilder: (_, i) => const SizedBox(height: 4),
       itemBuilder: (_, i) {
