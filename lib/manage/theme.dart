@@ -106,6 +106,11 @@ class ThemeManage extends BaseManage {
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           elevation: 1,
         ),
+        listTileTheme: const ListTileThemeData(
+          subtitleTextStyle: TextStyle(
+            color: Colors.black38,
+          ),
+        ),
       );
 }
 

@@ -154,8 +154,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
 
   // 构建番剧时间表
   Widget _buildAnimeTimeTable() {
-    return HomeAnimeTimeTable(
-      itemTap: logic.goDetail,
+    return ValueListenableBuilder<TimeTableModel?>(
+      valueListenable: logic.timetableList,
+      builder: (_, timeTable, __) {
+        return HomeAnimeTimeTable(
+          itemTap: logic.goDetail,
+          timeTable: timeTable,
+        );
+      },
     );
   }
 }

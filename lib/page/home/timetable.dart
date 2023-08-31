@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/theme.dart';
+import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/anime_list.dart';
 import 'package:jtech_anime/widget/status_box.dart';
-
-import '../../model/anime.dart';
 
 /*
 * 首页番剧时间表
@@ -18,8 +15,12 @@ class HomeAnimeTimeTable extends StatefulWidget {
   // 番剧点击事件
   final AnimeListItemTap? itemTap;
 
+  // 番剧时间表对象
+  final TimeTableModel? timeTable;
+
   const HomeAnimeTimeTable({
     super.key,
+    required this.timeTable,
     this.itemTap,
   });
 
@@ -40,27 +41,33 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final timeTable = widget.timeTable;
+    if (timeTable == null) {
+      return const Center(
+        child: StatusBox(
+          status: StatusBoxStatus.loading,
+        ),
+      );
+    }
     // 获取本周周一
     final now = DateTime.now();
     final days = Duration(days: now.weekday - 1);
     final monday = now.subtract(days);
-    return StatusBoxCacheFuture<TimeTableModel?>(
-      future: animeParser.getTimeTable,
-      builder: (timeTable) {
-        if (timeTable == null) return const SizedBox();
-        int index = 0;
-        _jump2CurrentDay();
-        return CustomScrollView(
-          controller: controller,
-          slivers: timeTable.weekdayAnimeList
-              .map<List<Widget>>((e) => [
-                    _buildHeader(monday.add(Duration(days: index++))),
-                    _buildAnimeList(e),
-                  ])
-              .expand((e) => e)
-              .toList(),
-        );
-      },
+    int index = 0;
+    _jump2CurrentDay();
+    return CustomScrollView(
+      controller: controller,
+      slivers: timeTable.weekdayAnimeList
+          .map<List<Widget>>((e) {
+            final today = monday.add(Duration(days: index++));
+            final weekdayKey = _weekdayKeys[today.weekday - 1];
+            return [
+              _buildHeader(today, weekdayKey),
+              _buildAnimeList(e),
+            ];
+          })
+          .expand((e) => e)
+          .toList(),
     );
   }
 
@@ -76,24 +83,21 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
       ];
 
   // 构建周天头部
-  Widget _buildHeader(DateTime dateTime) {
-    final weekdayKey = _weekdayKeys[dateTime.weekday - 1];
-    final text = '${dateTime.format(DatePattern.date)} · ${weekdayKey.value}';
-    return SliverPadding(
-      key: weekdayKey,
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      sliver: SliverList.list(children: [
-        Row(
-          children: [
-            Expanded(child: Divider(color: kPrimaryColor)),
-            const SizedBox(width: 8),
-            Text(text, style: TextStyle(color: kPrimaryColor)),
-            const SizedBox(width: 8),
-            Expanded(child: Divider(color: kPrimaryColor)),
-          ],
-        ),
-      ]),
-    );
+  Widget _buildHeader(DateTime dateTime, GlobalObjectKey key) {
+    final text = '${dateTime.format(DatePattern.date)} · ${key.value}';
+    return SliverList.list(key: key, children: [
+      const SizedBox(height: 14),
+      Row(
+        children: [
+          Expanded(child: Divider(color: kPrimaryColor)),
+          const SizedBox(width: 8),
+          Text(text, style: TextStyle(color: kPrimaryColor)),
+          const SizedBox(width: 8),
+          Expanded(child: Divider(color: kPrimaryColor)),
+        ],
+      ),
+      const SizedBox(height: 14),
+    ]);
   }
 
   // 构建周天番剧列表
@@ -136,8 +140,7 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
       final currentContext =
           _weekdayKeys[DateTime.now().weekday - 1].currentContext;
       if (currentContext == null) return;
-      Scrollable.ensureVisible(currentContext,
-          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart);
+      Scrollable.ensureVisible(currentContext);
     });
   }
 
