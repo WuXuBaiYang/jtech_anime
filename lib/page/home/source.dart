@@ -8,7 +8,8 @@ import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/source.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/anime_source.dart';
+import 'package:jtech_anime/widget/source/import.dart';
+import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 
 /*
@@ -17,14 +18,23 @@ import 'package:jtech_anime/widget/future_builder.dart';
 * @Time 2023/8/30 17:29
 */
 class AnimeSourceChangeDialog extends StatefulWidget {
-  const AnimeSourceChangeDialog({super.key});
+  // 是否可取消
+  final bool dismissible;
 
-  static Future<AnimeSource?> show(BuildContext context) {
+  const AnimeSourceChangeDialog({
+    super.key,
+    this.dismissible = true,
+  });
+
+  static Future<AnimeSource?> show(BuildContext context,
+      {bool dismissible = true}) {
     return showCupertinoDialog<AnimeSource>(
       context: context,
-      barrierDismissible: true,
+      barrierDismissible: dismissible,
       builder: (_) {
-        return const AnimeSourceChangeDialog();
+        return AnimeSourceChangeDialog(
+          dismissible: dismissible,
+        );
       },
     );
   }
@@ -39,18 +49,24 @@ class AnimeSourceChangeDialog extends StatefulWidget {
 * @Time 2023/8/30 17:29
 */
 class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
+  // 番剧解析源缓存控制器
+  final controller = CacheFutureBuilderController<List<AnimeSource>>();
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = Tool.getScreenHeight(context);
-    return AlertDialog(
-      clipBehavior: Clip.hardEdge,
-      contentPadding: EdgeInsets.zero,
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: screenHeight * 0.6,
+    return WillPopScope(
+      child: AlertDialog(
+        clipBehavior: Clip.hardEdge,
+        contentPadding: EdgeInsets.zero,
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: screenHeight * 0.6,
+          ),
+          child: _buildAnimeSourceList(),
         ),
-        child: _buildAnimeSourceList(),
       ),
+      onWillPop: () async => widget.dismissible,
     );
   }
 
@@ -58,19 +74,40 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
   Widget _buildAnimeSourceList() {
     final current = animeParser.currentSource;
     return CacheFutureBuilder<List<AnimeSource>>(
+      controller: controller,
       future: db.getAnimeSourceList,
       builder: (_, snap) {
         final animeSources = snap.data ?? [];
-        return ListView.builder(
+        animeSources.clear();
+        return CustomScrollView(
           shrinkWrap: true,
-          itemCount: animeSources.length,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemBuilder: (_, i) {
-            return _buildAnimeSourceListItem(
-              animeSources[i],
-              current,
-            );
-          },
+          slivers: [
+            if (animeSources.isNotEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                sliver: SliverList.builder(
+                  itemCount: animeSources.length,
+                  itemBuilder: (_, i) {
+                    return _buildAnimeSourceListItem(
+                      animeSources[i],
+                      current,
+                    );
+                  },
+                ),
+              ),
+            if (animeSources.isEmpty)
+              SliverList.list(children: [
+                IconButton(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  icon: const Icon(FontAwesomeIcons.plus),
+                  onPressed: () => AnimeSourceImportSheet.show(context).then(
+                    (source) {
+                      if (source != null) controller.refreshValue();
+                    },
+                  ),
+                ),
+              ]),
+          ],
         );
       },
     );
@@ -86,7 +123,7 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
         child: Container(
           padding: const EdgeInsets.all(2),
           color: selected ? kPrimaryColor : null,
-          child: AnimeSourceView(
+          child: AnimeSourceLogo(
             source: item,
             ratio: selected ? 24 : 20,
           ),

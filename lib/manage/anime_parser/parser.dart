@@ -184,8 +184,11 @@ class AnimeParserManage extends BaseManage {
   // 卸载数据源
   Future<bool> uninstallSource(AnimeSource source) async {
     final result = await db.removeAnimeSource(source.id);
-    final file = File(source.fileUri);
-    if (file.existsSync()) file.deleteSync();
+    if (result) {
+      final file = File(source.fileUri);
+      if (file.existsSync()) file.deleteSync();
+      event.send(SourceChangeEvent(null));
+    }
     return result;
   }
 

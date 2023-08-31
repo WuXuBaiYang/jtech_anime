@@ -19,7 +19,7 @@ import 'package:jtech_anime/page/home/timetable.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
-import 'package:jtech_anime/widget/anime_source.dart';
+import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
@@ -55,6 +55,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
       AppVersionTool.check(context);
+    });
+    // 监听解析源变化
+    event.on<SourceChangeEvent>().listen((event) {
+      // 如果解析源为空则弹出不可取消的强制选择弹窗
+      if (event.source == null) {
+        AnimeSourceChangeDialog.show(context, dismissible: false);
+      }
     });
   }
 
@@ -116,9 +123,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
             final event = snap.data;
             if (event?.source == null) return const SizedBox();
             return GestureDetector(
-              child: AnimeSourceView(
-                source: event!.source!,
-              ),
+              child: AnimeSourceLogo(source: event!.source!),
               onTap: () => router.pushNamed(RoutePath.animeSource),
               onLongPress: () {
                 AnimeSourceChangeDialog.show(c);

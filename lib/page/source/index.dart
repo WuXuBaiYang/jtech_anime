@@ -7,7 +7,8 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/source.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/widget/anime_source.dart';
+import 'package:jtech_anime/widget/source/import.dart';
+import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
 
@@ -42,7 +43,11 @@ class _AnimeSourcePageState
       body: _buildAnimeSourceList(),
       floatingActionButton: FloatingActionButton(
         child: const Icon(FontAwesomeIcons.plus),
-        onPressed: () {},
+        onPressed: () => AnimeSourceImportSheet.show(context).then(
+          (source) {
+            if (source != null) logic.controller.refreshValue();
+          },
+        ),
       ),
     );
   }
@@ -58,7 +63,6 @@ class _AnimeSourcePageState
         return ListView.builder(
           shrinkWrap: true,
           itemCount: animeSources.length,
-          padding: const EdgeInsets.symmetric(vertical: 8),
           itemBuilder: (_, i) {
             return _buildAnimeSourceListItem(animeSources[i], current);
           },
@@ -77,7 +81,7 @@ class _AnimeSourcePageState
         child: Container(
           padding: const EdgeInsets.all(2),
           color: selected ? kPrimaryColor : null,
-          child: AnimeSourceView(
+          child: AnimeSourceLogo(
             source: item,
             ratio: selected ? 24 : 20,
           ),
