@@ -6,6 +6,7 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/source.dart';
+import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/anime_source.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
@@ -113,8 +114,11 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
           ],
         ),
       ),
-      onTap: () {
-        animeParser.changeSource(item);
+      onTap: () async {
+        final result = await animeParser.changeSource(item);
+        if (!result) return;
+        SnackTool.showMessage(
+            message: '已切换解析源为 ${animeParser.currentSource?.name}');
         router.pop(item);
       },
     );

@@ -77,19 +77,6 @@ class AnimeParserManage extends BaseManage {
     _initialCustomFunctions();
   }
 
-  // 切换数据源
-  Future<bool> changeSource(AnimeSource source) async {
-    if (_source?.key == source.key) return true;
-    // 如果是默认配置则将缓存key置空
-    final result = await cache.setString(currentSourceKey, source.key);
-    if (!result) return result;
-    // 如果修改成功则发送消息通知并替换当前数据源
-    event.send(SourceChangeEvent(source));
-    _parserFileContent = null;
-    _source = source;
-    return result;
-  }
-
   // 获取番剧时间表
   Future<TimeTableModel?> getTimeTable() async {
     final content = await _readParserFileContent();
@@ -179,6 +166,27 @@ class AnimeParserManage extends BaseManage {
       }
     }
     return tempList;
+  }
+
+  // 切换数据源
+  Future<bool> changeSource(AnimeSource source) async {
+    if (_source?.key == source.key) return true;
+    // 如果是默认配置则将缓存key置空
+    final result = await cache.setString(currentSourceKey, source.key);
+    if (!result) return result;
+    // 如果修改成功则发送消息通知并替换当前数据源
+    event.send(SourceChangeEvent(source));
+    _parserFileContent = null;
+    _source = source;
+    return result;
+  }
+
+  // 卸载数据源
+  Future<bool> uninstallSource(AnimeSource source) async {
+    final result = await db.removeAnimeSource(source.id);
+    final file = File(source.fileUri);
+    if (file.existsSync()) file.deleteSync();
+    return result;
   }
 
   // 检查是否支持目标方法
