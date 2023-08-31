@@ -20,7 +20,9 @@ import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/anime_source.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
 import 'package:jtech_anime/widget/tab.dart';
 
@@ -154,9 +156,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
 
   // 构建番剧时间表
   Widget _buildAnimeTimeTable() {
-    return ValueListenableBuilder<TimeTableModel?>(
-      valueListenable: logic.timetableList,
-      builder: (_, timeTable, __) {
+    return StatusBoxCacheFuture<TimeTableModel?>(
+      controller: logic.timeTableController,
+      future: animeParser.getTimeTable,
+      builder: (timeTable) {
+        if (timeTable == null) return const SizedBox();
         return HomeAnimeTimeTable(
           itemTap: logic.goDetail,
           timeTable: timeTable,
@@ -175,14 +179,14 @@ class _HomeLogic extends BaseLogic {
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
-  // 时间轴数据
-  final timetableList = ValueChangeNotifier<TimeTableModel?>(null);
-
   // 记录过滤条件
   final filterSelect = ListValueChangeNotifier<FilterSelect>.empty();
 
   // 刷新控制器
   final controller = CustomRefreshController();
+
+  // 番剧时间表控制器
+  final timeTableController = CacheFutureBuilderController<TimeTableModel?>();
 
   // 维护分页页码
   int _pageIndex = 1;
@@ -195,16 +199,13 @@ class _HomeLogic extends BaseLogic {
     super.init();
     // 获取过滤条件
     _loadFilterSelect();
-    // 加载时间轴数据
-    _loadTimetableList();
     // 监听解析源切换
     event.on<SourceChangeEvent>().listen((_) {
-      timetableList.setValue(null);
-      filterSelect.clear();
       animeList.clear();
+      filterSelect.clear();
       _loadFilterSelect();
-      _loadTimetableList();
       controller.startRefresh();
+      timeTableController.refreshValue();
     });
   }
 
@@ -234,12 +235,6 @@ class _HomeLogic extends BaseLogic {
     } finally {
       loading.setValue(false);
     }
-  }
-
-  // 加载时间轴数据
-  Future<void> _loadTimetableList() async {
-    final result = await animeParser.getTimeTable();
-    timetableList.setValue(result);
   }
 
   // 加载过滤条件配置

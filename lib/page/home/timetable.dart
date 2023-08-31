@@ -4,7 +4,6 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/anime_list.dart';
-import 'package:jtech_anime/widget/status_box.dart';
 
 /*
 * 首页番剧时间表
@@ -16,7 +15,7 @@ class HomeAnimeTimeTable extends StatefulWidget {
   final AnimeListItemTap? itemTap;
 
   // 番剧时间表对象
-  final TimeTableModel? timeTable;
+  final TimeTableModel timeTable;
 
   const HomeAnimeTimeTable({
     super.key,
@@ -35,37 +34,44 @@ class HomeAnimeTimeTable extends StatefulWidget {
 */
 class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
     with AutomaticKeepAliveClientMixin {
-  // 滚动控制器
+  // 控制器
   final controller = ScrollController();
+
+  // 生成本周7天的日期
+  late List<DateTime> weekdayTime;
+
+  @override
+  void initState() {
+    super.initState();
+    // 生成一周7天的具体日期
+    final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+    weekdayTime = List.generate(7, (i) => monday.add(Duration(days: i)));
+    // 组件初始化后加载
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 跳转到当前周天
+      final context = _weekdayKeys[DateTime.now().weekday - 1].currentContext;
+      if (context != null) await Scrollable.ensureVisible(context);
+      controller.jumpTo(controller.position.pixels - kToolbarHeight);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final timeTable = widget.timeTable;
-    if (timeTable == null) {
-      return const Center(
-        child: StatusBox(
-          status: StatusBoxStatus.loading,
-        ),
-      );
-    }
-    // 获取本周周一
-    final now = DateTime.now();
-    final days = Duration(days: now.weekday - 1);
-    final monday = now.subtract(days);
-    int index = 0;
-    _jump2CurrentDay();
     return CustomScrollView(
       controller: controller,
-      slivers: timeTable.weekdayAnimeList
-          .map<List<Widget>>((e) {
-            final today = monday.add(Duration(days: index++));
-            final weekdayKey = _weekdayKeys[today.weekday - 1];
-            return [
-              _buildHeader(today, weekdayKey),
-              _buildAnimeList(e),
-            ];
+      slivers: widget.timeTable.weekdayAnimeList
+          .asMap()
+          .map((i, v) {
+            final dateTime = weekdayTime[i];
+            final weekdayKey = _weekdayKeys[dateTime.weekday - 1];
+            return MapEntry(i, [
+              _buildHeader(dateTime, weekdayKey),
+              _buildAnimeList(v),
+            ]);
           })
+          .values
           .expand((e) => e)
           .toList(),
     );
@@ -132,16 +138,6 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
         'status': item.status,
       })),
     );
-  }
-
-  // 跳转到今天
-  void _jump2CurrentDay() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentContext =
-          _weekdayKeys[DateTime.now().weekday - 1].currentContext;
-      if (currentContext == null) return;
-      Scrollable.ensureVisible(currentContext);
-    });
   }
 
   @override
