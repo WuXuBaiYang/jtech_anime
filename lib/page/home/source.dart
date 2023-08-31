@@ -78,7 +78,6 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
       future: db.getAnimeSourceList,
       builder: (_, snap) {
         final animeSources = snap.data ?? [];
-        animeSources.clear();
         return CustomScrollView(
           shrinkWrap: true,
           slivers: [
