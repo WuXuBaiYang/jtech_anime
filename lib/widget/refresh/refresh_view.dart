@@ -1,6 +1,5 @@
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 
 // 异步刷新回调
