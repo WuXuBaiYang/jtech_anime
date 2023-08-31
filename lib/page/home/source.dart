@@ -72,7 +72,7 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
 
   // 构建番剧解析源列表
   Widget _buildAnimeSourceList() {
-    final current = animeParser.currentSource;
+    final source = animeParser.currentSource;
     return CacheFutureBuilder<List<AnimeSource>>(
       controller: controller,
       future: db.getAnimeSourceList,
@@ -87,10 +87,7 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
                 sliver: SliverList.builder(
                   itemCount: animeSources.length,
                   itemBuilder: (_, i) {
-                    return _buildAnimeSourceListItem(
-                      animeSources[i],
-                      current,
-                    );
+                    return _buildAnimeSourceListItem(animeSources[i], source);
                   },
                 ),
               ),
