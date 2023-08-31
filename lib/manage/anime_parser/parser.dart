@@ -200,14 +200,13 @@ class AnimeParserManage extends BaseManage {
         final localFile = await _writeAnimeParserFile(source, resp.data);
         if (localFile == null) return null;
         fileUri = localFile.path;
+      } else if (fileUri.startsWith('asset')) {
+        // 如果是assets文件，则将文件复制到本地
+        final result = await rootBundle.loadString(fileUri);
+        final localFile = await _writeAnimeParserFile(source, result);
+        if (localFile == null) return null;
+        fileUri = localFile.path;
       }
-      // else if (fileUri.startsWith('asset')) {
-      //   // 如果是assets文件，则将文件复制到本地
-      //   final result = await rootBundle.loadString(fileUri);
-      //   final localFile = await _writeAnimeParserFile(source, result);
-      //   if (localFile == null) return null;
-      //   fileUri = localFile.path;
-      // }
       // 将本地文件路径写入到数据库
       return db.updateAnimeSource(source..fileUri = fileUri);
     } catch (e) {

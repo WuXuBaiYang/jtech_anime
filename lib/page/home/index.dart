@@ -8,6 +8,7 @@ import 'package:jtech_anime/common/route.dart';
 import 'package:jtech_anime/manage/anime_parser/funtions.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/db.dart';
+import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
@@ -19,6 +20,7 @@ import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/anime_source.dart';
+import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
 import 'package:jtech_anime/widget/tab.dart';
 
@@ -58,7 +60,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   Widget buildWidget(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: SourceStreamView(builder: (c, snap) {
+      child: SourceStreamView(builder: (_, snap) {
         return Scaffold(
           appBar: AppBar(
             actions: _appBarActions,
@@ -141,6 +143,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     return HomeLatestAnimeList(
       itemTap: logic.goDetail,
       animeList: logic.animeList,
+      controller: logic.controller,
       onRefresh: logic.loadAnimeList,
       filterSelect: logic.filterSelect,
       onFilterChange: (filters) => Loading.show(
@@ -172,6 +175,9 @@ class _HomeLogic extends BaseLogic {
   // 记录过滤条件
   final filterSelect = ListValueChangeNotifier<FilterSelect>.empty();
 
+  // 刷新控制器
+  final controller = CustomRefreshController();
+
   // 维护分页页码
   int _pageIndex = 1;
 
@@ -185,6 +191,15 @@ class _HomeLogic extends BaseLogic {
     _loadFilterSelect();
     // 加载时间轴数据
     _loadTimetableList();
+    // 监听解析源切换
+    event.on<SourceChangeEvent>().listen((_) {
+      timetableList.setValue(null);
+      filterSelect.clear();
+      animeList.clear();
+      _loadFilterSelect();
+      _loadTimetableList();
+      controller.startRefresh();
+    });
   }
 
   // 加载番剧列表

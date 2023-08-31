@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/anime_parser/funtions.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
@@ -7,6 +6,7 @@ import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/widget/anime_list.dart';
+import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 
 // 过滤条件变化
@@ -18,6 +18,9 @@ typedef HomeLatestAnimeFilterChange = void Function(List<FilterSelect> items);
 * @Time 2023/8/28 16:26
 */
 class HomeLatestAnimeList extends StatefulWidget {
+  // 刷新控制器
+  final CustomRefreshController? controller;
+
   // 番剧点击事件
   final AnimeListItemTap? itemTap;
 
@@ -36,6 +39,7 @@ class HomeLatestAnimeList extends StatefulWidget {
   const HomeLatestAnimeList({
     super.key,
     this.itemTap,
+    this.controller,
     this.onFilterChange,
     required this.animeList,
     required this.onRefresh,
@@ -73,6 +77,7 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList>
           header: _buildFilterChips(),
           onRefresh: widget.onRefresh,
           emptyHint: const Text('下拉试试看~'),
+          refreshController: widget.controller,
         );
       },
     );

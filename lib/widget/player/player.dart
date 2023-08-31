@@ -103,14 +103,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
                   final current = await VolumeTool.current();
-                  final value = current - dragPercentage;
-                  if (value < 0 || value > 1) return;
-                  VolumeTool.set(value);
+                  VolumeTool.set(current - dragPercentage);
                 } else {
                   final current = await BrightnessTool.current();
-                  final value = current - dragPercentage;
-                  if (value < 0 || value > 1) return;
-                  BrightnessTool.set(value);
+                  BrightnessTool.set(current - dragPercentage);
                 }
               },
               onHorizontalDragStart: (_) {

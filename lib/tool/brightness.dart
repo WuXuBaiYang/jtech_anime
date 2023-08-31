@@ -14,8 +14,10 @@ class BrightnessTool {
   static Future<double> current() => _controller.current;
 
   // 设置亮度
-  static Future<void> set(double brightness) =>
-      _controller.setScreenBrightness(brightness);
+  static Future<void> set(double brightness) async {
+    if (brightness < 0 || brightness > 1) return;
+    await _controller.setScreenBrightness(brightness);
+  }
 
   // 获取流
   static Stream<double> get stream =>
