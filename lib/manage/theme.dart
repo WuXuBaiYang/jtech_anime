@@ -90,6 +90,7 @@ class ThemeManage extends BaseManage {
         iconTheme: const IconThemeData(size: 30),
         bottomSheetTheme: const BottomSheetThemeData(
           surfaceTintColor: Colors.white,
+          backgroundColor: Colors.white,
           clipBehavior: Clip.hardEdge,
           showDragHandle: true,
         ),

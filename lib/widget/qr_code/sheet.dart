@@ -4,7 +4,7 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/tool/log.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/qr_code_scanner.dart';
+import 'package:jtech_anime/widget/qr_code/scanner.dart';
 
 /*
 * 二维码扫描sheet
@@ -34,39 +34,34 @@ class QRCodeSheet extends StatefulWidget {
 class _QRCodeSheetState extends State<QRCodeSheet> {
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.hardEdge,
-      child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        children: [
-          if (Platform.isAndroid || Platform.isIOS)
-            ListTile(
-              title: const Text('扫码'),
-              onTap: () async {
-                try {
-                  router.pop(await QRCodeScanner.start(context));
-                } catch (e) {
-                  LogTool.e('扫码失败', error: e);
-                  SnackTool.showMessage(message: '二维码扫描失败');
-                }
-              },
-            ),
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: [
+        if (Platform.isAndroid || Platform.isIOS)
           ListTile(
-            title: const Text('从相册中选择'),
+            title: const Text('扫码'),
             onTap: () async {
               try {
-                router.pop(await Tool.decoderQRCodeFromGallery());
+                router.pop(await QRCodeScanner.start(context));
               } catch (e) {
-                LogTool.e('二维码识别失败', error: e);
-                SnackTool.showMessage(message: '二维码识别失败');
+                LogTool.e('扫码失败', error: e);
+                SnackTool.showMessage(message: '二维码扫描失败');
               }
             },
           ),
-        ],
-      ),
+        ListTile(
+          title: const Text('从相册中选择'),
+          onTap: () async {
+            try {
+              router.pop(await Tool.decoderQRCodeFromGallery());
+            } catch (e) {
+              LogTool.e('二维码识别失败', error: e);
+              SnackTool.showMessage(message: '二维码识别失败');
+            }
+          },
+        ),
+      ],
     );
   }
 }

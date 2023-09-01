@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/model/database/source.dart';
+import 'package:jtech_anime/widget/qr_code/sheet.dart';
 
 /*
 * 番剧解析源导入sheet
@@ -7,15 +10,24 @@ import 'package:jtech_anime/model/database/source.dart';
 * @Time 2023/8/31 17:09
 */
 class AnimeSourceImportSheet extends StatefulWidget {
-  const AnimeSourceImportSheet({super.key});
+  // 获取到的解析源
+  final AnimeSource source;
 
-  static Future<AnimeSource?> show(BuildContext context) {
-    return showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return const AnimeSourceImportSheet();
-      },
-    );
+  const AnimeSourceImportSheet({super.key, required this.source});
+
+  static Future<AnimeSource?> show(BuildContext context) async {
+    return QRCodeSheet.show(context).then((result) {
+      if (result == null) return null;
+      final source = AnimeSource.from(jsonDecode(result));
+      return showModalBottomSheet<AnimeSource>(
+        context: context,
+        builder: (_) {
+          return AnimeSourceImportSheet(
+            source: source,
+          );
+        },
+      );
+    });
   }
 
   @override

@@ -45,25 +45,20 @@ class _ImagePickerSheetState extends State<ImagePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.hardEdge,
-      child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        children: [
-          if (!widget.onlyGallery)
-            ListTile(
-              title: const Text('拍照'),
-              onTap: () => _pickImage(ImageSource.camera),
-            ),
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: [
+        if (!widget.onlyGallery)
           ListTile(
-            title: const Text('从相册中选择'),
-            onTap: () => _pickImage(ImageSource.gallery),
+            title: const Text('拍照'),
+            onTap: () => _pickImage(ImageSource.camera),
           ),
-        ],
-      ),
+        ListTile(
+          title: const Text('从相册中选择'),
+          onTap: () => _pickImage(ImageSource.gallery),
+        ),
+      ],
     );
   }
 
