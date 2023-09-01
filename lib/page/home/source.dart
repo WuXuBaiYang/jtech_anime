@@ -57,14 +57,10 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
     final screenHeight = Tool.getScreenHeight(context);
     return WillPopScope(
       child: AlertDialog(
+        scrollable: true,
         clipBehavior: Clip.hardEdge,
-        contentPadding: EdgeInsets.zero,
-        content: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: screenHeight * 0.6,
-          ),
-          child: _buildAnimeSourceList(),
-        ),
+        content: _buildAnimeSourceList(),
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
       ),
       onWillPop: () async => widget.dismissible,
     );
@@ -78,31 +74,22 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
       future: db.getAnimeSourceList,
       builder: (_, snap) {
         final animeSources = snap.data ?? [];
-        return CustomScrollView(
-          shrinkWrap: true,
-          slivers: [
-            if (animeSources.isNotEmpty)
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                sliver: SliverList.builder(
-                  itemCount: animeSources.length,
-                  itemBuilder: (_, i) {
-                    return _buildAnimeSourceListItem(animeSources[i], source);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...List.generate(
+              animeSources.length,
+              (i) => _buildAnimeSourceListItem(animeSources[i], source),
+            ),
+            if (animeSources.isEmpty)
+              IconButton.outlined(
+                icon: const Icon(FontAwesomeIcons.plus),
+                onPressed: () => AnimeSourceImportSheet.show(context).then(
+                  (source) {
+                    if (source != null) controller.refreshValue();
                   },
                 ),
               ),
-            if (animeSources.isEmpty)
-              SliverList.list(children: [
-                IconButton(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  icon: const Icon(FontAwesomeIcons.plus),
-                  onPressed: () => AnimeSourceImportSheet.show(context).then(
-                    (source) {
-                      if (source != null) controller.refreshValue();
-                    },
-                  ),
-                ),
-              ]),
           ],
         );
       },
@@ -113,7 +100,6 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
   Widget _buildAnimeSourceListItem(AnimeSource item, AnimeSource? current) {
     final selected = current?.key == item.key;
     return ListTile(
-      isThreeLine: true,
       title: Text(item.name),
       leading: ClipOval(
         child: Container(

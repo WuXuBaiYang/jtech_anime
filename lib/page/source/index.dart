@@ -38,7 +38,7 @@ class _AnimeSourcePageState
   Widget buildWidget(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('番剧解析源'),
+        title: const Text('插件管理'),
       ),
       body: _buildAnimeSourceList(),
       floatingActionButton: FloatingActionButton(
@@ -122,7 +122,7 @@ class _AnimeSourcePageState
         final result = await animeParser.changeSource(item);
         if (!result) return;
         SnackTool.showMessage(
-            message: '已切换解析源为 ${animeParser.currentSource?.name}');
+            message: '已切换插件为 ${animeParser.currentSource?.name}');
       },
     );
   }
@@ -132,7 +132,7 @@ class _AnimeSourcePageState
     return MessageDialog.show(
       context,
       title: const Text('卸载'),
-      content: Text('是否卸载解析源 ${item.name}'),
+      content: Text('是否卸载插件 ${item.name}'),
       actionMiddle: TextButton(
         child: const Text('取消'),
         onPressed: () => router.pop(),

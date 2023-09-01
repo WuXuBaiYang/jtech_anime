@@ -199,7 +199,6 @@ class AnimeParserManage extends BaseManage {
     return source.functions.contains(function.name);
   }
 
-  /// 如果是从外部导入则需要检查必填方法是否满足
   // 将配置文件信息导入数据库
   Future<AnimeSource?> importAnimeSource(AnimeSource source) async {
     try {
