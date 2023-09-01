@@ -63,6 +63,7 @@ class _AnimeSourcePageState
         return ListView.builder(
           shrinkWrap: true,
           itemCount: animeSources.length,
+          padding: const EdgeInsets.only(bottom: kToolbarHeight * 1.5),
           itemBuilder: (_, i) {
             return _buildAnimeSourceListItem(animeSources[i], current);
           },

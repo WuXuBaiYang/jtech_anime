@@ -45,6 +45,9 @@ class DownloadRecordListView extends StatefulWidget {
   // 默认展开的组
   final List<String> initialExpanded;
 
+  // 列表间距
+  final EdgeInsetsGeometry? padding;
+
   const DownloadRecordListView({
     super.key,
     required this.groupList,
@@ -55,6 +58,7 @@ class DownloadRecordListView extends StatefulWidget {
     this.playRecordMap,
     this.onPlayRecords,
     this.downloadTask,
+    this.padding,
   });
 
   @override
@@ -74,7 +78,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       builder: (_, expandedList, __) {
         return ListView.builder(
           itemCount: widget.groupList.length,
-          padding: const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
+          padding: widget.padding ??
+              const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
           itemBuilder: (_, i) {
             final item = widget.groupList[i];
             final expanded = expandedList.contains(item.url);

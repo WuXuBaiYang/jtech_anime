@@ -106,15 +106,15 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
               _buildDownloadedList(context),
             ],
           ),
-          floatingActionButton:
-              downloadingTab ? _buildDownloadingStatusFAB() : null,
+          floatingActionButton: _buildDownloadingStatusFAB(downloadingTab),
         );
       },
     );
   }
 
   // 构建下载状态fab
-  Widget _buildDownloadingStatusFAB() {
+  Widget? _buildDownloadingStatusFAB(bool showFAB) {
+    if (!showFAB) return null;
     return StreamBuilder<DownloadTask?>(
       stream: download.downloadProgress,
       builder: (_, snap) {
@@ -126,7 +126,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           label: Text(totalSpeed),
           isExtended: hasDownloadTask,
           extendedPadding:
-          const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
           icon: Center(
             child: Icon(hasDownloadTask
                 ? FontAwesomeIcons.pause
@@ -156,6 +156,8 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           builder: (_, snap) {
             return DownloadRecordListView(
               groupList: groups,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+                  .copyWith(bottom: kToolbarHeight * 1.5),
               initialExpanded: expandedList,
               downloadTask: snap.data ?? DownloadTask(),
               onRemoveRecords: (records) => _showDeleteDialog(context, records),

@@ -48,37 +48,62 @@ class _HomeLatestAnimeFilterSheetState
       MapValueChangeNotifier(
           groupBy<FilterSelect, String>(widget.selectFilters, (e) => e.key));
 
+  // 记录过滤条件编辑状态
+  final filterEdited = ValueChangeNotifier<bool>(false);
+
+  // 记录传入时已选择的hasCode
+  num? initialHashCode;
+
+  @override
+  void initState() {
+    super.initState();
+    // 计算初始化的hashcode
+    initialHashCode = _calculateHashCode(filterSelect.value);
+    // 监听过滤选项变化
+    filterSelect.addListener(() {
+      final hashCode = _calculateHashCode(filterSelect.value);
+      filterEdited.setValue(hashCode != initialHashCode);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        title: const Text('番剧筛选'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.xmark),
-            onPressed: () => router.pop(),
-          ),
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.check),
-            onPressed: () => router.pop(
-              filterSelect.values.expand((e) => e).toList(),
-            ),
-          ),
-        ],
-      ),
       body: Column(
         children: [
           const Divider(),
           Expanded(child: _buildFilterList()),
         ],
       ),
+      floatingActionButton: _buildFilterEditedFAB(),
+    );
+  }
+
+  // 构建过滤条件编辑状态的fab
+  Widget _buildFilterEditedFAB() {
+    return ValueListenableBuilder(
+      valueListenable: filterEdited,
+      builder: (_, hasEdited, __) {
+        final selectCount = filterSelect.values.fold(0, (p, e) => p + e.length);
+        return AnimatedScale(
+          scale: hasEdited ? 1 : 0,
+          duration: const Duration(milliseconds: 180),
+          child: FloatingActionButton.extended(
+            label: Text('已选$selectCount项'),
+            extendedTextStyle: const TextStyle(fontSize: 14),
+            icon: const Icon(FontAwesomeIcons.check, size: 24),
+            onPressed: () => router.pop(
+              filterSelect.values.expand((e) => e).toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 
   // 构建过滤配置列表
   Widget _buildFilterList() {
+    const padding = EdgeInsets.symmetric(vertical: 8, horizontal: 14);
     return CacheFutureBuilder<List<AnimeFilterModel>>(
       future: animeParser.loadFilterList,
       builder: (_, snap) {
@@ -88,9 +113,11 @@ class _HomeLatestAnimeFilterSheetState
           valueListenable: filterSelect,
           builder: (_, filters, __) {
             return ListView.separated(
+              padding: filterEdited.value
+                  ? padding.copyWith(bottom: kToolbarHeight * 1.5)
+                  : padding,
               itemCount: dataList.length,
               separatorBuilder: (_, i) => const SizedBox(height: 14),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
               itemBuilder: (_, i) {
                 return _buildFilterListItem(dataList[i], filters);
               },
@@ -163,5 +190,13 @@ class _HomeLatestAnimeFilterSheetState
       temp[item.key]?.removeWhere((e) => e.value == sub.value);
       filterSelect.setValue({...temp});
     }
+  }
+
+  // 计算hashCode
+  num? _calculateHashCode(Map<String, List<FilterSelect>> selectFilters) {
+    if (selectFilters.isEmpty) return null;
+    return selectFilters.values.fold<num>(0, (p, e) {
+      return p + e.fold<num>(0, (p, e) => p + e.value.hashCode);
+    });
   }
 }

@@ -82,6 +82,7 @@ class _PlayRecordPageState
                 ),
               ListView.builder(
                 itemCount: playRecords.length,
+                padding: const EdgeInsets.only(bottom: kToolbarHeight * 1.5),
                 itemBuilder: (_, i) {
                   final item = playRecords[i];
                   return _buildPlayRecordsItem(item);
