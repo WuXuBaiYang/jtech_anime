@@ -21,6 +21,7 @@ class ImagePickerSheet extends StatefulWidget {
   static Future<File?> show(BuildContext context, {bool onlyGallery = false}) {
     return showModalBottomSheet<File>(
       context: context,
+      showDragHandle: false,
       builder: (_) {
         return ImagePickerSheet(
           onlyGallery: onlyGallery,

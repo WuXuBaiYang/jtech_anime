@@ -16,8 +16,9 @@ class QRCodeSheet extends StatefulWidget {
 
   static Future<String?> show(BuildContext context) {
     return showModalBottomSheet<String>(
-      builder: (_) => const QRCodeSheet(),
       context: context,
+      showDragHandle: false,
+      builder: (_) => const QRCodeSheet(),
     );
   }
 

@@ -89,7 +89,7 @@ class _HomeLatestAnimeFilterSheetState
           scale: hasEdited ? 1 : 0,
           duration: const Duration(milliseconds: 180),
           child: FloatingActionButton.extended(
-            label: Text('已选$selectCount项'),
+            label: Text('已选 $selectCount 项'),
             extendedTextStyle: const TextStyle(fontSize: 14),
             icon: const Icon(FontAwesomeIcons.check, size: 24),
             onPressed: () => router.pop(
