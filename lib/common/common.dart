@@ -23,6 +23,9 @@ class Common {
   // 动画-错误
   static const String statusErrorAsset = 'assets/anime/status_error.json';
 
+  // 动画-扫码
+  static const String qrCodeScannerAsset = 'assets/anime/qrcode_scanner.json';
+
   // 是否检查网络状态
   static const String checkNetworkStatusKey = 'check_network_status';
 }

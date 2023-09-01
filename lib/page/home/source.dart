@@ -138,10 +138,14 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
               children: [
                 Text('v${item.version}'),
                 const SizedBox(width: 8),
-                Icon(FontAwesomeIcons.globe, size: 12, color: kPrimaryColor),
-                const SizedBox(width: 4),
-                Icon(FontAwesomeIcons.skullCrossbones,
-                    size: 12, color: kPrimaryColor),
+                if (item.proxy)
+                  const Icon(FontAwesomeIcons.globe,
+                      size: 12, color: Colors.red),
+                if (item.nsfw) ...[
+                  const SizedBox(width: 4),
+                  const Icon(FontAwesomeIcons.skullCrossbones,
+                      size: 12, color: Colors.red),
+                ],
               ],
             ),
           ],

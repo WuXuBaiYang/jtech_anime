@@ -75,8 +75,8 @@ class ThemeManage extends BaseManage {
         useMaterial3: true,
         colorScheme: colorScheme,
         cardTheme: CardTheme(
-          elevation: 0,
           color: colorScheme.primary.withOpacity(0.12),
+          elevation: 0,
         ),
         chipTheme: const ChipThemeData(
           pressElevation: 0,

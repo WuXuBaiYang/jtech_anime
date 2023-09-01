@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/manage/anime_parser/funtions.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/tool/tool.dart';
 
 part 'source.g.dart';
@@ -44,7 +45,7 @@ class AnimeSource {
   bool proxy = false;
 
   // 获取色值
-  Color getColor() => Tool.parseColor(color, Colors.white);
+  Color getColor() => Tool.parseColor(color, const Color(0xFFFFEEF4));
 
   // 获取支持的方法列表
   List<AnimeParserFunction> getFunctions() => AnimeParserFunction.values
@@ -59,7 +60,7 @@ class AnimeSource {
       ..logoUrl = obj['logoUrl'] ?? ''
       ..homepage = obj['homepage'] ?? ''
       ..version = obj['version'] ?? ''
-      ..color = obj['color'] ?? '0xffffff'
+      ..color = obj['color'] ?? ''
       ..lastEditDate =
           DateTime.tryParse(obj['lastEditDate'] ?? '') ?? DateTime(1)
       ..fileUri = obj['fileUri'] ?? ''

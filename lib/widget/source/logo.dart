@@ -33,7 +33,7 @@ class AnimeSourceLogo extends StatelessWidget {
   // 构建数据源图标
   Widget _buildSourceIcon(AnimeSource source) {
     if (source.logoUrl.isNotEmpty) {
-      return ImageView.net(source.logoUrl, size: ratio * 0.8);
+      return ImageView.net(source.logoUrl, size: ratio * 0.85);
     }
     final textStyle = TextStyle(color: kPrimaryColor);
     if (source.name.isNotEmpty) {
