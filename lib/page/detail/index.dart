@@ -351,7 +351,7 @@ class _AnimeDetailLogic extends BaseLogic {
       // 获取番剧详细信息，是否使用缓存加载
       final result = await animeParser.getAnimeDetail(animeUrl, useCache);
       if (result == null) throw Exception('番剧详情获取失败');
-      animeDetail.setValue(result);
+      animeDetail.setValue(animeDetail.value.merge(result));
       // 根据番剧信息添加收藏信息
       final collect = await db.getCollect(animeUrl);
       final source = animeParser.currentSource;

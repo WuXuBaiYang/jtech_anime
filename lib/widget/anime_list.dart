@@ -155,9 +155,10 @@ class _AnimeListViewState extends State<AnimeListView> {
                           color: Colors.black87,
                         )),
                     const SizedBox(height: 8),
-                    Text('${item.status} · ${item.types.join('/')}'),
+                    Text('${item.status.trim()}'
+                        '${item.types.isNotEmpty ? ' · ${item.types.join('/')}' : ''}'),
                     const SizedBox(height: 4),
-                    Text(item.intro),
+                    Text(item.intro.trim()),
                   ],
                 ),
               ),
@@ -187,19 +188,20 @@ class _AnimeListViewState extends State<AnimeListView> {
                     Positioned.fill(
                       child: ImageView.net(item.cover, fit: BoxFit.cover),
                     ),
-                    Container(
-                      width: double.maxFinite,
-                      color: Colors.black.withOpacity(0.6),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 4, horizontal: 8),
-                      child: Text(
-                        item.status,
-                        textAlign: TextAlign.right,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.white),
+                    if (item.status.isNotEmpty)
+                      Container(
+                        width: double.maxFinite,
+                        color: Colors.black.withOpacity(0.6),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 4, horizontal: 8),
+                        child: Text(
+                          item.status,
+                          textAlign: TextAlign.right,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
