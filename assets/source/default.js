@@ -321,39 +321,27 @@ async function getAnimeDetail(animeUrl) {
  * @returns {Map} [
  *         {
  *             'url': '资源地址（转换前）',
- *             'playUrl': '播放/下载地址（转换后）'
+ *             'playUrl': '播放/下载地址（转换后）'，
+ *             'useCache': true(是否使用缓存，无法使用缓存的网站请设为false)
  *         }
  *     ]
  */
 async function getPlayUrls(resourceUrls) {
-    // if (resourceUrls.length <= 0) return []
-    // let headers = {
-    //     'Host': 'www.yhdmz.org',
-    //     'Accept-Encoding': 'gzip, deflate, br',
-    //     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
-    // }
-    // let resp = await request(resourceUrls[0], {method: 'HEAD', headers: headers})
-    // if (!resp.ok) throw new Error('获取播放地址失败，请重试')
-    // headers['Cookie'] = resp.headers['set-cookie']
-    // let tempList = []
-    // for (const i in resourceUrls) {
-    //     try {
-    //         const url = resourceUrls[i]
-    //         let keys = url.split('/').pop().replaceAll('.html', '').split('-')
-    //         let resp = await request(getUri('/playurl', {
-    //             aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()
-    //         }), {
-    //             method: 'GET', headers: {'Referer': url, ...headers}
-    //         })
-    //         if (!resp.ok) continue
-    //         if (resp.text.startsWith('ipchk') || resp.text.endsWith('404.mp4')) continue
-    //         tempList.push({
-    //             url: url, playUrl: decodeURIComponent(playUrl('', url, 0x0, resp.text))
-    //         })
-    //     } catch (e) {
-    //         throw e
-    //     }
-    // }
+    let tempList = []
+    for (const i in resourceUrls) {
+        try {
+            const url = resourceUrls[i]
+            let resp = await request(url, getFetchOptions())
+            if (!resp.ok) continue
+            tempList.push({
+                url: url,
+                useCache: false,
+                playUrl: await resp.doc.querySelector('#player > source', 'src'),
+            })
+        } catch (e) {
+            throw e
+        }
+    }
     return tempList
 }
 

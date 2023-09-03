@@ -116,14 +116,22 @@ class AnimeDetailInfo extends StatelessWidget {
           animeInfo.name,
           style: textStyle.copyWith(color: Colors.black, fontSize: 20),
         ),
-        const SizedBox(height: 8),
-        Text(animeInfo.status, maxLines: 2),
-        const SizedBox(height: 4),
-        Text('时间：${animeInfo.updateTime}'),
-        const SizedBox(height: 4),
-        Text('类型：${animeInfo.types.join('/')}'),
-        const SizedBox(height: 4),
-        Text('地区：${animeInfo.region}'),
+        if (animeInfo.status.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(animeInfo.status, maxLines: 2),
+        ],
+        if (animeInfo.updateTime.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text('时间：${animeInfo.updateTime}'),
+        ],
+        if (animeInfo.types.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text('类型：${animeInfo.types.join('/')}'),
+        ],
+        if (animeInfo.region.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text('地区：${animeInfo.region}'),
+        ],
       ],
     );
   }
