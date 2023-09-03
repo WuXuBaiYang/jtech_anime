@@ -136,7 +136,7 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
         final result = await animeParser.changeSource(item);
         if (!result) return;
         SnackTool.showMessage(
-            message: '已切换解析源为 ${animeParser.currentSource?.name}');
+            message: '已切换插件为 ${animeParser.currentSource?.name}');
         router.pop(item);
       },
     );
