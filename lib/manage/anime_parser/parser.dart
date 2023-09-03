@@ -175,8 +175,8 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 切换数据源
-  Future<bool> changeSource(AnimeSource source) async {
-    if (_source?.key == source.key) return true;
+  Future<bool> changeSource(AnimeSource source, {bool force = false}) async {
+    if (!force && _source?.key == source.key) return true;
     // 如果是默认配置则将缓存key置空
     final result = await cache.setString(currentSourceKey, source.key);
     if (!result) return result;
@@ -224,7 +224,12 @@ class AnimeParserManage extends BaseManage {
         fileUri = localFile.path;
       }
       // 将本地文件路径写入到数据库
-      return db.updateAnimeSource(source..fileUri = fileUri);
+      final result = await db.updateAnimeSource(
+        source..fileUri = fileUri,
+      );
+      if (result == null) return null;
+      if (_source?.key == result.key) changeSource(source, force: true);
+      return result;
     } catch (e) {
       LogTool.e('配置文件解析失败', error: e);
     }

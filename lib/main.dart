@@ -60,6 +60,11 @@ void main() async {
       }
     }
   });
+  // 监听解析源切换
+  event.on<SourceChangeEvent>().listen((event) {
+    // 暂停当前所有的下载任务
+    download.stopAllTasks();
+  });
   runApp(const MyApp());
 }
 

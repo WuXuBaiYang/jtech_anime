@@ -289,7 +289,7 @@ async function getAnimeDetail(animeUrl) {
     let divs = await res.querySelectorAll('div.related-watch-wrap')
     let index = 0
     let temp = [], resources = []
-    for (const i in divs) {
+    for (let i = divs.length - 1; i >= 0; i--) {
         let item = divs[i]
         temp.push({
             name: await item.querySelector('div:nth-child(3) > div.card-mobile-title', 'text'),
@@ -297,7 +297,6 @@ async function getAnimeDetail(animeUrl) {
             order: index++,
         })
     }
-    //// 这里需要验证
     resources.push(temp)
     let status = await info.querySelector('div', 'text');
     return {

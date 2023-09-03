@@ -208,13 +208,24 @@ class DownloadManage extends BaseManage {
     return null;
   }
 
-  // 暂停多条下载任务
+  // 停止全部下载任务
+  Future<void> stopAllTasks() async {
+    prepareQueue.clear();
+    downloadQueue.removeWhere((downloadUrl, cancelToken) {
+      _progressBuffed.remove(downloadUrl);
+      _stoppingBuffed.add(downloadUrl);
+      cancelToken.cancel('stopTask');
+      return true;
+    });
+  }
+
+  // 停止多条下载任务
   Future<List<bool>> stopTasks(List<DownloadRecord> records) async {
     if (records.isEmpty) return [];
     return Future.wait<bool>(records.map(stopTask));
   }
 
-  // 暂停一个下载任务
+  // 停止一个下载任务
   Future<bool> stopTask(DownloadRecord record) async {
     try {
       final downloadUrl = record.downloadUrl;
