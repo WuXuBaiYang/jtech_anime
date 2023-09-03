@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_js/flutter_js.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -29,7 +31,14 @@ class AnimeSourceImportSheet extends StatefulWidget {
   // 获取到的解析源
   final AnimeSource source;
 
-  const AnimeSourceImportSheet({super.key, required this.source});
+  // 是否为查看模式
+  final bool importMode;
+
+  const AnimeSourceImportSheet({
+    super.key,
+    required this.source,
+    this.importMode = true,
+  });
 
   static Future<AnimeSource?> show(BuildContext context) async {
     return QRCodeSheet.show(context).then((result) {
@@ -44,6 +53,19 @@ class AnimeSourceImportSheet extends StatefulWidget {
         },
       );
     });
+  }
+
+  static Future<AnimeSource?> showInfo(BuildContext context,
+      {required AnimeSource source}) async {
+    return showModalBottomSheet<AnimeSource>(
+      context: context,
+      builder: (_) {
+        return AnimeSourceImportSheet(
+          importMode: false,
+          source: source,
+        );
+      },
+    );
   }
 
   @override
@@ -69,8 +91,8 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
   @override
   void initState() {
     super.initState();
-    // 发起请求下载插件js文件
-    _downloadJSPlugin();
+    // 发起请求获取插件js文件
+    _includeJSPlugin();
   }
 
   @override
@@ -190,21 +212,33 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
   // 构建解析源导入fab
   Widget _buildSourceImportFAB() {
     return FloatingActionButton.extended(
-      icon: const Icon(FontAwesomeIcons.fileImport, size: 24),
+      icon: Icon(
+          widget.importMode
+              ? FontAwesomeIcons.fileImport
+              : FontAwesomeIcons.repeat,
+          size: 24),
       extendedTextStyle: const TextStyle(fontSize: 14),
-      label: const Text('导入'),
+      label: Text(widget.importMode ? '导入' : '切换'),
       onPressed: _importJSPlugin,
     );
   }
 
-  // 下载js插件
-  Future<void> _downloadJSPlugin() async {
+  // 导入js插件
+  Future<void> _includeJSPlugin() async {
     try {
-      final resp = await Dio().get(widget.source.fileUri);
-      if (resp.statusCode != 200) {
-        SnackTool.showMessage(message: '插件下载失败，请重试');
-        return;
+      final fileUri = widget.source.fileUri;
+      String? jsContent;
+      if (fileUri.startsWith('http')) {
+        final resp = await Dio().get(fileUri);
+        if (resp.statusCode != 200) throw Exception('插件下载失败，请重试');
+        jsContent = resp.data;
+      } else if (fileUri.startsWith('asset')) {
+        jsContent = await rootBundle.loadString(fileUri);
+      } else {
+        final file = File(fileUri);
+        jsContent = await file.readAsString();
       }
+      if (jsContent == null) throw Exception('js插件加载失败');
       // 验证已存在方法
       final jsRuntime = getJavascriptRuntime();
       final functionMap = {},
@@ -217,7 +251,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
         if (fun.required) requiredFunctions.add(fun);
       }
       final result = await jsRuntime.evaluateAsync('''
-            ${resp.data}
+            $jsContent
             function doJSFunction() {
                 return JSON.stringify({
                     ${functions.join(',')}
@@ -236,7 +270,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
       missRequiredFunctions.setValue(requiredFunctions.where((e) {
         return !supportFunctions.contains(e);
       }).toList());
-      jsPlugin.setValue(resp.data);
+      jsPlugin.setValue(jsContent);
     } catch (e) {
       LogTool.e('导入js插件失败', error: e);
       SnackTool.showMessage(message: '插件下载失败，请重试');
@@ -253,16 +287,22 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
       SnackTool.showMessage(message: '缺少必须方法，该插件无效');
       return;
     }
-    final functions = supportFunctions.value.map((e) => e.name).toList();
-    final result = await Loading.show(
-      loadFuture: animeParser.importAnimeSource(
-        widget.source..functions = functions,
-      ),
-    );
-    if (result == null) {
-      SnackTool.showMessage(message: '插件导入失败');
-      return;
+    if (widget.importMode) {
+      // 导入模式则执行插件导入
+      final functions = supportFunctions.value.map((e) => e.name).toList();
+      final result = await Loading.show(
+        loadFuture: animeParser.importAnimeSource(
+          widget.source..functions = functions,
+        ),
+      );
+      if (result == null) {
+        SnackTool.showMessage(message: '插件导入失败');
+        return;
+      }
+      router.pop(result);
+    } else {
+      final result = await animeParser.changeSource(widget.source);
+      if (result) router.pop(widget.source);
     }
-    router.pop(result);
   }
 }

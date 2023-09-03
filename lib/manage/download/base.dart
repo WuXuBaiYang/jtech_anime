@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
-import 'package:background_downloader/background_downloader.dart';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/tool/file.dart';
+import 'package:background_downloader/background_downloader.dart';
 
 // 下载进度回调
 typedef DownloaderProgressCallback = void Function(
@@ -23,6 +23,56 @@ abstract class Downloader {
     CancelToken? cancelToken,
     DownloaderProgressCallback? receiveProgress,
   });
+
+  // 文件下载
+  Future<void> download(
+    String downloadUrl,
+    String savePath, {
+    DownloaderProgressCallback? receiveProgress,
+    FileDir root = FileDir.applicationDocuments,
+    CancelToken? cancelToken,
+    String? filename,
+    int retries = 3,
+  }) async {
+    final downloader = FileDownloader();
+    // 生成下载任务
+    final task = DownloadTask(
+      baseDirectory: BaseDirectory.values[root.index],
+      directory: savePath,
+      requiresWiFi: false,
+      filename: filename,
+      url: downloadUrl,
+      allowPause: true,
+      retries: retries,
+    );
+    // 监听任务销毁状态
+    cancelToken?.whenCancel.whenComplete(() {
+      downloader.cancelTaskWithId(task.taskId);
+    });
+    // 启动下载
+    final update = await downloader.download(task);
+    if (update.status.isFinalState) return;
+    final completer = Completer();
+    // 注册监听
+    double lastProgress = 0;
+    downloader.registerCallbacks(
+      group: downloadUrl,
+      taskStatusCallback: (update) {
+        if (update.status.isNotFinalState) return;
+        completer.complete();
+      },
+      taskProgressCallback: (update) {
+        final fileSize = update.expectedFileSize;
+        final count = fileSize * update.progress;
+        final downloadSpeed =
+            update.expectedFileSize * (update.progress - lastProgress);
+        receiveProgress?.call(count.toInt(), fileSize, downloadSpeed.toInt());
+      },
+    );
+    await completer.future.whenComplete(() {
+      downloader.unregisterCallbacks(group: downloadUrl);
+    });
+  }
 
   // 文件批量下载,传入<文件名,下载地址>{}
   Future<void> downloadBatch(
@@ -111,14 +161,14 @@ abstract class Downloader {
           await File(filePath).rename(filePath.replaceAll('.tmp', ''));
         }));
       },
-      taskProgressCallback: (updates) {
+      taskProgressCallback: (update) {
         // 更新任务进度
-        if (updates.expectedFileSize <= 0) return;
-        final taskId = updates.task.taskId;
+        if (update.expectedFileSize <= 0) return;
+        final taskId = update.task.taskId;
         final lastProgress = lastProgressMap[taskId] ?? 0;
         final downloadSpeed =
-            updates.expectedFileSize * (updates.progress - lastProgress);
-        lastProgressMap[taskId] = updates.progress;
+            update.expectedFileSize * (update.progress - lastProgress);
+        lastProgressMap[taskId] = update.progress;
         speedCallback?.call(downloadSpeed.toInt());
       },
     );

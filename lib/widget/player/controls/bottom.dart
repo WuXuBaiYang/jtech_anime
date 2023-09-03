@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
@@ -133,10 +135,11 @@ class _CustomPlayerControlsBottomState
                   Expanded(
                     child: Slider(
                       inactiveColor: Colors.black26,
-                      max: total.inMilliseconds.toDouble(),
-                      value: progress.inMilliseconds.toDouble(),
+                      max: max(total.inMilliseconds.toDouble(), 0),
+                      value: max(progress.inMilliseconds.toDouble(), 0),
                       secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
-                      secondaryTrackValue: buffer.inMilliseconds.toDouble(),
+                      secondaryTrackValue:
+                          max(buffer.inMilliseconds.toDouble(), 0),
                       onChangeStart: (_) =>
                           controller.setControlVisible(true, ongoing: true),
                       onChanged: (v) => tempProgress

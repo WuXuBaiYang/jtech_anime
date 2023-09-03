@@ -11,6 +11,7 @@ import 'package:jtech_anime/widget/source/import.dart';
 import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/message_dialog.dart';
+import 'package:jtech_anime/widget/stream_view.dart';
 
 /*
 * 番剧解析源管理
@@ -54,18 +55,22 @@ class _AnimeSourcePageState
 
   // 构建番剧解析源列表
   Widget _buildAnimeSourceList() {
-    final current = animeParser.currentSource;
-    return CacheFutureBuilder<List<AnimeSource>>(
-      controller: logic.controller,
-      future: db.getAnimeSourceList,
+    return SourceStreamView(
       builder: (_, snap) {
-        final animeSources = snap.data ?? [];
-        return ListView.builder(
-          shrinkWrap: true,
-          itemCount: animeSources.length,
-          padding: const EdgeInsets.only(bottom: kToolbarHeight * 1.5),
-          itemBuilder: (_, i) {
-            return _buildAnimeSourceListItem(animeSources[i], current);
+        final current = snap.data?.source;
+        return CacheFutureBuilder<List<AnimeSource>>(
+          controller: logic.controller,
+          future: db.getAnimeSourceList,
+          builder: (_, snap) {
+            final animeSources = snap.data ?? [];
+            return ListView.builder(
+              shrinkWrap: true,
+              itemCount: animeSources.length,
+              padding: const EdgeInsets.only(bottom: kToolbarHeight * 1.5),
+              itemBuilder: (_, i) {
+                return _buildAnimeSourceListItem(animeSources[i], current);
+              },
+            );
           },
         );
       },
@@ -82,10 +87,7 @@ class _AnimeSourcePageState
         child: Container(
           padding: const EdgeInsets.all(2),
           color: selected ? kPrimaryColor : null,
-          child: AnimeSourceLogo(
-            source: item,
-            ratio: selected ? 24 : 20,
-          ),
+          child: AnimeSourceLogo(source: item, ratio: 20),
         ),
       ),
       subtitle: DefaultTextStyle(
@@ -118,12 +120,12 @@ class _AnimeSourcePageState
       //   child: const Text('卸载'),
       //   onPressed: () => _showUninstallDialog(item),
       // ),
-      onTap: () async {
-        final result = await animeParser.changeSource(item);
-        if (!result) return;
+      onTap: () =>
+          AnimeSourceImportSheet.showInfo(context, source: item).then((result) {
+        if (result == null) return;
         SnackTool.showMessage(
             message: '已切换插件为 ${animeParser.currentSource?.name}');
-      },
+      }),
     );
   }
 

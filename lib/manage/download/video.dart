@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/manage/download/base.dart';
-import 'package:path/path.dart';
 
 /*
 * 一般视频下载

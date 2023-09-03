@@ -7,7 +7,6 @@ import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/source.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/source/import.dart';
 import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
@@ -54,7 +53,6 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = Tool.getScreenHeight(context);
     return WillPopScope(
       child: AlertDialog(
         scrollable: true,
@@ -105,10 +103,7 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
         child: Container(
           padding: const EdgeInsets.all(2),
           color: selected ? kPrimaryColor : null,
-          child: AnimeSourceLogo(
-            source: item,
-            ratio: selected ? 24 : 20,
-          ),
+          child: AnimeSourceLogo(source: item, ratio: 20),
         ),
       ),
       subtitle: DefaultTextStyle(
@@ -118,8 +113,8 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(item.homepage),
+            // const SizedBox(height: 4),
+            // Text(item.homepage),
             Row(
               children: [
                 Text('v${item.version}'),
