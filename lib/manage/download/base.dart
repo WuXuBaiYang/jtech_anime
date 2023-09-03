@@ -25,12 +25,12 @@ abstract class Downloader {
   });
 
   // 文件下载
-  Future<void> download(
-    String downloadUrl,
-    String savePath, {
+  Future<File?> download(
+    String downloadUrl, {
     DownloaderProgressCallback? receiveProgress,
     FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
+    String fileDir = '',
     String? filename,
     int retries = 3,
   }) async {
@@ -38,40 +38,30 @@ abstract class Downloader {
     // 生成下载任务
     final task = DownloadTask(
       baseDirectory: BaseDirectory.values[root.index],
-      directory: savePath,
       requiresWiFi: false,
+      directory: fileDir,
       filename: filename,
       url: downloadUrl,
       allowPause: true,
       retries: retries,
     );
+    final fileSize = await _getNetFileSize(downloadUrl);
+    final taskId = task.taskId;
+    double lastProgress = 0;
     // 监听任务销毁状态
     cancelToken?.whenCancel.whenComplete(() {
-      downloader.cancelTaskWithId(task.taskId);
+      downloader.cancelTaskWithId(taskId);
     });
     // 启动下载
-    final update = await downloader.download(task);
-    if (update.status.isFinalState) return;
-    final completer = Completer();
-    // 注册监听
-    double lastProgress = 0;
-    downloader.registerCallbacks(
-      group: downloadUrl,
-      taskStatusCallback: (update) {
-        if (update.status.isNotFinalState) return;
-        completer.complete();
-      },
-      taskProgressCallback: (update) {
-        final fileSize = update.expectedFileSize;
-        final count = fileSize * update.progress;
-        final downloadSpeed =
-            update.expectedFileSize * (update.progress - lastProgress);
-        receiveProgress?.call(count.toInt(), fileSize, downloadSpeed.toInt());
-      },
-    );
-    await completer.future.whenComplete(() {
-      downloader.unregisterCallbacks(group: downloadUrl);
+    final result = await downloader.download(task, onProgress: (progress) {
+      final count = fileSize * progress;
+      final downloadSpeed = fileSize * (progress - lastProgress);
+      lastProgress = progress;
+      receiveProgress?.call(
+          min(count.toInt(), fileSize), fileSize, downloadSpeed.toInt());
     });
+    if (![TaskStatus.complete].contains(result.status)) return null;
+    return File(await task.filePath());
   }
 
   // 文件批量下载,传入<文件名,下载地址>{}
@@ -198,6 +188,14 @@ abstract class Downloader {
           retries: retries,
         );
       }).toList();
+
+  // 获取网络附件大小
+  Future<int> _getNetFileSize(String url) async {
+    final resp = await Dio().head(url);
+    if (resp.statusCode != 200) return 0;
+    final contentLength = resp.headers.value(Headers.contentLengthHeader);
+    return int.tryParse(contentLength ?? '') ?? 0;
+  }
 
   // 判断是否已取消
   bool isCanceled(CancelToken? cancelToken) {
