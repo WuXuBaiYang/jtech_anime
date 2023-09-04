@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/common.dart';
+import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/widget/mask_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
+import 'package:camera/camera.dart';
 
 /*
 * 二维码扫描组件
@@ -36,6 +39,12 @@ class QRCodeScanner extends StatefulWidget {
 * @Time 2023/8/17 10:32
 */
 class _QRCodeScannerState extends State<QRCodeScanner> {
+  // 闪光灯模式
+  final flashMode = ValueChangeNotifier<FlashMode>(FlashMode.off);
+
+  // 控制器
+  final controller = QRCodeDartScanController();
+
   // 扫码类型限制
   final formats = const [
     BarcodeFormat.QR_CODE,
@@ -46,7 +55,12 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     final screenSize = MediaQuery.of(context).size;
     final maskSize = Size.square(screenSize.width * 0.6);
     return Scaffold(
-      appBar: AppBar(title: widget.title),
+      appBar: AppBar(
+        title: widget.title,
+        actions: [
+          _buildFlashButton(),
+        ],
+      ),
       backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
@@ -65,6 +79,7 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     final previewSize = _genPreviewSize(context);
     return QRCodeDartScanView(
       formats: formats,
+      controller: controller,
       typeScan: TypeScan.live,
       scanInvertedQRCode: true,
       widthPreview: previewSize.width,
@@ -112,5 +127,22 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     final mediaQuery = MediaQuery.of(context);
     final pixelRatio = mediaQuery.devicePixelRatio;
     return Size(1080 / pixelRatio, 1920 / pixelRatio);
+  }
+
+  // 闪光灯按钮
+  Widget _buildFlashButton() {
+    return ValueListenableBuilder<FlashMode>(
+      valueListenable: flashMode,
+      builder: (_, mode, __) {
+        return IconButton(
+          icon: const Icon(FontAwesomeIcons.boltLightning),
+          onPressed: () {
+            mode = mode == FlashMode.off ? FlashMode.torch : FlashMode.off;
+            controller.setFlashMode(mode);
+            flashMode.setValue(mode);
+          },
+        );
+      },
+    );
   }
 }
