@@ -5,8 +5,10 @@ import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
+import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:collection/collection.dart';
+import 'package:jtech_anime/widget/listenable_builders.dart';
 
 /*
 * 番剧过滤条件选择
@@ -45,8 +47,8 @@ class _HomeLatestAnimeFilterSheetState
     extends State<HomeLatestAnimeFilterSheet> {
   // 选择数据回调
   late MapValueChangeNotifier<String, List<FilterSelect>> filterSelect =
-      MapValueChangeNotifier(
-          groupBy<FilterSelect, String>(widget.selectFilters, (e) => e.key));
+      MapValueChangeNotifier(groupBy<FilterSelect, String>(
+          widget.selectFilters, (e) => _genFilterTempKey(e)));
 
   // 记录过滤条件编辑状态
   final filterEdited = ValueChangeNotifier<bool>(false);
@@ -81,9 +83,10 @@ class _HomeLatestAnimeFilterSheetState
 
   // 构建过滤条件编辑状态的fab
   Widget _buildFilterEditedFAB() {
-    return ValueListenableBuilder(
-      valueListenable: filterEdited,
-      builder: (_, hasEdited, __) {
+    return ValueListenableBuilder2<Map<String, List<FilterSelect>>, bool>(
+      first: filterSelect,
+      second: filterEdited,
+      builder: (_, filterSelect, hasEdited, __) {
         final selectCount = filterSelect.values.fold(0, (p, e) => p + e.length);
         return AnimatedScale(
           scale: hasEdited ? 1 : 0,
@@ -151,12 +154,13 @@ class _HomeLatestAnimeFilterSheetState
   // 构建过滤配置列表标签集合
   Widget _buildFilterListItemTags(
       AnimeFilterModel item, Map<String, List<FilterSelect>> filters) {
+    final tempKey = _genFilterTempKey(item);
     return Wrap(
       spacing: 8,
       runSpacing: 4,
       children: List.generate(item.items.length, (i) {
         final sub = item.items[i];
-        var selectItem = filters[item.key]?.firstWhereOrNull(
+        var selectItem = filters[tempKey]?.firstWhereOrNull(
           (e) => e.value == sub.value,
         );
         return ChoiceChip(
@@ -171,11 +175,12 @@ class _HomeLatestAnimeFilterSheetState
   // 过滤条件选择事件
   void _filterItemSelected(AnimeFilterModel item, AnimeFilterItemModel sub,
       FilterSelect? selectItem) {
+    final tempKey = _genFilterTempKey(item);
     if (selectItem == null) {
       final source = animeParser.currentSource;
       if (source == null) return;
       final temp = filterSelect.value;
-      final values = temp[item.key] ?? [];
+      final values = temp[tempKey] ?? [];
       if (item.maxSelected == 1) values.clear();
       if (values.length >= item.maxSelected) return;
       values.add(FilterSelect()
@@ -184,10 +189,10 @@ class _HomeLatestAnimeFilterSheetState
         ..parentName = item.name
         ..name = sub.name
         ..source = source.key);
-      filterSelect.setValue({...temp, item.key: values});
+      filterSelect.setValue({...temp, tempKey: values});
     } else {
       final temp = filterSelect.value;
-      temp[item.key]?.removeWhere((e) => e.value == sub.value);
+      temp[tempKey]?.removeWhere((e) => e.value == sub.value);
       filterSelect.setValue({...temp});
     }
   }
@@ -198,5 +203,13 @@ class _HomeLatestAnimeFilterSheetState
     return selectFilters.values.fold<num>(0, (p, e) {
       return p + e.fold<num>(0, (p, e) => p + e.value.hashCode);
     });
+  }
+
+  // 生成过滤条件临时key
+  String _genFilterTempKey(dynamic item) {
+    String tempKey = item is AnimeFilterModel
+        ? '${item.key}_${item.name}'
+        : '${item.key}_${item.parentName}';
+    return Tool.md5(tempKey);
   }
 }
