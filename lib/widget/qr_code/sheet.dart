@@ -12,13 +12,18 @@ import 'package:jtech_anime/widget/qr_code/scanner.dart';
 * @Time 2023/8/16 16:36
 */
 class QRCodeSheet extends StatefulWidget {
-  const QRCodeSheet({super.key});
+  // 扫码标题栏
+  final Widget? title;
 
-  static Future<String?> show(BuildContext context) {
+  const QRCodeSheet({super.key, this.title});
+
+  static Future<String?> show(BuildContext context, {Widget? title}) {
     return showModalBottomSheet<String>(
       context: context,
       showDragHandle: false,
-      builder: (_) => const QRCodeSheet(),
+      builder: (_) => QRCodeSheet(
+        title: title,
+      ),
     );
   }
 
@@ -43,7 +48,10 @@ class _QRCodeSheetState extends State<QRCodeSheet> {
             title: const Text('扫码'),
             onTap: () async {
               try {
-                router.pop(await QRCodeScanner.start(context));
+                router.pop(await QRCodeScanner.start(
+                  context,
+                  title: widget.title,
+                ));
               } catch (e) {
                 LogTool.e('扫码失败', error: e);
                 SnackTool.showMessage(message: '二维码扫描失败');

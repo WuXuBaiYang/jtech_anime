@@ -82,11 +82,12 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
             if (animeSources.isEmpty)
               IconButton.outlined(
                 icon: const Icon(FontAwesomeIcons.plus),
-                onPressed: () => AnimeSourceImportSheet.show(context).then(
-                  (source) {
-                    if (source != null) controller.refreshValue();
-                  },
-                ),
+                onPressed: () => AnimeSourceImportSheet.show(
+                  context,
+                  title: const Text('扫码并导入插件'),
+                ).then((source) {
+                  if (source != null) controller.refreshValue();
+                }),
               ),
           ],
         );

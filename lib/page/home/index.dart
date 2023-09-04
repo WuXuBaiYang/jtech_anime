@@ -87,7 +87,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
                 return notification.depth == 1;
               },
             ),
-            body: _buildContent(),
+            // body: _buildContent(),
           );
         }),
       ),

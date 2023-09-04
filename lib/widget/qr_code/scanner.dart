@@ -10,13 +10,18 @@ import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 * @Time 2023/8/17 10:31
 */
 class QRCodeScanner extends StatefulWidget {
-  const QRCodeScanner({super.key});
+  // 标题
+  final Widget? title;
+
+  const QRCodeScanner({super.key, this.title});
 
   // 启动扫码页面
-  static Future<String?> start(BuildContext context) {
+  static Future<String?> start(BuildContext context, {Widget? title}) {
     return Navigator.push<String>(context, MaterialPageRoute(
       builder: (_) {
-        return const QRCodeScanner();
+        return QRCodeScanner(
+          title: title,
+        );
       },
     ));
   }
@@ -41,22 +46,23 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     final screenSize = MediaQuery.of(context).size;
     final maskSize = Size.square(screenSize.width * 0.6);
     return Scaffold(
+      appBar: AppBar(title: widget.title),
+      backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         alignment: Alignment.topLeft,
         children: [
-          _buildScanner(screenSize),
+          _buildScanner(context),
           _buildAnimaMask(screenSize, maskSize),
           _buildScannerAnima(maskSize),
-          _buildBackButton(),
         ],
       ),
     );
   }
 
   // 构建扫描器
-  Widget _buildScanner(Size screenSize) {
-    const previewSize = Size(1080, 1920);
+  Widget _buildScanner(BuildContext context) {
+    final previewSize = _genPreviewSize(context);
     return QRCodeDartScanView(
       formats: formats,
       typeScan: TypeScan.live,
@@ -102,16 +108,10 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     );
   }
 
-  // 构建后退按钮
-  Widget _buildBackButton() {
-    return const SafeArea(
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Padding(
-          padding: EdgeInsets.all(14),
-          child: BackButton(),
-        ),
-      ),
-    );
+  // 获取预览尺寸
+  Size _genPreviewSize(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final pixelRatio = mediaQuery.devicePixelRatio;
+    return Size(1080 / pixelRatio, 1920 / pixelRatio);
   }
 }

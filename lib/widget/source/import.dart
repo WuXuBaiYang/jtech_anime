@@ -40,8 +40,11 @@ class AnimeSourceImportSheet extends StatefulWidget {
     this.importMode = true,
   });
 
-  static Future<AnimeSource?> show(BuildContext context) async {
-    return QRCodeSheet.show(context).then((result) {
+  static Future<AnimeSource?> show(
+    BuildContext context, {
+    Widget? title,
+  }) async {
+    return QRCodeSheet.show(context, title: title).then((result) {
       if (result == null) return null;
       final source = AnimeSource.from(jsonDecode(result));
       return showModalBottomSheet<AnimeSource>(

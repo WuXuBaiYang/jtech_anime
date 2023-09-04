@@ -44,11 +44,12 @@ class _AnimeSourcePageState
       body: _buildAnimeSourceList(),
       floatingActionButton: FloatingActionButton(
         child: const Icon(FontAwesomeIcons.plus),
-        onPressed: () => AnimeSourceImportSheet.show(context).then(
-          (source) {
-            if (source != null) logic.controller.refreshValue();
-          },
-        ),
+        onPressed: () => AnimeSourceImportSheet.show(
+          context,
+          title: const Text('扫码并导入插件'),
+        ).then((source) {
+          if (source != null) logic.controller.refreshValue();
+        }),
       ),
     );
   }
