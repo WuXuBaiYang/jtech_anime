@@ -53,7 +53,7 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
         alignment: Alignment.topLeft,
         children: [
           _buildScanner(context),
-          _buildAnimaMask(screenSize, maskSize),
+          _buildAnimaMask(context, screenSize, maskSize),
           _buildScannerAnima(maskSize),
         ],
       ),
@@ -75,20 +75,19 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   }
 
   // 构建扫码动画遮罩层
-  Widget _buildAnimaMask(Size screenSize, Size maskSize) {
+  Widget _buildAnimaMask(BuildContext context, Size screenSize, Size maskSize) {
+    final padding = MediaQuery.of(context).padding;
+    final rect = Rect.fromLTWH(
+      (screenSize.width - maskSize.width) / 2,
+      (screenSize.height - maskSize.height - kToolbarHeight - padding.top) / 2,
+      maskSize.width,
+      maskSize.height,
+    );
     return MaskView(
       maskViewSize: screenSize,
       color: Colors.transparent,
       backgroundColor: Colors.black45,
-      rRect: RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          (screenSize.width - maskSize.width) / 2,
-          (screenSize.height - maskSize.height) / 2,
-          maskSize.width,
-          maskSize.height,
-        ),
-        const Radius.circular(8),
-      ),
+      rRect: RRect.fromRectAndRadius(rect, const Radius.circular(8)),
     );
   }
 
