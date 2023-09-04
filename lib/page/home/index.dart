@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,8 +18,10 @@ import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/list.dart';
 import 'package:jtech_anime/page/home/source.dart';
 import 'package:jtech_anime/page/home/timetable.dart';
+import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
+import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
@@ -45,6 +49,9 @@ class HomePage extends StatefulWidget {
 */
 class _HomePageState extends LogicState<HomePage, _HomeLogic>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  // 是否允许退出
+  final appQuite = ValueChangeNotifier<bool>(false);
+
   @override
   _HomeLogic initLogic() => _HomeLogic();
 
@@ -67,21 +74,30 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
 
   @override
   Widget buildWidget(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: SourceStreamView(builder: (_, snap) {
-        return Scaffold(
-          appBar: AppBar(
-            actions: _appBarActions,
-            bottom: _buildAppBarBottom(),
-            title: const Text(Common.appName),
-            notificationPredicate: (notification) {
-              return notification.depth == 1;
-            },
-          ),
-          body: _buildContent(),
-        );
-      }),
+    return WillPopScope(
+      child: DefaultTabController(
+        length: 2,
+        child: SourceStreamView(builder: (_, snap) {
+          return Scaffold(
+            appBar: AppBar(
+              actions: _appBarActions,
+              bottom: _buildAppBarBottom(),
+              title: const Text(Common.appName),
+              notificationPredicate: (notification) {
+                return notification.depth == 1;
+              },
+            ),
+            body: _buildContent(),
+          );
+        }),
+      ),
+      onWillPop: () async {
+        if (appQuite.value) return true;
+        appQuite.setValue(true);
+        SnackTool.showMessage(message: '再次点击退出');
+        Debounce.c(() => appQuite.setValue(false), 'appQuite');
+        return false;
+      },
     );
   }
 
