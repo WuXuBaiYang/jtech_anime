@@ -161,25 +161,54 @@ class _CustomPlayerControlsBottomState
 
   // 构建底部倍速按钮
   Widget _buildRateAction() {
+    const itemHeight = 35.0;
     final controller = widget.controller;
+    final ratios = [4.0, 3.0, 2.0, 1.0, 0.5];
+    final offsetDY = ratios.length * itemHeight + 20;
     return StreamBuilder(
       stream: controller.stream.rate,
       builder: (_, snap) {
-        return DropdownButton<double>(
-          elevation: 0,
-          value: snap.data ?? 1.0,
-          underline: const SizedBox(),
-          dropdownColor: Colors.black87,
-          onTap: () => controller.setControlVisible(true, ongoing: true),
-          items: [0.5, 1.0, 2.0, 3.0, 4.0]
-              .map((e) => DropdownMenuItem<double>(
+        bool showPopup = false;
+        return StatefulBuilder(
+          builder: (_, state) {
+            return PopupMenuButton<double>(
+              elevation: 0,
+              color: Colors.black54,
+              offset: Offset(0, -offsetDY),
+              constraints: const BoxConstraints(maxWidth: 65),
+              onCanceled: () => state(() {
+                controller.setControlVisible(true);
+                showPopup = false;
+              }),
+              onOpened: () => state(() {
+                controller.setControlVisible(true, ongoing: true);
+                showPopup = true;
+              }),
+              itemBuilder: (_) {
+                return ratios.map<PopupMenuEntry<double>>((e) {
+                  return PopupMenuItem(
                     value: e,
+                    height: itemHeight,
                     child: Text('x$e'),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) controller.setRate(v);
-            controller.setControlVisible(true);
+                  );
+                }).toList();
+              },
+              onSelected: (v) {
+                controller.setControlVisible(true);
+                controller.setRate(v);
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('x${snap.data ?? 1.0}'),
+                  AnimatedRotation(
+                    turns: showPopup ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.arrow_drop_down),
+                  ),
+                ],
+              ),
+            );
           },
         );
       },
