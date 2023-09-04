@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/brightness.dart';
-import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
@@ -20,10 +19,18 @@ class CustomPlayerControlsStatus extends StatefulWidget {
   // 倍速播放控制
   final ValueChangeNotifier<bool> controlPlaySpeed;
 
+  // 音量显隐控制
+  final ValueChangeNotifier<bool>? controlVolume;
+
+  // 亮度显隐控制
+  final ValueChangeNotifier<bool>? controlBrightness;
+
   const CustomPlayerControlsStatus({
     super.key,
     required this.controller,
     required this.controlPlaySpeed,
+    this.controlVolume,
+    this.controlBrightness,
   });
 
   @override
@@ -37,12 +44,6 @@ class CustomPlayerControlsStatus extends StatefulWidget {
 */
 class _CustomPlayerControlsStatusState
     extends State<CustomPlayerControlsStatus> {
-  // 音量调整
-  final controlVolume = ValueChangeNotifier<bool>(false);
-
-  // 亮度调整
-  final controlBrightness = ValueChangeNotifier<bool>(false);
-
   @override
   void initState() {
     super.initState();
@@ -56,24 +57,6 @@ class _CustomPlayerControlsStatusState
         widget.controller.setRate(speed);
         speed = 1.0;
       }
-    });
-    // 监听音量变化
-    VolumeTool.stream.listen((_) {
-      controlVolume.setValue(true);
-      Debounce.c(
-        delay: const Duration(milliseconds: 200),
-        () => controlVolume.setValue(false),
-        'updateVolume',
-      );
-    });
-    // 监听亮度变化
-    BrightnessTool.stream.listen((_) {
-      controlBrightness.setValue(true);
-      Debounce.c(
-        delay: const Duration(milliseconds: 200),
-        () => controlBrightness.setValue(false),
-        'updateBrightness',
-      );
     });
   }
 
@@ -124,10 +107,11 @@ class _CustomPlayerControlsStatusState
 
   // 控制音量变化
   Widget _buildVolume() {
+    if (widget.controlVolume == null) return const SizedBox();
     return Align(
       alignment: Alignment.centerLeft,
       child: ValueListenableBuilder<bool>(
-        valueListenable: controlVolume,
+        valueListenable: widget.controlVolume!,
         builder: (_, showVolume, __) {
           return StreamBuilder<double>(
               stream: VolumeTool.stream,
@@ -143,10 +127,11 @@ class _CustomPlayerControlsStatusState
 
   // 控制亮度变化
   Widget _buildBrightness() {
+    if (widget.controlBrightness == null) return const SizedBox();
     return Align(
       alignment: Alignment.centerRight,
       child: ValueListenableBuilder<bool>(
-        valueListenable: controlBrightness,
+        valueListenable: widget.controlBrightness!,
         builder: (_, showBrightness, __) {
           return StreamBuilder<double>(
             stream: BrightnessTool.stream,

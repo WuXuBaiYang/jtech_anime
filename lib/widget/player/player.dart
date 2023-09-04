@@ -58,8 +58,14 @@ class CustomVideoPlayer extends StatefulWidget {
 * @Time 2023/8/19 14:30
 */
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
-  // 倍速播放控制
+  // 倍速显隐控制
   final controlPlaySpeed = ValueChangeNotifier<bool>(false);
+
+  // 音量显隐控制
+  final controlVolume = ValueChangeNotifier<bool>(false);
+
+  // 亮度显隐控制
+  final controlBrightness = ValueChangeNotifier<bool>(false);
 
   // 播放进度控制
   final playerSeekStream = StreamController<Duration?>.broadcast();
@@ -104,10 +110,16 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                 if (details.globalPosition.dx > screenWidth / 2) {
                   final current = await VolumeTool.current();
                   VolumeTool.set(current - dragPercentage);
+                  controlVolume.setValue(true);
                 } else {
                   final current = await BrightnessTool.current();
                   BrightnessTool.set(current - dragPercentage);
+                  controlBrightness.setValue(true);
                 }
+              },
+              onVerticalDragEnd: (_) {
+                controlBrightness.setValue(false);
+                controlVolume.setValue(false);
               },
               onHorizontalDragStart: (_) {
                 if (locked) return;
@@ -191,8 +203,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 构建控制器状态
   Widget _buildControlsStatus() {
     return CustomPlayerControlsStatus(
+      controlVolume: controlVolume,
       controller: widget.controller,
       controlPlaySpeed: controlPlaySpeed,
+      controlBrightness: controlBrightness,
     );
   }
 
