@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/widget/mask_view.dart';
 import 'package:lottie/lottie.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
@@ -134,15 +135,24 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     return ValueListenableBuilder<FlashMode>(
       valueListenable: flashMode,
       builder: (_, mode, __) {
+        final torchLight = mode == FlashMode.torch;
         return IconButton(
+          color: torchLight ? kPrimaryColor : null,
           icon: const Icon(FontAwesomeIcons.boltLightning),
           onPressed: () {
-            mode = mode == FlashMode.off ? FlashMode.torch : FlashMode.off;
+            mode = torchLight ? FlashMode.off : FlashMode.torch;
             controller.setFlashMode(mode);
             flashMode.setValue(mode);
           },
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    // 关闭闪光灯
+    controller.setFlashMode(FlashMode.off);
+    super.dispose();
   }
 }
