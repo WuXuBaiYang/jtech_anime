@@ -337,7 +337,8 @@ class _PlayerLogic extends BaseLogic {
 
   // 退出播放页面设置(恢复布局并显示状态栏)
   void quitPlayer() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
     Tool.toggleScreenOrientation(true);
   }
 
