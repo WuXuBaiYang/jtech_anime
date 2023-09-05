@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:volume_controller/volume_controller.dart';
+
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 
 /*
 * 音量控制工具
@@ -7,9 +8,6 @@ import 'package:volume_controller/volume_controller.dart';
 * @Time 2023/8/28 14:46
 */
 class VolumeTool {
-  // 控制器
-  static final _controller = VolumeController();
-
   // 数值变化
   static final _streamController = StreamController<double>.broadcast();
 
@@ -19,9 +17,16 @@ class VolumeTool {
   // 初始化设置
   static void setup() {
     // 不显示系统音量提示
-    _controller.showSystemUI = false;
+    FlutterVolumeController.showSystemUI = true;
     // 获取当前音量
-    _controller.getVolume().then((v) => _currentVolume = v);
+    FlutterVolumeController.getVolume().then(
+      (v) => _currentVolume = v ?? 0,
+    );
+    // 监听音量变化
+    FlutterVolumeController.addListener((v) {
+      _streamController.sink.add(v);
+      _currentVolume = v;
+    });
   }
 
   // 获取当前音量
@@ -31,15 +36,12 @@ class VolumeTool {
   static Future<void> set(double volume) async {
     if (volume < 0 || volume > 1) return;
     _currentVolume = volume;
-    _controller.setVolume(_currentVolume);
     _streamController.sink.add(_currentVolume);
+    FlutterVolumeController.setVolume(_currentVolume);
   }
 
-  // 设置最大音量
-  static void max() => _controller.maxVolume();
-
   // 设置静音
-  static void mute() => _controller.muteVolume();
+  static void mute() => FlutterVolumeController.setMute(true);
 
   // 获取流
   static Stream<double> get stream => _streamController.stream;

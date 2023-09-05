@@ -1,0 +1,24 @@
+library jtech_anime;
+
+export 'package:jtech_anime/tool/volume.dart';
+export 'package:media_kit/media_kit.dart';
+export 'package:ffmpeg_helper/ffmpeg_helper.dart';
+export 'package:jtech_anime/manage/router.dart';
+export 'package:jtech_anime/manage/cache.dart';
+export 'package:jtech_anime/manage/event.dart';
+export 'package:jtech_anime/manage/db.dart';
+export 'package:jtech_anime/manage/download/download.dart';
+export 'package:jtech_anime/manage/notification.dart';
+export 'package:jtech_anime/manage/anime_parser/parser.dart';
+export 'package:connectivity_plus/connectivity_plus.dart';
+export 'package:jtech_anime/common/common.dart';
+export 'package:jtech_anime/model/database/download_record.dart';
+export 'package:jtech_anime/widget/stream_view.dart';
+export 'package:jtech_anime/common/localization/chinese_cupertino_localizations.dart';
+export 'common/logic.dart';
+export 'package:flutter_localizations/flutter_localizations.dart';
+export 'package:jtech_anime/common/controller.dart';
+export 'package:jtech_anime/common/manage.dart';
+export 'package:jtech_anime/common/model.dart';
+export 'package:jtech_anime/common/notifier.dart';
+export 'package:font_awesome_flutter/font_awesome_flutter.dart';

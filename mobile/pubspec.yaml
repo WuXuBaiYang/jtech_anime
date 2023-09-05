@@ -86,14 +86,11 @@ dependencies:
   battery_plus: ^4.0.2
 
   # 视频播放器
-  media_kit: ^1.1.5
-  media_kit_video: ^1.1.6
+  media_kit: ^1.1.7
+  media_kit_video: ^1.1.8
   media_kit_native_event_loop: ^1.0.7
   media_kit_libs_android_video: any
   media_kit_libs_ios_video: any
-  media_kit_libs_macos_video: any
-  media_kit_libs_windows_video: any
-  media_kit_libs_linux: any
 
   # m3u8文件解析
   flutter_hls_parser: ^2.0.1
@@ -135,7 +132,7 @@ dependencies:
   screen_brightness: ^0.2.2+1
 
   # 音量控制
-  volume_controller: ^2.0.7
+  flutter_volume_controller: ^1.2.7
 
   # collection
   collection: any
@@ -145,7 +142,7 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.5
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
