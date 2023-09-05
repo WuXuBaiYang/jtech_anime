@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/widget/status_box.dart';
 
@@ -31,12 +32,16 @@ class SearchBarView extends StatelessWidget {
   // 加载状态管理
   final ValueChangeNotifier<bool> inSearching;
 
+  // 动作按钮集合
+  final List<Widget> actions;
+
   const SearchBarView({
     super.key,
     required this.searchRecordList,
     required this.recordDelete,
     required this.inSearching,
     required this.search,
+    this.actions = const [],
   });
 
   @override
@@ -65,6 +70,8 @@ class SearchBarView extends StatelessWidget {
   Widget _buildFieldView(BuildContext context, TextEditingController controller,
       FocusNode focusNode, VoidCallback _) {
     return Card(
+      elevation: 0,
+      color: kPrimaryColor.withOpacity(0.12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(100),
       ),
@@ -77,14 +84,20 @@ class SearchBarView extends StatelessWidget {
           controller: controller,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-            hintStyle: const TextStyle(color: Colors.black38),
+            hintStyle: const TextStyle(color: Colors.black12),
             border: InputBorder.none,
             hintText: '嗖嗖嗖~',
             prefixIcon: IconButton(
               icon: const Icon(FontAwesomeIcons.arrowLeft),
               onPressed: () => router.pop(),
             ),
-            suffixIcon: _buildFieldViewSubmit(controller, focusNode),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildFieldViewSubmit(controller, focusNode),
+                ...actions,
+              ],
+            ),
           ),
         ),
       ),

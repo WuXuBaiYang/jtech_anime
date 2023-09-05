@@ -1,9 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/tool/date.dart';
+import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 
 /*
@@ -57,9 +59,7 @@ class _CustomPlayerControlsBottomState
       }
     });
     // 监听静音状态变化
-    controlMute.addListener(() {
-      FlutterVolumeController.setMute(controlMute.value);
-    });
+    controlMute.addListener(VolumeTool.mute);
   }
 
   @override
@@ -112,64 +112,103 @@ class _CustomPlayerControlsBottomState
   Widget _buildProgressAction() {
     final controller = widget.controller;
     const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
-    return ValueListenableBuilder<Duration?>(
-      valueListenable: tempProgress,
-      builder: (_, temp, __) {
-        return StreamBuilder<Duration>(
-          stream: controller.stream.position,
-          builder: (_, snap) {
-            final buffer = controller.state.buffer;
-            final total = controller.state.duration;
-            final progress = temp ?? controller.state.position;
-            return Row(
-              children: [
-                Text(progress.format(DurationPattern.fullTime),
-                    style: textStyle),
-                Expanded(
-                  child: Slider(
-                    inactiveColor: Colors.black26,
-                    max: total.inMilliseconds.toDouble(),
-                    value: progress.inMilliseconds.toDouble(),
-                    secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
-                    secondaryTrackValue: buffer.inMilliseconds.toDouble(),
-                    onChangeStart: (_) =>
-                        controller.setControlVisible(true, ongoing: true),
-                    onChanged: (v) => tempProgress
-                        .setValue(Duration(milliseconds: v.toInt())),
-                    onChangeEnd: (v) =>
-                        _delaySeekVideo(Duration(milliseconds: v.toInt())),
+    return SliderTheme(
+      data: const SliderThemeData(
+        trackHeight: 2,
+        thumbShape: RoundSliderThumbShape(
+          enabledThumbRadius: 6,
+        ),
+      ),
+      child: ValueListenableBuilder<Duration?>(
+        valueListenable: tempProgress,
+        builder: (_, temp, __) {
+          return StreamBuilder<Duration>(
+            stream: controller.stream.position,
+            builder: (_, snap) {
+              final buffer = controller.state.buffer;
+              final total = controller.state.duration;
+              final progress = temp ?? controller.state.position;
+              return Row(
+                children: [
+                  Text(progress.format(DurationPattern.fullTime),
+                      style: textStyle),
+                  Expanded(
+                    child: Slider(
+                      inactiveColor: Colors.black26,
+                      max: max(total.inMilliseconds.toDouble(), 0),
+                      value: max(progress.inMilliseconds.toDouble(), 0),
+                      secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
+                      secondaryTrackValue:
+                          max(buffer.inMilliseconds.toDouble(), 0),
+                      onChangeStart: (_) =>
+                          controller.setControlVisible(true, ongoing: true),
+                      onChanged: (v) => tempProgress
+                          .setValue(Duration(milliseconds: v.toInt())),
+                      onChangeEnd: (v) =>
+                          _delaySeekVideo(Duration(milliseconds: v.toInt())),
+                    ),
                   ),
-                ),
-                Text(total.format(DurationPattern.fullTime), style: textStyle),
-              ],
-            );
-          },
-        );
-      },
+                  Text(total.format(DurationPattern.fullTime),
+                      style: textStyle),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   // 构建底部倍速按钮
   Widget _buildRateAction() {
+    const itemHeight = 35.0;
     final controller = widget.controller;
+    final ratios = [4.0, 3.0, 2.0, 1.0, 0.5];
+    final offsetDY = ratios.length * itemHeight + 20;
     return StreamBuilder(
       stream: controller.stream.rate,
       builder: (_, snap) {
-        return DropdownButton<double>(
-          elevation: 0,
-          value: snap.data ?? 1.0,
-          underline: const SizedBox(),
-          dropdownColor: Colors.black87,
-          onTap: () => controller.setControlVisible(true, ongoing: true),
-          items: [0.5, 1.0, 2.0, 3.0, 4.0]
-              .map((e) => DropdownMenuItem<double>(
+        bool showPopup = false;
+        return StatefulBuilder(
+          builder: (_, state) {
+            return PopupMenuButton<double>(
+              elevation: 0,
+              color: Colors.black54,
+              offset: Offset(0, -offsetDY),
+              constraints: const BoxConstraints(maxWidth: 65),
+              onCanceled: () => state(() {
+                controller.setControlVisible(true);
+                showPopup = false;
+              }),
+              onOpened: () => state(() {
+                controller.setControlVisible(true, ongoing: true);
+                showPopup = true;
+              }),
+              itemBuilder: (_) {
+                return ratios.map<PopupMenuEntry<double>>((e) {
+                  return PopupMenuItem(
                     value: e,
+                    height: itemHeight,
                     child: Text('x$e'),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) controller.setRate(v);
-            controller.setControlVisible(true);
+                  );
+                }).toList();
+              },
+              onSelected: (v) {
+                controller.setControlVisible(true);
+                controller.setRate(v);
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('x${snap.data ?? 1.0}'),
+                  AnimatedRotation(
+                    turns: showPopup ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.arrow_drop_down),
+                  ),
+                ],
+              ),
+            );
           },
         );
       },

@@ -50,39 +50,28 @@ class DBManage extends BaseManage {
       isar.animeSources.filter().keyEqualTo(key).findFirst();
 
   // 删除数据源
-  Future<bool> removeAnimeSource(int id) => isar.writeTxn<bool>(() {
-        // 移除数据源
-        return isar.animeSources.delete(id);
-      });
+  Future<bool> removeAnimeSource(int id) =>
+      isar.writeTxn<bool>(() => isar.animeSources.delete(id));
 
   // 添加数据源
   Future<AnimeSource?> updateAnimeSource(AnimeSource item) =>
       isar.writeTxn<AnimeSource?>(() {
-        // 更新或添加数据源
-        return isar.animeSources
-            .put(item)
-            .then((id) => isar.animeSources.get(id));
+        return isar.animeSources.put(item).then((id) => item..id = id);
       });
 
   // 删除下载记录
-  Future<bool> removeDownloadRecord(int id) => isar.writeTxn<bool>(() {
-        // 移除下载记录
-        return isar.downloadRecords.delete(id);
-      });
+  Future<bool> removeDownloadRecord(int id) =>
+      isar.writeTxn<bool>(() => isar.downloadRecords.delete(id));
 
   // 添加或更新下载记录
   Future<DownloadRecord?> updateDownload(DownloadRecord item) =>
       isar.writeTxn<DownloadRecord?>(() {
-        // 更新或添加下载记录
-        return isar.downloadRecords
-            .put(item)
-            .then((id) => isar.downloadRecords.get(id));
+        return isar.downloadRecords.put(item).then((id) => item..id = id);
       });
 
   // 获取下载记录(根据番剧的播放地址，不是访问地址)
   Future<DownloadRecord?> getDownloadRecord(
     String playUrl, {
-    // 按照下载状态过滤
     List<DownloadRecordStatus> status = const [],
   }) =>
       isar.downloadRecords
@@ -95,21 +84,18 @@ class DBManage extends BaseManage {
   // 获取下载记录列表
   Future<List<DownloadRecord>> getDownloadRecordList(
     AnimeSource source, {
-    // 按照下载状态过滤
     List<DownloadRecordStatus> status = const [],
-    // 按照番剧地址过滤
     List<String> animeList = const [],
-  }) async {
-    return isar.downloadRecords
-        .where()
-        .sourceEqualTo(source.key)
-        .filter()
-        .anyOf(status, (q, e) => q.statusEqualTo(e))
-        .and()
-        .anyOf(animeList, (q, e) => q.urlEqualTo(e))
-        .sortByUrl()
-        .findAll();
-  }
+  }) =>
+      isar.downloadRecords
+          .where()
+          .sourceEqualTo(source.key)
+          .filter()
+          .anyOf(status, (q, e) => q.statusEqualTo(e))
+          .and()
+          .anyOf(animeList, (q, e) => q.urlEqualTo(e))
+          .sortByUrl()
+          .findAll();
 
   // 添加或移除收藏
   Future<Collect?> updateCollect(Collect item) =>
@@ -123,7 +109,7 @@ class DBManage extends BaseManage {
             await isar.collects.where().sourceEqualTo(item.source).count();
         return isar.collects
             .put(item..order = count)
-            .then((id) => isar.collects.get(id));
+            .then((id) => item..id = id);
       });
 
   // 更新排序
@@ -166,8 +152,7 @@ class DBManage extends BaseManage {
   // 更新播放记录
   Future<PlayRecord?> updatePlayRecord(PlayRecord item) =>
       isar.writeTxn<PlayRecord?>(() {
-        // 插入播放记录并返回最新记录
-        return isar.playRecords.put(item).then(isar.playRecords.get);
+        return isar.playRecords.put(item).then((id) => item..id = id);
       });
 
   // 根据播放地址获取播放记录
@@ -215,43 +200,32 @@ class DBManage extends BaseManage {
       });
 
   // 移除搜索记录
-  Future<bool> removeSearchRecord(int id) => isar.writeTxn<bool>(() {
-        // 移除搜索记录
-        return isar.searchRecords.delete(id);
-      });
+  Future<bool> removeSearchRecord(int id) =>
+      isar.writeTxn<bool>(() => isar.searchRecords.delete(id));
 
   // 获取已选过滤条件
   Future<List<FilterSelect>> getFilterSelectList(AnimeSource source) =>
       isar.filterSelects.where().sourceEqualTo(source.key).findAll();
 
   // 添加过滤条件
-  Future<FilterSelect?> addFilterSelect(FilterSelect item,
-          [int maxSelected = 1]) =>
-      isar.writeTxn<FilterSelect?>(() async {
-        if (maxSelected < 1) return null;
-        final queryBuilder = isar.filterSelects
-            .where()
-            .filter()
-            .keyEqualTo(item.key)
-            .and()
-            .sourceEqualTo(item.source);
-        if (maxSelected == 1) {
-          // 如果最大选择数为1，则移除所有符合条件的结果
-          await queryBuilder.deleteAll();
-        } else {
-          // 如果最大选择数大于1,则判断是否已超过选择上限，超过的话则停止选择
-          final count = await queryBuilder.count();
-          if (count >= maxSelected) return null;
-        }
-        // 插入过滤条件并返回
-        return isar.filterSelects.put(item).then(isar.filterSelects.get);
-      });
+  Future<FilterSelect?> addFilterSelect(FilterSelect item) =>
+      isar.filterSelects.put(item).then((id) => item..id = id);
 
   // 移除过滤条件
-  Future<bool> removeFilterSelect(int id) => isar.writeTxn<bool>(() {
-        // 删除过滤条件
-        return isar.filterSelects.delete(id);
-      });
+  Future<bool> removeFilterSelect(int id) =>
+      isar.writeTxn<bool>(() => isar.filterSelects.delete(id));
+
+  // 替换现有的过滤条件
+  Future<List<FilterSelect>> replaceFilterSelectList(
+      AnimeSource source, List<FilterSelect> filters) {
+    return isar.writeTxn<List<FilterSelect>>(() async {
+      // 先移除该资源下的全部选择再添加新的部分
+      await isar.filterSelects.where().sourceEqualTo(source.key).deleteAll();
+      final ids = await isar.filterSelects.putAll(filters);
+      ids.asMap().forEach((i, id) => filters[i].id = id);
+      return filters;
+    });
+  }
 
   // 根据原视频地址获取已缓存播放地址
   Future<String?> getCachePlayUrl(String url) async =>

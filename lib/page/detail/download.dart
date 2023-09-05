@@ -6,7 +6,6 @@ import 'package:jtech_anime/manage/db.dart';
 import 'package:jtech_anime/manage/download/download.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
 import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/tool/loading.dart';
@@ -14,6 +13,7 @@ import 'package:jtech_anime/tool/permission.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/tab.dart';
 
 /*
 * 资源下载弹窗
@@ -45,7 +45,6 @@ class DownloadSheet extends StatefulWidget {
   }) {
     PermissionTool.checkNotification(context);
     return showModalBottomSheet(
-      clipBehavior: Clip.hardEdge,
       context: context,
       builder: (_) {
         return DownloadSheet(
@@ -77,53 +76,30 @@ class _DownloadSheetState extends State<DownloadSheet> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(FontAwesomeIcons.xmark),
-          onPressed: () => router.pop(),
-        ),
-        title: const Text('番剧缓存'),
-        actions: [
-          TextButton(
-            onPressed: () => router
-                .pushNamed(RoutePath.download)
-                ?.then((_) => cacheController.refreshValue()),
-            child: const Text('缓存管理'),
-          ),
-          _buildSubmitButton(context),
+      body: Column(
+        children: [
+          _buildResourceOptions(),
+          const Divider(),
+          Expanded(child: _buildResourceTabView()),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: _buildResourceTab(),
-        ),
       ),
-      body: _buildResourceTabView(),
+      floatingActionButton: _buildResourceSelectFAB(),
     );
   }
 
-  // 构建提交按钮
-  Widget _buildSubmitButton(BuildContext context) {
-    return ValueListenableBuilder<List<ResourceItemModel>>(
-      valueListenable: selectResources,
-      builder: (_, selectList, __) {
-        return Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            if (selectList.isNotEmpty)
-              Text(
-                '${selectList.length}',
-                textAlign: TextAlign.start,
-                style: const TextStyle(fontSize: 10),
-              ),
-            IconButton(
-              icon: const Icon(FontAwesomeIcons.check),
-              onPressed: selectList.isNotEmpty
-                  ? () => _addDownloadTask(context)
-                  : null,
-            ),
-          ],
-        );
-      },
+  // 构建资源操作交互栏
+  Widget _buildResourceOptions() {
+    return Row(
+      children: [
+        Expanded(child: _buildResourceTab()),
+        TextButton(
+          onPressed: () => router
+              .pushNamed(RoutePath.download)
+              ?.then((_) => cacheController.refreshValue()),
+          child: const Text('缓存管理'),
+        ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 
@@ -132,13 +108,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
     final resources = widget.animeInfo.resources;
     return Align(
       alignment: Alignment.centerLeft,
-      child: TabBar(
+      child: CustomTabBar(
         isScrollable: true,
-        indicatorColor: kPrimaryColor,
         controller: widget.tabController,
-        dividerColor: Colors.transparent,
         tabs: List.generate(resources.length, (i) {
-          return Tab(text: '资源${i + 1}');
+          return Tab(text: '资源${i + 1}', height: 35);
         }),
       ),
     );
@@ -176,8 +150,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
     Map<String, DownloadRecord> downloadMap,
     List<ResourceItemModel> selectList,
   ) {
+    const padding = EdgeInsets.all(8);
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(8),
+      padding: selectList.isNotEmpty
+          ? padding.copyWith(bottom: kToolbarHeight * 1.5)
+          : padding,
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -210,6 +187,25 @@ class _DownloadSheetState extends State<DownloadSheet> {
       source,
       animeList: [widget.animeInfo.url],
     ).then((v) => v.asMap().map((_, v) => MapEntry(v.resUrl, v)));
+  }
+
+  // 构建资源选择fab
+  Widget _buildResourceSelectFAB() {
+    return ValueListenableBuilder<List<ResourceItemModel>>(
+      valueListenable: selectResources,
+      builder: (_, selectList, __) {
+        return AnimatedScale(
+          scale: selectList.isNotEmpty ? 1 : 0,
+          duration: const Duration(milliseconds: 180),
+          child: FloatingActionButton.extended(
+            label: Text('已选 ${selectList.length} 项'),
+            extendedTextStyle: const TextStyle(fontSize: 14),
+            icon: const Icon(FontAwesomeIcons.download, size: 24),
+            onPressed: () => _addDownloadTask(context),
+          ),
+        );
+      },
+    );
   }
 
   // 添加下载任务

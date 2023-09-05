@@ -22,6 +22,7 @@ import 'package:jtech_anime/widget/future_builder.dart';
 import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/refresh/refresh_view.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime/widget/tab.dart';
 import 'package:jtech_anime/widget/text_scroll.dart';
 
 /*
@@ -56,16 +57,17 @@ class _AnimeDetailPageState
       body: ValueListenableBuilder<AnimeModel>(
         valueListenable: logic.animeDetail,
         builder: (_, animeDetail, __) {
-          if (animeDetail.resources.isNotEmpty) {
-            tabController ??= TabController(
-                length: animeDetail.resources.length, vsync: this);
+          final resources = animeDetail.resources;
+          if (resources.isNotEmpty) {
+            tabController ??=
+                TabController(length: resources.length, vsync: this);
           }
           return NestedScrollView(
             controller: logic.scrollController,
             headerSliverBuilder: (_, __) {
               return [_buildAppbar(animeDetail)];
             },
-            body: _buildAnimeResources(animeDetail.resources),
+            body: _buildAnimeResources(resources),
           );
         },
       ),
@@ -90,26 +92,13 @@ class _AnimeDetailPageState
             child: Text(item.name),
           ),
           actions: [
-            ValueListenableBuilder(
-              valueListenable: logic.loading,
-              builder: (_, isLoading, __) {
-                return IconButton(
-                  color: kPrimaryColor,
-                  icon: isLoading
-                      ? const SizedBox.square(
-                          dimension: 20, child: CircularProgressIndicator())
-                      : const Icon(FontAwesomeIcons.arrowsRotate),
-                  onPressed: () =>
-                      Loading.show(loadFuture: logic.loadAnimeDetail(false)),
-                );
-              },
-            ),
             ValueListenableBuilder<Collect?>(
               valueListenable: logic.collectInfo,
               builder: (_, collect, __) {
                 if (collect == null) return const SizedBox();
                 return IconButton(
-                  color: kPrimaryColor,
+                  color:
+                      collect.collected ? kPrimaryColor.withOpacity(0.8) : null,
                   icon: Icon(collect.collected
                       ? FontAwesomeIcons.heartCircleCheck
                       : FontAwesomeIcons.heart),
@@ -132,8 +121,13 @@ class _AnimeDetailPageState
                     animeInfo: item,
                     continueButton: playRecord != null
                         ? ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStatePropertyAll(
+                                  kPrimaryColor.withOpacity(0.8)),
+                            ),
                             onPressed: () => logic.playTheRecord(),
-                            child: const Text('继续观看'),
+                            child: const Text('继续观看',
+                                style: TextStyle(color: Colors.white)),
                           )
                         : null,
                   );
@@ -157,18 +151,24 @@ class _AnimeDetailPageState
   Widget _buildAppbarBottom(List<List<ResourceItemModel>> resources) {
     return Row(
       children: [
-        if (resources.isNotEmpty)
-          TabBar(
-            isScrollable: true,
-            controller: tabController,
-            onTap: logic.resourceIndex.setValue,
-            tabs: List.generate(
-              resources.length,
-              (i) => Tab(text: '资源${i + 1}'),
-            ),
+        Expanded(
+          child: Row(
+            children: [
+              if (resources.isNotEmpty)
+                CustomTabBar(
+                  isScrollable: true,
+                  controller: tabController,
+                  onTap: logic.resourceIndex.setValue,
+                  tabs: List.generate(
+                    resources.length,
+                    (i) => Tab(text: '资源${i + 1}', height: 35),
+                  ),
+                ),
+            ],
           ),
-        const Spacer(),
+        ),
         IconButton(
+          iconSize: 24,
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => DownloadSheet.show(
             context,
@@ -349,8 +349,9 @@ class _AnimeDetailLogic extends BaseLogic {
       final record = await db.getPlayRecord(animeUrl);
       playRecord.setValue(record);
       // 获取番剧详细信息，是否使用缓存加载
-      final result = await animeParser.getAnimeDetail(animeUrl, useCache);
+      AnimeModel? result = await animeParser.getAnimeDetail(animeUrl, useCache);
       if (result == null) throw Exception('番剧详情获取失败');
+      result = animeDetail.value.merge(result);
       animeDetail.setValue(result);
       // 根据番剧信息添加收藏信息
       final collect = await db.getCollect(animeUrl);

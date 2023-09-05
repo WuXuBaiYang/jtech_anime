@@ -2,236 +2,128 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/theme.dart';
+import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/filter.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
-
-// 过滤条件选择回调
-typedef FilterSelectCallback = void Function(
-    bool selected, FilterSelect item, int maxSelected);
+import 'package:collection/collection.dart';
+import 'package:jtech_anime/widget/listenable_builders.dart';
 
 /*
-* 番剧过滤条件配置
+* 番剧过滤条件选择
 * @author wuxubaiyang
 * @Time 2023/7/7 15:27
 */
-class AnimeFilterConfigMenu extends StatefulWidget {
-  // 过滤条件配置
-  final MapValueChangeNotifier<String, FilterSelect> filterConfig;
+class HomeLatestAnimeFilterSheet extends StatefulWidget {
+  // 已选择的过滤条件
+  final List<FilterSelect> selectFilters;
 
-  // 选择回调
-  final FilterSelectCallback filterSelect;
-
-  // 过滤配置条件回调
-  final VoidCallback complete;
-
-  // 内容体
-  final Widget body;
-
-  // 控制过滤按钮的显示隐藏
-  final bool visible;
-
-  const AnimeFilterConfigMenu({
+  const HomeLatestAnimeFilterSheet({
     super.key,
-    required this.filterConfig,
-    required this.filterSelect,
-    required this.complete,
-    required this.body,
-    this.visible = true,
+    required this.selectFilters,
   });
 
-  @override
-  State<AnimeFilterConfigMenu> createState() => _AnimeFilterConfigMenuState();
-}
-
-class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
-  // fab状态管理
-  final filterStatus = ValueChangeNotifier<FilterStatus>(FilterStatus.fold);
-
-  // 标题文本样式
-  final TextStyle titleTextStyle =
-      TextStyle(color: Colors.white.withOpacity(0.6));
-
-  // 记录编辑前的hash值
-  final lastConfigHash = ValueChangeNotifier<int?>(null);
-
-  // 动画时长
-  final duration = const Duration(milliseconds: 120);
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(child: widget.body),
-          Positioned.fill(child: _buildBackground()),
-          AnimatedOpacity(
-            opacity: widget.visible ? 1 : 0,
-            duration: duration,
-            child: SafeArea(
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: _buildFAB(context),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 构建背景
-  Widget _buildBackground() {
-    return ValueListenableBuilder<FilterStatus>(
-      valueListenable: filterStatus,
-      builder: (_, status, __) {
-        final folded = status == FilterStatus.fold;
-        return AnimatedOpacity(
-          duration: duration,
-          opacity: folded ? 0 : 1,
-          child: folded
-              ? const SizedBox()
-              : GestureDetector(
-                  child: Container(color: Colors.black12),
-                  onTapDown: (_) {
-                    final hasEdited = lastConfigHash.value !=
-                        widget.filterConfig.keys.toString().hashCode;
-                    if (hasEdited) widget.complete();
-                    filterStatus.setValue(FilterStatus.fold);
-                  },
-                ),
+  static Future<List<FilterSelect>?> show(
+    BuildContext context, {
+    required List<FilterSelect> selectFilters,
+  }) {
+    return showModalBottomSheet<List<FilterSelect>>(
+      context: context,
+      builder: (_) {
+        return HomeLatestAnimeFilterSheet(
+          selectFilters: selectFilters,
         );
       },
     );
   }
 
-  // 样式配置
-  ThemeData get _themeData => ThemeData(
-        useMaterial3: true,
-        colorScheme: const ColorScheme.dark(),
-        canvasColor: Colors.transparent,
-        dividerTheme: DividerThemeData(
-          color: Colors.white.withOpacity(0.2),
-          endIndent: 14,
-          thickness: 1,
-          indent: 14,
-        ),
-        chipTheme: const ChipThemeData(
-          backgroundColor: Colors.transparent,
-          selectedColor: Colors.transparent,
-          checkmarkColor: Colors.white,
-          side: BorderSide.none,
-        ),
-      );
+  @override
+  State<HomeLatestAnimeFilterSheet> createState() =>
+      _HomeLatestAnimeFilterSheetState();
+}
 
-  // 创建装饰器
-  BoxDecoration _createDecoration(bool folded) => BoxDecoration(
-        borderRadius: BorderRadius.circular(folded ? 14 : 8),
-        color: kPrimaryColor,
-        boxShadow: [
-          BoxShadow(
-            offset: Offset.fromDirection(90, 1),
-            color: Colors.black26,
-            spreadRadius: 1,
-            blurRadius: 1,
-          ),
+class _HomeLatestAnimeFilterSheetState
+    extends State<HomeLatestAnimeFilterSheet> {
+  // 选择数据回调
+  late MapValueChangeNotifier<String, List<FilterSelect>> filterSelect =
+      MapValueChangeNotifier(groupBy<FilterSelect, String>(
+          widget.selectFilters, (e) => _genFilterTempKey(e)));
+
+  // 记录过滤条件编辑状态
+  final filterEdited = ValueChangeNotifier<bool>(false);
+
+  // 记录传入时已选择的hasCode
+  num? initialHashCode;
+
+  @override
+  void initState() {
+    super.initState();
+    // 计算初始化的hashcode
+    initialHashCode = _calculateHashCode(filterSelect.value);
+    // 监听过滤选项变化
+    filterSelect.addListener(() {
+      final hashCode = _calculateHashCode(filterSelect.value);
+      filterEdited.setValue(hashCode != initialHashCode);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          const Divider(),
+          Expanded(child: _buildFilterList()),
         ],
-      );
-
-  // 构建fab
-  Widget _buildFAB(BuildContext context) {
-    final screenWidth = Tool.getScreenWidth(context);
-    return Theme(
-      data: _themeData,
-      child: ValueListenableBuilder<FilterStatus>(
-        valueListenable: filterStatus,
-        builder: (_, status, __) {
-          final folded = status == FilterStatus.fold;
-          final expanded = status == FilterStatus.expanded;
-          return AnimatedContainer(
-            duration: duration,
-            curve: Curves.fastOutSlowIn,
-            height: folded ? 55.0 : 350.0,
-            margin: const EdgeInsets.all(14),
-            decoration: _createDecoration(folded),
-            width: folded ? 55.0 : screenWidth - 14.0 * 2,
-            onEnd: () {
-              if (!folded) filterStatus.setValue(FilterStatus.expanded);
-            },
-            child: !folded
-                ? (expanded ? _buildFilterConfig() : const SizedBox())
-                : _buildFAButton(),
-          );
-        },
       ),
+      floatingActionButton: _buildFilterEditedFAB(),
     );
   }
 
-  // 构建按钮
-  Widget _buildFAButton() {
-    return IconButton(
-      icon: const Icon(FontAwesomeIcons.filter),
-      onPressed: () => filterStatus.setValue(FilterStatus.opening),
-    );
-  }
-
-  // 构建过滤配置
-  Widget _buildFilterConfig() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: _buildFilterConfigList()),
-        const Divider(height: 1),
-        Row(
-          children: [
-            const SizedBox(width: 8),
-            Text('选择过滤条件', style: titleTextStyle),
-            const Spacer(),
-            ValueListenableBuilder<Map<String, FilterSelect>>(
-                valueListenable: widget.filterConfig,
-                builder: (_, configMap, __) {
-                  final hashCode = configMap.keys.toString().hashCode;
-                  if (lastConfigHash.value == null) {
-                    lastConfigHash.setValue(hashCode);
-                  }
-                  final hasEdited = lastConfigHash.value != hashCode;
-                  final iconData = hasEdited
-                      ? FontAwesomeIcons.check
-                      : FontAwesomeIcons.xmark;
-                  return IconButton(
-                    icon: Icon(iconData),
-                    onPressed: () {
-                      if (hasEdited) widget.complete();
-                      filterStatus.setValue(FilterStatus.fold);
-                      lastConfigHash.setValue(null);
-                    },
-                  );
-                }),
-          ],
-        ),
-      ],
+  // 构建过滤条件编辑状态的fab
+  Widget _buildFilterEditedFAB() {
+    return ValueListenableBuilder2<Map<String, List<FilterSelect>>, bool>(
+      first: filterSelect,
+      second: filterEdited,
+      builder: (_, filterSelect, hasEdited, __) {
+        final selectCount = filterSelect.values.fold(0, (p, e) => p + e.length);
+        return AnimatedScale(
+          scale: hasEdited ? 1 : 0,
+          duration: const Duration(milliseconds: 180),
+          child: FloatingActionButton.extended(
+            label: Text('已选 $selectCount 项'),
+            extendedTextStyle: const TextStyle(fontSize: 14),
+            icon: const Icon(FontAwesomeIcons.check, size: 24),
+            onPressed: () => router.pop(
+              filterSelect.values.expand((e) => e).toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 
   // 构建过滤配置列表
-  Widget _buildFilterConfigList() {
+  Widget _buildFilterList() {
+    const padding = EdgeInsets.symmetric(vertical: 8, horizontal: 14);
     return CacheFutureBuilder<List<AnimeFilterModel>>(
       future: animeParser.loadFilterList,
       builder: (_, snap) {
         if (!snap.hasData) return const SizedBox();
         final dataList = snap.data ?? [];
-        return ValueListenableBuilder<Map<String, FilterSelect>>(
-          valueListenable: widget.filterConfig,
-          builder: (_, selectMap, __) {
-            return ListView.builder(
-              padding: const EdgeInsets.only(top: 14),
-              itemBuilder: (_, i) {
-                return _buildFilterConfigListItem(dataList[i], selectMap);
-              },
+        return ValueListenableBuilder<Map<String, List<FilterSelect>>>(
+          valueListenable: filterSelect,
+          builder: (_, filters, __) {
+            return ListView.separated(
+              padding: filterEdited.value
+                  ? padding.copyWith(bottom: kToolbarHeight * 1.5)
+                  : padding,
               itemCount: dataList.length,
+              separatorBuilder: (_, i) => const SizedBox(height: 14),
+              itemBuilder: (_, i) {
+                return _buildFilterListItem(dataList[i], filters);
+              },
             );
           },
         );
@@ -240,53 +132,84 @@ class _AnimeFilterConfigMenuState extends State<AnimeFilterConfigMenu> {
   }
 
   // 构建过滤配置列表项
-  Widget _buildFilterConfigListItem(
-      AnimeFilterModel item, Map<String, FilterSelect> selectMap) {
+  Widget _buildFilterListItem(
+      AnimeFilterModel item, Map<String, List<FilterSelect>> filters) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 14),
+          padding: const EdgeInsets.only(left: 6),
           child: Text(item.name,
-              textAlign: TextAlign.right, style: titleTextStyle),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              )),
         ),
-        const Divider(),
-        Padding(
-          padding: const EdgeInsets.only(left: 30),
-          child: _buildFilterConfigListItemTags(item, selectMap),
-        ),
+        const SizedBox(height: 4),
+        _buildFilterListItemTags(item, filters),
       ],
     );
   }
 
   // 构建过滤配置列表标签集合
-  Widget _buildFilterConfigListItemTags(
-      AnimeFilterModel item, Map<String, FilterSelect> selectMap) {
+  Widget _buildFilterListItemTags(
+      AnimeFilterModel item, Map<String, List<FilterSelect>> filters) {
+    final tempKey = _genFilterTempKey(item);
     return Wrap(
       spacing: 8,
       runSpacing: 4,
       children: List.generate(item.items.length, (i) {
         final sub = item.items[i];
-        var selectItem = selectMap['${item.key}${sub.value}'];
+        var selectItem = filters[tempKey]?.firstWhereOrNull(
+          (e) => e.value == sub.value,
+        );
         return ChoiceChip(
           label: Text(sub.name),
           selected: selectItem != null,
-          onSelected: (v) {
-            final source = animeParser.currentSource;
-            if (source == null) return;
-            selectItem ??= FilterSelect()
-              ..key = item.key
-              ..value = sub.value
-              ..parentName = item.name
-              ..name = sub.name
-              ..source = source.key;
-            widget.filterSelect(v, selectItem!, item.maxSelected);
-          },
+          onSelected: (v) => _filterItemSelected(item, sub, selectItem),
         );
       }),
     );
   }
-}
 
-// fab状态管理
-enum FilterStatus { fold, opening, expanded }
+  // 过滤条件选择事件
+  void _filterItemSelected(AnimeFilterModel item, AnimeFilterItemModel sub,
+      FilterSelect? selectItem) {
+    final tempKey = _genFilterTempKey(item);
+    if (selectItem == null) {
+      final source = animeParser.currentSource;
+      if (source == null) return;
+      final temp = filterSelect.value;
+      final values = temp[tempKey] ?? [];
+      if (item.maxSelected == 1) values.clear();
+      if (values.length >= item.maxSelected) return;
+      values.add(FilterSelect()
+        ..key = item.key
+        ..value = sub.value
+        ..parentName = item.name
+        ..name = sub.name
+        ..source = source.key);
+      filterSelect.setValue({...temp, tempKey: values});
+    } else {
+      final temp = filterSelect.value;
+      temp[tempKey]?.removeWhere((e) => e.value == sub.value);
+      filterSelect.setValue({...temp});
+    }
+  }
+
+  // 计算hashCode
+  num? _calculateHashCode(Map<String, List<FilterSelect>> selectFilters) {
+    if (selectFilters.isEmpty) return null;
+    return selectFilters.values.fold<num>(0, (p, e) {
+      return p + e.fold<num>(0, (p, e) => p + e.value.hashCode);
+    });
+  }
+
+  // 生成过滤条件临时key
+  String _genFilterTempKey(dynamic item) {
+    String tempKey = item is AnimeFilterModel
+        ? '${item.key}_${item.name}'
+        : '${item.key}_${item.parentName}';
+    return Tool.md5(tempKey);
+  }
+}

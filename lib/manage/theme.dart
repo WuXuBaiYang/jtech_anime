@@ -35,7 +35,7 @@ class ThemeManage extends BaseManage {
   Future<void> switchTheme(Brightness brightness) async {
     if (await cache.setInt(_themeCacheKey, brightness.index)) {
       _currentTheme = getThemeByBrightness(brightness);
-      event.send(ThemeEvent(data: _currentTheme!));
+      event.send(ThemeEvent(_currentTheme!));
     }
   }
 
@@ -74,8 +74,9 @@ class ThemeManage extends BaseManage {
       ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
-        appBarTheme: const AppBarTheme(
-          titleSpacing: 0,
+        cardTheme: CardTheme(
+          color: colorScheme.primary.withOpacity(0.12),
+          elevation: 0,
         ),
         chipTheme: const ChipThemeData(
           pressElevation: 0,
@@ -84,6 +85,33 @@ class ThemeManage extends BaseManage {
           actionsPadding: EdgeInsets.symmetric(
             horizontal: 8,
             vertical: 4,
+          ),
+        ),
+        iconTheme: const IconThemeData(size: 30),
+        bottomSheetTheme: const BottomSheetThemeData(
+          surfaceTintColor: Colors.white,
+          backgroundColor: Colors.white,
+          clipBehavior: Clip.hardEdge,
+          showDragHandle: true,
+        ),
+        dividerTheme: const DividerThemeData(
+          color: Colors.black12,
+          thickness: 0.2,
+          space: 1,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            elevation: const MaterialStatePropertyAll(0),
+            backgroundColor:
+                MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
+          ),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          elevation: 1,
+        ),
+        listTileTheme: const ListTileThemeData(
+          subtitleTextStyle: TextStyle(
+            color: Colors.black38,
           ),
         ),
       );
@@ -110,5 +138,5 @@ class ThemeEvent extends EventModel {
   // 全局样式
   final ThemeData data;
 
-  ThemeEvent({required this.data});
+  ThemeEvent(this.data);
 }

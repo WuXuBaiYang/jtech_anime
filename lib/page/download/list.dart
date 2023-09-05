@@ -45,6 +45,9 @@ class DownloadRecordListView extends StatefulWidget {
   // 默认展开的组
   final List<String> initialExpanded;
 
+  // 列表间距
+  final EdgeInsetsGeometry? padding;
+
   const DownloadRecordListView({
     super.key,
     required this.groupList,
@@ -55,6 +58,7 @@ class DownloadRecordListView extends StatefulWidget {
     this.playRecordMap,
     this.onPlayRecords,
     this.downloadTask,
+    this.padding,
   });
 
   @override
@@ -74,7 +78,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       builder: (_, expandedList, __) {
         return ListView.builder(
           itemCount: widget.groupList.length,
-          padding: const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
+          padding: widget.padding ??
+              const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
           itemBuilder: (_, i) {
             final item = widget.groupList[i];
             final expanded = expandedList.contains(item.url);
@@ -89,7 +94,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   Widget _buildGroupItem(DownloadGroup item, bool expanded) {
     final downloadTask = widget.downloadTask;
     return Card(
-      elevation: 0.6,
       clipBehavior: Clip.hardEdge,
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
@@ -103,7 +107,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
                   borderRadius: BorderRadius.circular(4),
                   child: ImageView.net(
                     width: 70,
-                    height: 80,
+                    height: 85,
                     item.cover,
                     fit: BoxFit.cover,
                   ),
@@ -211,7 +215,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     return ListView.separated(
       shrinkWrap: true,
       itemCount: records.length,
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: 2),
       physics: const NeverScrollableScrollPhysics(),
       separatorBuilder: (_, i) => const SizedBox(height: 4),
       itemBuilder: (_, i) {
@@ -276,7 +280,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     return GridView.builder(
       shrinkWrap: true,
       itemCount: records.length,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(4),
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         mainAxisExtent: 40,
@@ -298,7 +302,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black12),
+              border: Border.all(color: Colors.white.withOpacity(0.8)),
             ),
             child: hasPlayRecord
                 ? CustomScrollText.slow('上次看到 ${item.name}',

@@ -77,19 +77,6 @@ class AnimeParserManage extends BaseManage {
     _initialCustomFunctions();
   }
 
-  // 切换数据源
-  Future<bool> changeSource(AnimeSource source) async {
-    if (_source?.key == source.key) return true;
-    // 如果是默认配置则将缓存key置空
-    final result = await cache.setString(currentSourceKey, source.key);
-    if (!result) return result;
-    // 如果修改成功则发送消息通知并替换当前数据源
-    event.send(SourceChangeEvent(source));
-    _parserFileContent = null;
-    _source = source;
-    return result;
-  }
-
   // 获取番剧时间表
   Future<TimeTableModel?> getTimeTable() async {
     final content = await _readParserFileContent();
@@ -174,21 +161,50 @@ class AnimeParserManage extends BaseManage {
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
       final result = await _doJSFunction(content, request);
       for (final e in jsonDecode(result)) {
-        final result = await db.cachePlayUrl(url, e['playUrl']);
+        final playUrl = e['playUrl'];
+        useCache = e['useCache'] ?? true;
+        final result = useCache
+            ? await db.cachePlayUrl(url, playUrl)
+            : (VideoCache()
+              ..url = url
+              ..playUrl = playUrl);
         tempList.add((result ?? VideoCache.from(e))..item = item);
       }
     }
     return tempList;
   }
 
+  // 切换数据源
+  Future<bool> changeSource(AnimeSource source, {bool force = false}) async {
+    if (!force && _source?.key == source.key) return true;
+    // 如果是默认配置则将缓存key置空
+    final result = await cache.setString(currentSourceKey, source.key);
+    if (!result) return result;
+    // 如果修改成功则发送消息通知并替换当前数据源
+    event.send(SourceChangeEvent(source));
+    _parserFileContent = null;
+    _source = source;
+    return result;
+  }
+
+  // 卸载数据源
+  Future<bool> uninstallSource(AnimeSource source) async {
+    final result = await db.removeAnimeSource(source.id);
+    if (result) {
+      final file = File(source.fileUri);
+      if (file.existsSync()) file.deleteSync();
+      event.send(SourceChangeEvent(null));
+    }
+    return result;
+  }
+
   // 检查是否支持目标方法
-  Future<bool> isSupportFunction(AnimeParserFunction function) async {
+  bool isSupport(AnimeParserFunction function) {
     final source = currentSource;
     if (source == null) return false;
     return source.functions.contains(function.name);
   }
 
-  /// 如果是从外部导入则需要检查必填方法是否满足
   // 将配置文件信息导入数据库
   Future<AnimeSource?> importAnimeSource(AnimeSource source) async {
     try {
@@ -200,16 +216,20 @@ class AnimeParserManage extends BaseManage {
         final localFile = await _writeAnimeParserFile(source, resp.data);
         if (localFile == null) return null;
         fileUri = localFile.path;
+      } else if (fileUri.startsWith('asset')) {
+        // 如果是assets文件，则将文件复制到本地
+        final result = await rootBundle.loadString(fileUri);
+        final localFile = await _writeAnimeParserFile(source, result);
+        if (localFile == null) return null;
+        fileUri = localFile.path;
       }
-      // else if (fileUri.startsWith('asset')) {
-      //   // 如果是assets文件，则将文件复制到本地
-      //   final result = await rootBundle.loadString(fileUri);
-      //   final localFile = await _writeAnimeParserFile(source, result);
-      //   if (localFile == null) return null;
-      //   fileUri = localFile.path;
-      // }
       // 将本地文件路径写入到数据库
-      return db.updateAnimeSource(source..fileUri = fileUri);
+      final result = await db.updateAnimeSource(
+        source..fileUri = fileUri,
+      );
+      if (result == null) return null;
+      if (_source?.key == result.key) changeSource(source, force: true);
+      return result;
     } catch (e) {
       LogTool.e('配置文件解析失败', error: e);
     }

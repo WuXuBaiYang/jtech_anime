@@ -97,6 +97,7 @@ class DownloadManage extends BaseManage {
 
   // 开始多条下载任务
   Future<List<bool>> startTasks(List<DownloadRecord> records) async {
+    if (records.isEmpty) return [];
     // 不使用Future.wait是因为wait是同时执行所有方法
     // 所以在判断是否放入准备队列上存在问题
     final results = <bool>[];
@@ -207,11 +208,24 @@ class DownloadManage extends BaseManage {
     return null;
   }
 
-  // 暂停多条下载任务
-  Future<List<bool>> stopTasks(List<DownloadRecord> records) async =>
-      Future.wait<bool>(records.map(stopTask));
+  // 停止全部下载任务
+  Future<void> stopAllTasks() async {
+    prepareQueue.clear();
+    downloadQueue.removeWhere((downloadUrl, cancelToken) {
+      _progressBuffed.remove(downloadUrl);
+      _stoppingBuffed.add(downloadUrl);
+      cancelToken.cancel('stopTask');
+      return true;
+    });
+  }
 
-  // 暂停一个下载任务
+  // 停止多条下载任务
+  Future<List<bool>> stopTasks(List<DownloadRecord> records) async {
+    if (records.isEmpty) return [];
+    return Future.wait<bool>(records.map(stopTask));
+  }
+
+  // 停止一个下载任务
   Future<bool> stopTask(DownloadRecord record) async {
     try {
       final downloadUrl = record.downloadUrl;
@@ -232,8 +246,10 @@ class DownloadManage extends BaseManage {
   }
 
   // 删除多条下载任务
-  Future<List<bool>> removeTasks(List<DownloadRecord> records) =>
-      Future.wait<bool>(records.map(removeTask));
+  Future<List<bool>> removeTasks(List<DownloadRecord> records) async {
+    if (records.isEmpty) return [];
+    return Future.wait<bool>(records.map(removeTask));
+  }
 
   // 删除一个下载任务
   Future<bool> removeTask(DownloadRecord record) async {

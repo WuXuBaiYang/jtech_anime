@@ -82,6 +82,7 @@ class _PlayRecordPageState
                 ),
               ListView.builder(
                 itemCount: playRecords.length,
+                padding: const EdgeInsets.only(bottom: kToolbarHeight * 1.5),
                 itemBuilder: (_, i) {
                   final item = playRecords[i];
                   return _buildPlayRecordsItem(item);
@@ -124,7 +125,7 @@ class _PlayRecordPageState
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(item.name, style: titleStyle),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 8),
                     Text.rich(TextSpan(text: '播放至：', children: [
                       TextSpan(
                         text: progress.format(DurationPattern.fullTime),

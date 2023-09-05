@@ -61,6 +61,11 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       child: Scaffold(
         key: pageKey,
         backgroundColor: Colors.black,
+        endDrawer: _buildResourceDrawer(),
+        endDrawerEnableOpenDragGesture: false,
+        onEndDrawerChanged: (isOpened) {
+          logic.controller.setControlVisible(true, ongoing: isOpened);
+        },
         body: Stack(
           children: [
             Positioned.fill(child: _buildVideoPlayer()),
@@ -70,8 +75,6 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
             ),
           ],
         ),
-        endDrawerEnableOpenDragGesture: false,
-        endDrawer: _buildResourceDrawer(),
       ),
     );
   }
@@ -93,7 +96,6 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
           currentItem: item,
           animeInfo: logic.animeInfo.value,
           onResourceSelect: (item) {
-            logic.controller.setControlVisible(true);
             pageKey.currentState?.closeEndDrawer();
             logic.changeVideo(item);
           },
@@ -335,7 +337,8 @@ class _PlayerLogic extends BaseLogic {
 
   // 退出播放页面设置(恢复布局并显示状态栏)
   void quitPlayer() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
     Tool.toggleScreenOrientation(true);
   }
 

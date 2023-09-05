@@ -1,12 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/tool/debounce.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
+import 'package:jtech_anime/tool/brightness.dart';
+import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
-import 'package:screen_brightness/screen_brightness.dart';
+import 'package:jtech_anime/widget/status_box.dart';
 
 /*
 * 自定义播放器控制层-状态层
@@ -17,17 +16,21 @@ class CustomPlayerControlsStatus extends StatefulWidget {
   // 播放器控制器
   final CustomVideoPlayerController controller;
 
-  // 音量控制
-  final ValueChangeNotifier<double> volumeValue;
-
   // 倍速播放控制
   final ValueChangeNotifier<bool> controlPlaySpeed;
+
+  // 音量显隐控制
+  final ValueChangeNotifier<bool>? controlVolume;
+
+  // 亮度显隐控制
+  final ValueChangeNotifier<bool>? controlBrightness;
 
   const CustomPlayerControlsStatus({
     super.key,
     required this.controller,
-    required this.volumeValue,
     required this.controlPlaySpeed,
+    this.controlVolume,
+    this.controlBrightness,
   });
 
   @override
@@ -41,12 +44,6 @@ class CustomPlayerControlsStatus extends StatefulWidget {
 */
 class _CustomPlayerControlsStatusState
     extends State<CustomPlayerControlsStatus> {
-  // 音量调整
-  final controlVolume = ValueChangeNotifier<bool>(false);
-
-  // 亮度调整
-  final controlBrightness = ValueChangeNotifier<bool>(false);
-
   @override
   void initState() {
     super.initState();
@@ -60,27 +57,6 @@ class _CustomPlayerControlsStatusState
         widget.controller.setRate(speed);
         speed = 1.0;
       }
-    });
-    // 监听音量变化
-    FlutterVolumeController.getVolume().then((v) {
-      if (v != null) widget.volumeValue.setValue(v);
-      widget.volumeValue.addListener(() {
-        controlVolume.setValue(true);
-        Debounce.c(
-          delay: const Duration(milliseconds: 200),
-          () => controlVolume.setValue(false),
-          'updateVolume',
-        );
-      });
-    });
-    // 监听亮度变化
-    ScreenBrightness().onCurrentBrightnessChanged.listen((_) {
-      controlBrightness.setValue(true);
-      Debounce.c(
-        delay: const Duration(milliseconds: 200),
-        () => controlBrightness.setValue(false),
-        'updateBrightness',
-      );
     });
   }
 
@@ -131,14 +107,19 @@ class _CustomPlayerControlsStatusState
 
   // 控制音量变化
   Widget _buildVolume() {
+    if (widget.controlVolume == null) return const SizedBox();
     return Align(
       alignment: Alignment.centerLeft,
-      child: ValueListenableBuilder2<bool, double>(
-        first: controlVolume,
-        second: widget.volumeValue,
-        builder: (_, showVolume, value, __) {
-          return _buildVerticalProgress(showVolume, value,
-              icon: const Icon(FontAwesomeIcons.volumeLow));
+      child: ValueListenableBuilder<bool>(
+        valueListenable: widget.controlVolume!,
+        builder: (_, showVolume, __) {
+          return StreamBuilder<double>(
+              stream: VolumeTool.stream,
+              builder: (_, snap) {
+                final value = snap.data ?? 0;
+                return _buildVerticalProgress(showVolume, value,
+                    icon: const Icon(FontAwesomeIcons.volumeLow));
+              });
         },
       ),
     );
@@ -146,13 +127,14 @@ class _CustomPlayerControlsStatusState
 
   // 控制亮度变化
   Widget _buildBrightness() {
+    if (widget.controlBrightness == null) return const SizedBox();
     return Align(
       alignment: Alignment.centerRight,
       child: ValueListenableBuilder<bool>(
-        valueListenable: controlBrightness,
+        valueListenable: widget.controlBrightness!,
         builder: (_, showBrightness, __) {
           return StreamBuilder<double>(
-            stream: ScreenBrightness().onCurrentBrightnessChanged,
+            stream: BrightnessTool.stream,
             builder: (_, snap) {
               final value = snap.data ?? 0;
               return _buildVerticalProgress(showBrightness, value,
@@ -206,9 +188,9 @@ class _CustomPlayerControlsStatusState
         stream: controller.stream.buffering,
         builder: (_, snap) {
           if (!(snap.data ?? false)) return const SizedBox();
-          return const SizedBox.square(
-            dimension: 35,
-            child: CircularProgressIndicator(),
+          return const StatusBox(
+            animSize: 30,
+            status: StatusBoxStatus.loading,
           );
         },
       ),

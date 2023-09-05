@@ -52,7 +52,11 @@ class TimeTableModel extends BaseModel {
 
   // 根据下标获取对应周天的番剧列表
   List<TimeTableItemModel> getAnimeListByWeekday(int weekday) =>
-      [monday, tuesday, wednesday, thursday, friday, saturday, sunday][weekday];
+      weekdayAnimeList[weekday];
+
+  // 获取每天番剧列表
+  List<List<TimeTableItemModel>> get weekdayAnimeList =>
+      [monday, tuesday, wednesday, thursday, friday, saturday, sunday];
 }
 
 /*

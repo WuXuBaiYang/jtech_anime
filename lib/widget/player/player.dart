@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
+import 'package:flutter/services.dart';
 import 'package:jtech_anime/common/notifier.dart';
+import 'package:jtech_anime/tool/brightness.dart';
 import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime/tool/volume.dart';
 import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/controls/bottom.dart';
+import 'package:jtech_anime/widget/player/controls/progress.dart';
 import 'package:jtech_anime/widget/player/controls/side.dart';
 import 'package:jtech_anime/widget/player/controls/status.dart';
 import 'package:jtech_anime/widget/player/controls/top.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 
 /*
 * 自定义视频播放器
@@ -56,11 +58,14 @@ class CustomVideoPlayer extends StatefulWidget {
 * @Time 2023/8/19 14:30
 */
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
-  // 音量变化流
-  final volumeValue = ValueChangeNotifier<double>(0);
-
-  // 倍速播放控制
+  // 倍速显隐控制
   final controlPlaySpeed = ValueChangeNotifier<bool>(false);
+
+  // 音量显隐控制
+  final controlVolume = ValueChangeNotifier<bool>(false);
+
+  // 亮度显隐控制
+  final controlBrightness = ValueChangeNotifier<bool>(false);
 
   // 播放进度控制
   final playerSeekStream = StreamController<Duration?>.broadcast();
@@ -78,7 +83,6 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 构建控制器
   Widget _buildControls(BuildContext context, VideoState state) {
     final controller = widget.controller;
-    final brightness = ScreenBrightness();
     final screenWidth = Tool.getScreenWidth(context);
     final screenHeight = Tool.getScreenHeight(context);
     Duration? tempPosition;
@@ -104,17 +108,18 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                 // 区分左右屏
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
-                  final current = volumeValue.value;
-                  final value = current - dragPercentage;
-                  if (value < 0 || value > 1) return;
-                  FlutterVolumeController.setVolume(value);
-                  volumeValue.setValue(value);
+                  final current = await VolumeTool.current();
+                  VolumeTool.set(current - dragPercentage);
+                  controlVolume.setValue(true);
                 } else {
-                  final current = await brightness.current;
-                  final value = current - dragPercentage;
-                  if (value < 0 || value > 1) return;
-                  brightness.setScreenBrightness(value);
+                  final current = await BrightnessTool.current();
+                  BrightnessTool.set(current - dragPercentage);
+                  controlBrightness.setValue(true);
                 }
+              },
+              onVerticalDragEnd: (_) {
+                controlBrightness.setValue(false);
+                controlVolume.setValue(false);
               },
               onHorizontalDragStart: (_) {
                 if (locked) return;
@@ -140,10 +145,11 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
               onLongPressStart: (_) {
                 if (!controller.state.playing || locked) return;
                 controlPlaySpeed.setValue(true);
+                HapticFeedback.vibrate();
               },
               child: AnimatedOpacity(
                 opacity: visible ? 1 : 0,
-                duration: const Duration(milliseconds: 150),
+                duration: const Duration(milliseconds: 80),
                 child: Container(
                   color: Colors.black38,
                   child: Stack(
@@ -153,6 +159,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
                         _buildBottomActions(),
                       ],
                       _buildSideActions(locked),
+                      if (locked) _buildLockProgress(),
                     ],
                   ),
                 ),
@@ -196,9 +203,17 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   // 构建控制器状态
   Widget _buildControlsStatus() {
     return CustomPlayerControlsStatus(
-      volumeValue: volumeValue,
+      controlVolume: controlVolume,
       controller: widget.controller,
       controlPlaySpeed: controlPlaySpeed,
+      controlBrightness: controlBrightness,
+    );
+  }
+
+  // 构建锁屏状态下的进度条
+  Widget _buildLockProgress() {
+    return CustomPlayerLockProgress(
+      controller: widget.controller,
     );
   }
 }

@@ -1,21 +1,33 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime/common/common.dart';
 import 'package:jtech_anime/common/logic.dart';
 import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/db.dart';
+import 'package:jtech_anime/manage/anime_parser/funtions.dart';
 import 'package:jtech_anime/manage/anime_parser/parser.dart';
+import 'package:jtech_anime/manage/db.dart';
+import 'package:jtech_anime/manage/event.dart';
 import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/anime.dart';
 import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/model/time_table.dart';
-import 'package:jtech_anime/page/home/filter.dart';
+import 'package:jtech_anime/page/home/list.dart';
+import 'package:jtech_anime/page/home/source.dart';
+import 'package:jtech_anime/page/home/timetable.dart';
+import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
-import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/refresh/refresh_view.dart';
+import 'package:jtech_anime/widget/source/logo.dart';
+import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/refresh/controller.dart';
 import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime/widget/stream_view.dart';
+import 'package:jtech_anime/widget/tab.dart';
 
 /*
 * 首页
@@ -36,9 +48,8 @@ class HomePage extends StatefulWidget {
 */
 class _HomePageState extends LogicState<HomePage, _HomeLogic>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  // 时间轴tab控制器
-  late TabController timetableTabController = TabController(
-      length: 7, vsync: this, initialIndex: DateTime.now().weekday - 1);
+  // 是否允许退出
+  final appQuite = ValueChangeNotifier<bool>(false);
 
   @override
   _HomeLogic initLogic() => _HomeLogic();
@@ -51,303 +62,130 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       // 检查版本更新
       AppVersionTool.check(context);
     });
+    // 监听解析源变化
+    event.on<SourceChangeEvent>().listen((event) {
+      // 如果解析源为空则弹出不可取消的强制选择弹窗
+      if (event.source == null) {
+        AnimeSourceChangeDialog.show(context, dismissible: false);
+      }
+    });
   }
 
   @override
   Widget buildWidget(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: logic.showChildIndex,
-      builder: (_, childIndex, __) {
-        return AnimeFilterConfigMenu(
-          complete: () => Loading.show(
-            loadFuture: logic.loadAnimeList(false),
-          )?.then((_) => logic.animeController.jumpTo(0)),
-          filterConfig: logic.filterSelect,
-          filterSelect: logic.selectFilterConfig,
-          visible: childIndex == 0,
-          body: Scaffold(
+    return WillPopScope(
+      child: DefaultTabController(
+        length: 2,
+        child: SourceStreamView(builder: (_, snap) {
+          return Scaffold(
             appBar: AppBar(
-              title: _buildSearchButton(),
-              actions: _getAppbarActions(context, childIndex),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(kToolbarHeight),
-                child: [
-                  _buildFilterChips(),
-                  _buildTimetableTabBar(),
-                ][childIndex],
-              ),
-            ),
-            body: AnimatedCrossFade(
-              firstChild: _buildAnimeList(),
-              secondChild: _buildTimetableTabView(),
-              duration: const Duration(milliseconds: 150),
-              crossFadeState: [
-                CrossFadeState.showFirst,
-                CrossFadeState.showSecond,
-              ][childIndex],
-              layoutBuilder:
-                  (topChild, topChildKey, bottomChild, bottomChildKey) {
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: <Widget>[
-                    Positioned.fill(
-                      key: bottomChildKey,
-                      child: bottomChild,
-                    ),
-                    Positioned.fill(
-                      key: topChildKey,
-                      child: topChild,
-                    ),
-                  ],
-                );
+              actions: _appBarActions,
+              bottom: _buildAppBarBottom(),
+              title: const Text(Common.appName),
+              notificationPredicate: (notification) {
+                return notification.depth == 1;
               },
             ),
-          ),
-        );
+            body: _buildContent(),
+          );
+        }),
+      ),
+      onWillPop: () async {
+        if (appQuite.value) return true;
+        appQuite.setValue(true);
+        SnackTool.showMessage(message: '再次点击退出');
+        Debounce.c(() => appQuite.setValue(false), 'appQuite');
+        return false;
       },
     );
   }
 
-  // 构建搜索按钮
-  Widget _buildSearchButton() {
-    const color = Colors.black38;
-    const textStyle = TextStyle(color: color, fontSize: 16);
-    return Padding(
-      padding: const EdgeInsets.only(left: 8),
-      child: ElevatedButton(
-        child: const Row(
-          children: [
-            Icon(FontAwesomeIcons.magnifyingGlass, color: color, size: 18),
-            SizedBox(width: 8),
-            Text('嗖~', style: textStyle),
-          ],
-        ),
-        onPressed: () => router.pushNamed(RoutePath.search),
+  // 构建标题栏底部
+  PreferredSize? _buildAppBarBottom() {
+    if (!animeParser.isSupport(AnimeParserFunction.timeTable)) return null;
+    return const PreferredSize(
+      preferredSize: Size.fromHeight(kToolbarHeight + 14),
+      child: CustomTabBar(
+        tabs: [
+          Tab(text: '最新番剧'),
+          Tab(text: '新番时间表'),
+        ],
       ),
     );
   }
 
-  // 获取标题栏动作按钮集合
-  List<Widget> _getAppbarActions(BuildContext context, int childIndex) {
-    return [
-      IconButton(
-        icon: const Icon(FontAwesomeIcons.heart),
-        onPressed: () => router.pushNamed(RoutePath.collect),
-      ),
-      IconButton(
-        icon: const Icon(FontAwesomeIcons.clockRotateLeft),
-        onPressed: () => router.pushNamed(RoutePath.record),
-      ),
-      IconButton(
-        icon: const Icon(FontAwesomeIcons.download),
-        onPressed: () => router.pushNamed(RoutePath.download),
-      ),
-      AnimatedRotation(
-        turns: childIndex == 1 ? 0.5 : 1,
-        duration: const Duration(milliseconds: 200),
-        child: IconButton(
-          icon: const Icon(FontAwesomeIcons.handPointRight),
-          onPressed: () => logic.showChildIndex.setValue(childIndex ^ 1),
-        ),
-      ),
-    ];
-  }
-
-  // 构建番剧过滤配置组件
-  Widget _buildFilterChips() {
-    return ValueListenableBuilder<Map<String, FilterSelect>>(
-      valueListenable: logic.filterSelect,
-      builder: (_, filterMap, __) {
-        final tempFilter = filterMap.isNotEmpty
-            ? filterMap
-            : {
-                'default': FilterSelect()
-                  ..parentName = '默认'
-                  ..name = '全部'
-              };
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(right: 8),
-            child: Row(
-              children: List.generate(tempFilter.length, (i) {
-                final item = tempFilter.values.elementAt(i);
-                final text = '${item.parentName} · ${item.name}';
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: RawChip(label: Text(text)),
-                );
-              }),
-            ),
+  // 标题栏动作按钮集合
+  List<Widget> get _appBarActions => [
+        if (animeParser.isSupport(AnimeParserFunction.search))
+          IconButton(
+            icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+            onPressed: () => router.pushNamed(RoutePath.search),
           ),
-        );
-      },
-    );
-  }
-
-  // 周/天换算表
-  final _weekdayMap = <IconData, String>{
-    FontAwesomeIcons.faceDizzy: '周一',
-    FontAwesomeIcons.faceFrown: '周二',
-    FontAwesomeIcons.faceFlushed: '周三',
-    FontAwesomeIcons.faceGrimace: '周四',
-    FontAwesomeIcons.faceGrinStars: '周五',
-    FontAwesomeIcons.faceLaughWink: '周六',
-    FontAwesomeIcons.faceSadTear: '周日',
-  };
-
-  // 构建时间轴tabBar
-  PreferredSizeWidget _buildTimetableTabBar() {
-    return TabBar(
-      isScrollable: true,
-      controller: timetableTabController,
-      tabs: List.generate(timetableTabController.length, (i) {
-        final item = _weekdayMap.entries.elementAt(i);
-        return Tab(
-          child: Row(
-            children: [
-              Text(item.value),
-              const SizedBox(width: 4),
-              Icon(item.key, size: 14),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-
-  // 构建时间轴tabView
-  Widget _buildTimetableTabView() {
-    return ValueListenableBuilder<TimeTableModel?>(
-      valueListenable: logic.timetableDataList,
-      builder: (_, timeTable, __) {
-        if (timeTable == null) return _buildEmpty();
-        return TabBarView(
-          controller: timetableTabController,
-          children: List.generate(timetableTabController.length, (i) {
-            final items = timeTable.getAnimeListByWeekday(i);
-            return ListView.builder(
-              primary: false,
-              itemCount: items.length,
-              padding: EdgeInsets.zero,
-              itemBuilder: (_, i) {
-                final item = items[i];
-                final updateIcon = item.isUpdate
-                    ? const Icon(FontAwesomeIcons.seedling,
-                        color: Colors.green, size: 18)
-                    : null;
-                return ListTile(
-                  dense: true,
-                  trailing: updateIcon,
-                  title: Text(item.name),
-                  subtitle: Text(item.status),
-                  onTap: () => logic.goDetail(AnimeModel.from({
-                    'name': item.name,
-                    'url': item.url,
-                    'status': item.status,
-                  })),
-                );
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.heart),
+          onPressed: () => router.pushNamed(RoutePath.collect),
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.clockRotateLeft),
+          onPressed: () => router.pushNamed(RoutePath.record),
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.download),
+          onPressed: () => router.pushNamed(RoutePath.download),
+        ),
+        SourceStreamView(
+          builder: (c, snap) {
+            final event = snap.data;
+            if (event?.source == null) return const SizedBox();
+            return GestureDetector(
+              child: AnimeSourceLogo(source: event!.source!),
+              onTap: () => router.pushNamed(RoutePath.animeSource),
+              onLongPress: () {
+                HapticFeedback.vibrate();
+                AnimeSourceChangeDialog.show(c);
               },
             );
-          }),
-        );
-      },
+          },
+        ),
+        const SizedBox(width: 14),
+      ];
+
+  // 构建首页内容体
+  Widget _buildContent() {
+    return TabBarView(
+      physics: !animeParser.isSupport(AnimeParserFunction.timeTable)
+          ? const NeverScrollableScrollPhysics()
+          : null,
+      children: [_buildAnimeList(), _buildAnimeTimeTable()],
     );
   }
 
   // 构建番剧列表
   Widget _buildAnimeList() {
-    return ValueListenableBuilder<List<AnimeModel>>(
-      valueListenable: logic.animeList,
-      builder: (_, animeList, __) {
-        return CustomRefreshView(
-          enableRefresh: true,
-          enableLoadMore: true,
-          initialRefresh: true,
-          onRefresh: (loadMore) => logic.loadAnimeList(loadMore),
-          child: Stack(
-            children: [
-              if (animeList.isEmpty)
-                const Center(
-                  child: StatusBox(
-                    animSize: 34,
-                    status: StatusBoxStatus.empty,
-                    title: Text('下拉试试看~'),
-                  ),
-                ),
-              GridView.builder(
-                itemCount: animeList.length,
-                padding: const EdgeInsets.all(8),
-                controller: logic.animeController,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  mainAxisExtent: 190,
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                ),
-                itemBuilder: (_, i) {
-                  final item = animeList[i];
-                  return _buildAnimeListItem(item);
-                },
-              ),
-            ],
-          ),
+    return HomeLatestAnimeList(
+      itemTap: logic.goDetail,
+      animeList: logic.animeList,
+      controller: logic.controller,
+      onRefresh: logic.loadAnimeList,
+      filterSelect: logic.filterSelect,
+      onFilterChange: (filters) => Loading.show(
+        loadFuture: logic.updateFilterSelect(filters),
+      ),
+    );
+  }
+
+  // 构建番剧时间表
+  Widget _buildAnimeTimeTable() {
+    return StatusBoxCacheFuture<TimeTableModel?>(
+      controller: logic.timeTableController,
+      future: animeParser.getTimeTable,
+      builder: (timeTable) {
+        if (timeTable == null) return const SizedBox();
+        return HomeAnimeTimeTable(
+          itemTap: logic.goDetail,
+          timeTable: timeTable,
         );
       },
-    );
-  }
-
-  // 构建番剧列表子项
-  Widget _buildAnimeListItem(AnimeModel item) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Positioned.fill(
-                    child: ImageView.net(item.cover, fit: BoxFit.cover),
-                  ),
-                  Container(
-                    width: double.maxFinite,
-                    color: Colors.black.withOpacity(0.6),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    child: Text(
-                      item.status,
-                      textAlign: TextAlign.right,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            item.name,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
-          ),
-        ],
-      ),
-      onTap: () => logic.goDetail(item),
-    );
-  }
-
-  // 构建空内容
-  Widget _buildEmpty() {
-    return const Center(
-      child: StatusBox(
-        status: StatusBoxStatus.empty,
-      ),
     );
   }
 }
@@ -361,17 +199,14 @@ class _HomeLogic extends BaseLogic {
   // 番剧列表
   final animeList = ListValueChangeNotifier<AnimeModel>.empty();
 
-  // 时间轴数据
-  final timetableDataList = ValueChangeNotifier<TimeTableModel?>(null);
-
   // 记录过滤条件
-  final filterSelect = MapValueChangeNotifier<String, FilterSelect>.empty();
+  final filterSelect = ListValueChangeNotifier<FilterSelect>.empty();
 
-  // 首页展示内容下标
-  final showChildIndex = ValueChangeNotifier<int>(0);
+  // 刷新控制器
+  final controller = CustomRefreshController();
 
-  // 动漫列表滚动控制器
-  final animeController = ScrollController();
+  // 番剧时间表控制器
+  final timeTableController = CacheFutureBuilderController<TimeTableModel?>();
 
   // 维护分页页码
   int _pageIndex = 1;
@@ -383,9 +218,16 @@ class _HomeLogic extends BaseLogic {
   void init() {
     super.init();
     // 获取过滤条件
-    _loadFilterConfig();
-    // 加载时间轴数据
-    _loadTimetableDataList();
+    _loadFilterSelect();
+    // 监听解析源切换
+    event.on<SourceChangeEvent>().listen((_) async {
+      animeList.clear();
+      filterSelect.clear();
+      _loadFilterSelect();
+      await Future.delayed(const Duration(milliseconds: 100));
+      timeTableController.refreshValue();
+      controller.startRefresh();
+    });
   }
 
   // 加载番剧列表
@@ -416,45 +258,22 @@ class _HomeLogic extends BaseLogic {
     }
   }
 
-  // 加载时间轴数据
-  Future<void> _loadTimetableDataList() async {
-    final result = await animeParser.getTimeTable();
-    timetableDataList.setValue(result);
-  }
-
   // 加载过滤条件配置
-  Future<void> _loadFilterConfig() async {
+  Future<void> _loadFilterSelect() async {
     final source = animeParser.currentSource;
     if (source == null) return;
     final result = await db.getFilterSelectList(source);
-    filterSelect.setValue(result.asMap().map<String, FilterSelect>(
-          (_, v) => MapEntry(_genFilterKey(v), v),
-        ));
+    filterSelect.setValue(result);
   }
 
-  // 选择过滤条件
-  Future<void> selectFilterConfig(
-      bool selected, FilterSelect item, int maxSelected) async {
-    if (selected) {
-      final result = await db.addFilterSelect(item, maxSelected);
-      if (result != null) {
-        final temp = filterSelect.value;
-        if (maxSelected == 1) {
-          temp.removeWhere((_, v) => v.key == item.key);
-        }
-        filterSelect.setValue({
-          ...temp,
-          _genFilterKey(result): result,
-        });
-      }
-    } else {
-      final result = await db.removeFilterSelect(item.id);
-      if (result) filterSelect.removeValue(_genFilterKey(item));
-    }
+  // 更新过滤条件
+  Future<void> updateFilterSelect(List<FilterSelect> filters) async {
+    final source = animeParser.currentSource;
+    if (source == null) return;
+    final result = await db.replaceFilterSelectList(source, filters);
+    filterSelect.setValue(result);
+    return loadAnimeList(false);
   }
-
-  // 生成过滤条件唯一key
-  String _genFilterKey(FilterSelect item) => '${item.key}${item.value}';
 
   // 跳转到详情页
   Future<void>? goDetail(AnimeModel item) {

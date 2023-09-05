@@ -188,6 +188,12 @@ class MapValueChangeNotifier<K, V> extends ValueChangeNotifier<Map<K, V>> {
     return result;
   }
 
+  // 依据条件移除数据
+  void removeWhere(bool Function(K key, V value) test, {bool notify = true}) {
+    value.removeWhere(test);
+    if (notify) notifyListeners();
+  }
+
   @override
   String toString() => '${describeIdentity(this)}($value)';
 

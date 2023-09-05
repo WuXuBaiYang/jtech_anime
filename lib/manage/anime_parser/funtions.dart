@@ -26,6 +26,16 @@ enum AnimeParserFunction {
 * @Time 2023/8/9 17:30
 */
 extension AnimeParserFunctionExtension on AnimeParserFunction {
+  // 获取方法中文名
+  String get functionNameCN => {
+        AnimeParserFunction.timeTable: '番剧时间表',
+        AnimeParserFunction.filter: '过滤条件',
+        AnimeParserFunction.search: '搜索',
+        AnimeParserFunction.home: '番剧列表',
+        AnimeParserFunction.detail: '番剧详情',
+        AnimeParserFunction.playUrl: '视频解析',
+      }[this]!;
+
   // 获取方法名
   String get functionName => {
         AnimeParserFunction.timeTable: 'getTimeTable',

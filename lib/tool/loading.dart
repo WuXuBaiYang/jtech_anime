@@ -28,7 +28,7 @@ class Loading {
       if (_loadingDialog != null) navigator.maybePop();
       _loadingDialog = showDialog<void>(
         context: context,
-        builder: (_) => _buildLoadingView(title ?? ValueChangeNotifier('加载中~')),
+        builder: (_) => _buildLoadingView(title),
         barrierDismissible: dismissible,
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
@@ -47,26 +47,30 @@ class Loading {
   }
 
   // 构建加载视图
-  static Widget _buildLoadingView(ValueChangeNotifier<String> title) {
+  static Widget _buildLoadingView(ValueChangeNotifier<String>? title) {
     return Center(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
+      child: SizedBox.square(
+        dimension: 100,
+        child: Card(
+          color: Colors.white,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               const StatusBox(
                 status: StatusBoxStatus.loading,
-                animSize: 28,
+                animSize: 20,
               ),
-              const SizedBox(height: 8),
-              ValueListenableBuilder<String>(
-                valueListenable: title,
-                builder: (_, text, __) {
-                  return Text(text,
-                      style: const TextStyle(color: Colors.black26));
-                },
-              ),
+              if (title != null) ...[
+                const SizedBox(height: 4),
+                ValueListenableBuilder<String>(
+                  valueListenable: title,
+                  builder: (_, text, __) {
+                    return Text(text,
+                        style: const TextStyle(color: Colors.black26));
+                  },
+                ),
+              ],
             ],
           ),
         ),

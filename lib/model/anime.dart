@@ -60,6 +60,27 @@ class AnimeModel extends BaseModel {
               .toList();
         }).toList();
 
+  // 合并详情（将传入对象合并到当前对象中）
+  AnimeModel merge(AnimeModel model) {
+    return AnimeModel(
+      url: _mergeString(model.url, url),
+      name: _mergeString(model.name, name),
+      cover: _mergeString(model.cover, cover),
+      status: _mergeString(model.status, status),
+      region: _mergeString(model.region, region),
+      intro: _mergeString(model.intro, intro),
+      updateTime: _mergeString(model.updateTime, updateTime),
+      types: model.types.isNotEmpty ? model.types : types,
+      resources: model.resources.isNotEmpty ? model.resources : resources,
+    );
+  }
+
+  // 合并字符串
+  String _mergeString(String from, String to) {
+    if (from.isEmpty) return to;
+    return from;
+  }
+
   @override
   Map<String, dynamic> to() => {
         'name': name,

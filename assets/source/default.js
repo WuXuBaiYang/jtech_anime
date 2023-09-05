@@ -331,15 +331,12 @@ async function loadFilterList() {
  * @param {string} keyword 搜索关键字
  * @returns {Array} [
  *         {
- *             'name': '过滤项名称',
- *             'key': '过滤项字段',
- *             'maxSelected': 最大可选数量(int),
- *             'items': [
- *                 {
- *                     'name': '过滤项子项名称',
- *                     'value': '过滤项子项值'
- *                 }
- *             ]
+ *             'name': '番剧名称',
+ *             'cover': '番剧封面',
+ *             'status': '当前状态（更新到xx集/已完结等）',
+ *             'types': '番剧类型（武侠/玄幻这种）',
+ *             'intro': '番剧介绍',
+ *             'url': '番剧详情页地址'
  *         }
  *     ]
  */
