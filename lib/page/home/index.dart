@@ -142,8 +142,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
               child: AnimeSourceLogo(source: event!.source!),
               onTap: () => router.pushNamed(RoutePath.animeSource),
               onLongPress: () {
-                AnimeSourceChangeDialog.show(c);
                 HapticFeedback.vibrate();
+                AnimeSourceChangeDialog.show(c);
               },
             );
           },
@@ -221,12 +221,13 @@ class _HomeLogic extends BaseLogic {
     // 获取过滤条件
     _loadFilterSelect();
     // 监听解析源切换
-    event.on<SourceChangeEvent>().listen((_) {
+    event.on<SourceChangeEvent>().listen((_) async {
       animeList.clear();
       filterSelect.clear();
       _loadFilterSelect();
-      controller.startRefresh();
+      await Future.delayed(const Duration(milliseconds: 100));
       timeTableController.refreshValue();
+      controller.startRefresh();
     });
   }
 

@@ -13,8 +13,9 @@ function getUri(path, params) {
     let queryParams = '';
     let obj = (params || {})
     Object.keys(obj).forEach((key) => {
+        let value = obj[key]
         if (key.startsWith('tags')) key = 'tags[]'
-        let item = `${key}=${obj[key]}`
+        let item = `${key}=${value}`
         if (queryParams.length === 0) {
             queryParams += `?${item}`;
         } else {
