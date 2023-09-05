@@ -21,7 +21,6 @@ import 'package:jtech_anime/page/home/timetable.dart';
 import 'package:jtech_anime/tool/debounce.dart';
 import 'package:jtech_anime/tool/loading.dart';
 import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/tool/version.dart';
 import 'package:jtech_anime/widget/source/logo.dart';
 import 'package:jtech_anime/widget/future_builder.dart';
