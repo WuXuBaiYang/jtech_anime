@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:background_downloader/background_downloader.dart';
+import 'package:jtech_anime/tool/tool.dart';
 
 // 下载进度回调
 typedef DownloaderProgressCallback = void Function(
@@ -36,32 +37,53 @@ abstract class Downloader {
   }) async {
     final downloader = FileDownloader();
     // 生成下载任务
-    final task = DownloadTask(
+    final taskId = Tool.md5(downloadUrl);
+    final downloadTask = DownloadTask(
       baseDirectory: BaseDirectory.values[root.index],
+      updates: Updates.statusAndProgress,
       requiresWiFi: false,
       directory: fileDir,
       filename: filename,
       url: downloadUrl,
       allowPause: true,
       retries: retries,
+      taskId: taskId,
     );
+    final completer = Completer<File?>();
     final fileSize = await _getNetFileSize(downloadUrl);
-    final taskId = task.taskId;
-    double lastProgress = 0;
+    final downloadFile = File(await downloadTask.filePath());
     // 监听任务销毁状态
     cancelToken?.whenCancel.whenComplete(() {
-      downloader.cancelTaskWithId(taskId);
+      downloader.pause(downloadTask);
+      completer.complete(null);
     });
     // 启动下载
-    final result = await downloader.download(task, onProgress: (progress) {
-      final count = fileSize * progress;
-      final downloadSpeed = fileSize * (progress - lastProgress);
-      lastProgress = progress;
-      receiveProgress?.call(
-          min(count.toInt(), fileSize), fileSize, downloadSpeed.toInt());
-    });
-    if (![TaskStatus.complete].contains(result.status)) return null;
-    return File(await task.filePath());
+    double lastProgress = 0;
+    downloader.download(
+      downloadTask,
+      onProgress: (progress) {
+        final count = fileSize * progress;
+        final downloadSpeed = fileSize * (progress - lastProgress);
+        lastProgress = progress;
+        receiveProgress?.call(
+            min(count.toInt(), fileSize), fileSize, downloadSpeed.toInt());
+      },
+      onStatus: (status) {
+        switch (status) {
+          case TaskStatus.complete:
+            return completer.complete(downloadFile);
+          case TaskStatus.notFound:
+          case TaskStatus.failed:
+          case TaskStatus.canceled:
+          case TaskStatus.paused:
+            return completer.complete(null);
+          case TaskStatus.enqueued:
+          case TaskStatus.running:
+          case TaskStatus.waitingToRetry:
+        }
+      },
+    );
+    return completer.future;
   }
 
   // 文件批量下载,传入<文件名,下载地址>{}
