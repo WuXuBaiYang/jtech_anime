@@ -29,6 +29,8 @@ void main() async {
   MediaKit.ensureInitialized();
   // 强制竖屏
   Tool.toggleScreenOrientation(true);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+      overlays: SystemUiOverlay.values);
   // 初始化ffmpeg
   await FFMpegHelper.instance.initialize();
   // 初始化各种manage
