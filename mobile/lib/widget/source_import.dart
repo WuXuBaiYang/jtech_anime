@@ -226,7 +226,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
       }
       if (jsContent == null) throw Exception('js插件加载失败');
       // 验证已存在方法
-      final jsRuntime = getJavascriptRuntime();
+      final jsRuntime = JSRuntime();
       final functionMap = {},
           functions = [],
           requiredFunctions = <AnimeParserFunction>[];
@@ -236,7 +236,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
         functionMap[key] = fun;
         if (fun.required) requiredFunctions.add(fun);
       }
-      final result = await jsRuntime.evaluateAsync('''
+      final result = await jsRuntime.eval('''
             $jsContent
             function doJSFunction() {
                 return JSON.stringify({
@@ -245,9 +245,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
             }
             doJSFunction()
       ''');
-      jsRuntime.executePendingJob();
-      final jsResult = await jsRuntime.handlePromise(result);
-      final results = <String, bool>{...jsonDecode(jsResult.stringResult)};
+      final results = <String, bool>{...jsonDecode(result)};
       // 计算得出支持方法与缺少的必须方法
       supportFunctions.setValue(results.keys
           .where((key) => results[key] ?? false)

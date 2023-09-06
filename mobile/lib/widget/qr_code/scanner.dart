@@ -108,9 +108,8 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     return Center(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Lottie.asset(
+        child: LottieView(
           Common.qrCodeScannerAsset,
-          frameRate: FrameRate.max,
           height: maskSize.height,
           width: maskSize.width,
           fit: BoxFit.cover,

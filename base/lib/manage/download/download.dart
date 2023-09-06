@@ -23,9 +23,6 @@ typedef DownloadCompleteCallback = void Function(DownloadRecord record);
 * @Time 2022/3/17 14:14
 */
 class DownloadManage extends BaseManage {
-  // 下载进度通知id
-  static const downloadProgressNoticeId = 9527;
-
   static final DownloadManage _instance = DownloadManage._internal();
 
   factory DownloadManage() => _instance;
@@ -195,6 +192,7 @@ class DownloadManage extends BaseManage {
       _startingBuffed.remove(downloadUrl);
       _stoppingBuffed.remove(downloadUrl);
       _stopDownloadProgress();
+      pushLatestProgress();
       // 判断等待队列中是否存在任务，存在则将首位任务添加到下载队列
       if (prepareQueue.isNotEmpty &&
           downloadQueue.length < maxDownloadCount.value) {
@@ -216,6 +214,7 @@ class DownloadManage extends BaseManage {
       cancelToken.cancel('stopTask');
       return true;
     });
+    pushLatestProgress();
   }
 
   // 停止多条下载任务
@@ -240,6 +239,8 @@ class DownloadManage extends BaseManage {
       return true;
     } catch (e) {
       LogTool.e('停止下载任务失败', error: e);
+    } finally {
+      pushLatestProgress();
     }
     return false;
   }
@@ -262,6 +263,8 @@ class DownloadManage extends BaseManage {
       return true;
     } catch (e) {
       LogTool.e('移除下载任务失败', error: e);
+    } finally {
+      pushLatestProgress();
     }
     return false;
   }

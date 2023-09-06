@@ -31,6 +31,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           status: StatusBoxStatus.loading,
         ),
       ),
+      actions: [],
     );
   }
 }

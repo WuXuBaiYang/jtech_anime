@@ -24,6 +24,12 @@ class CustomTheme {
       ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
+        appBarTheme: const AppBarTheme(
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+          ),
+        ),
         cardTheme: CardTheme(
           color: colorScheme.primary.withOpacity(0.12),
           elevation: 0,
@@ -66,3 +72,6 @@ class CustomTheme {
         ),
       );
 }
+
+// 工具栏高度
+const double kToolbarHeightCustom = 35.0;
