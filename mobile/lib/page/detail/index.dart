@@ -358,12 +358,12 @@ class _AnimeDetailLogic extends BaseLogic {
     try {
       final result = await db.updateCollect(item);
       collectInfo.setValue(item.copyWith(
-        id: result?.id ?? Isar.autoIncrement,
+        id: result?.id ?? dbAutoIncrementId,
         collected: result != null,
       ));
     } catch (e) {
       SnackTool.showMessage(
-          message: '${item.id != Isar.autoIncrement ? '取消收藏' : '收藏'}失败，请重试~');
+          message: '${item.id != dbAutoIncrementId ? '取消收藏' : '收藏'}失败，请重试~');
     }
   }
 

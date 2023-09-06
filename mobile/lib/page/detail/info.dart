@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+
 /*
 * 动漫详情信息
 * @author wuxubaiyang
@@ -31,9 +32,9 @@ class AnimeDetailInfo extends StatelessWidget {
 
   // 构建背景图
   Widget _buildInfoBackground() {
-    return Blur(
+    return BlurView(
       blur: 20,
-      blurColor: Colors.white,
+      color: Colors.white,
       child: Image.network(
         animeInfo.cover,
         fit: BoxFit.cover,

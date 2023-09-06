@@ -181,10 +181,10 @@ class _CollectLogic extends BaseLogic {
           index,
           item
             ..collected = result != null
-            ..id = result?.id ?? Isar.autoIncrement);
+            ..id = result?.id ?? dbAutoIncrementId);
     } catch (e) {
       SnackTool.showMessage(
-          message: '${item.id == Isar.autoIncrement ? '收藏' : '取消收藏'}失败，请重试~');
+          message: '${item.id == dbAutoIncrementId ? '收藏' : '取消收藏'}失败，请重试~');
     }
   }
 
@@ -196,7 +196,7 @@ class _CollectLogic extends BaseLogic {
           index,
           item
             ..collected = result != null
-            ..id = result?.id ?? Isar.autoIncrement);
+            ..id = result?.id ?? dbAutoIncrementId);
     } catch (e) {
       SnackTool.showMessage(message: '收藏状态更新失败，请重试~');
     }

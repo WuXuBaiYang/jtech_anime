@@ -76,7 +76,7 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
   }
 
   // 构建控制器
-  Widget _buildControls(BuildContext context, VideoState state) {
+  Widget _buildControls(BuildContext context, state) {
     final controller = widget.controller;
     final screenWidth = Tool.getScreenWidth(context);
     final screenHeight = Tool.getScreenHeight(context);

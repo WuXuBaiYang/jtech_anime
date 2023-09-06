@@ -14,24 +14,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 是否启用无图模式
   ImageView.noPictureMode = false;
-  // 设置音量控制
-  VolumeTool.setup();
-  // 初始化视频播放器
-  MediaKit.ensureInitialized();
+  // 初始化核心内容
+  ensureInitializedCore(
+    themeDataMap: CustomTheme.dataMap,
+  );
   // 强制竖屏
   setScreenOrientation(true);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: SystemUiOverlay.values);
-  // 初始化ffmpeg
-  await FFMpegHelper.instance.initialize();
-  // 初始化各种manage
-  await router.init(); // 路由服务
-  await cache.init(); // 缓存服务
-  await event.init(); // 事件服务
-  await db.init(); // 数据库
-  await download.init(); // 下载管理
-  await notice.init(); // 消息通知
-  await animeParser.init(); // 番剧解析器
   // 设置沉浸式状态栏
   if (Platform.isAndroid) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -53,11 +43,6 @@ void main() async {
       }
     }
   });
-  // 监听解析源切换
-  event.on<SourceChangeEvent>().listen((event) {
-    // 暂停当前所有的下载任务
-    download.stopAllTasks();
-  });
   // 监听下载任务变化并弹出通知
   const noticeFlag = 9527;
   download.downloadProgress.listen((task) {
@@ -76,8 +61,6 @@ void main() async {
     }
     notice.cancel(noticeFlag);
   });
-  // 设置初始化样式
-  theme.setup(CustomTheme.dataMap);
   runApp(const MyApp());
 }
 
