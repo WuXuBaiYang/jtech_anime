@@ -7,12 +7,6 @@ import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 是否启用无图模式
-  ImageView.noPictureMode = false;
-  // 初始化核心内容
-  ensureInitializedCore(
-    themeDataMap: CustomTheme.dataMap,
-  );
   // 初始化窗口管理
   await windowManager.ensureInitialized();
   const windowOptions = WindowOptions(
@@ -26,6 +20,11 @@ void main() async {
     await windowManager.show();
     await windowManager.focus();
   });
+  // 初始化核心内容
+  ensureInitializedCore(
+    themeDataMap: CustomTheme.dataMap,
+    noPictureMode: false,
+  );
   runApp(const MyApp());
 }
 

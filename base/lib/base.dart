@@ -77,8 +77,14 @@ export 'package:collection/collection.dart';
 export 'package:dio/dio.dart';
 
 // 初始化核心方法
-Future<void> ensureInitializedCore(
-    {Map<Brightness, ThemeData>? themeDataMap}) async {
+Future<void> ensureInitializedCore({
+  Map<Brightness, ThemeData>? themeDataMap,
+  bool noPictureMode = false,
+}) async {
+  // 设置是否为无图模式
+  ImageView.noPictureMode = noPictureMode;
+  // 设置初始化样式
+  if (themeDataMap != null) theme.setup(themeDataMap);
   // 设置音量控制
   VolumeTool.setup();
   // 初始化视频播放器
@@ -97,8 +103,6 @@ Future<void> ensureInitializedCore(
     // 暂停当前所有的下载任务
     download.stopAllTasks();
   });
-  // 设置初始化样式
-  if (themeDataMap != null) theme.setup(themeDataMap);
 }
 
 // 数据库自动生成id

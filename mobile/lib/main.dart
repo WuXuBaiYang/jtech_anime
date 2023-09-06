@@ -14,10 +14,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 是否启用无图模式
   ImageView.noPictureMode = false;
-  // 初始化核心内容
-  ensureInitializedCore(
-    themeDataMap: CustomTheme.dataMap,
-  );
   // 强制竖屏
   setScreenOrientation(true);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
@@ -61,6 +57,11 @@ void main() async {
     }
     notice.cancel(noticeFlag);
   });
+  // 初始化核心内容
+  ensureInitializedCore(
+    themeDataMap: CustomTheme.dataMap,
+    noPictureMode: false,
+  );
   runApp(const MyApp());
 }
 
