@@ -15,6 +15,9 @@ typedef ImageViewStateLoad = Widget? Function();
 * @Time 2022/10/24 9:54
 */
 class ImageView extends StatefulWidget {
+  // 是否启用无图模式
+  static bool noPictureMode = false;
+
   // 图片源
   final ImageViewSource source;
 
@@ -199,6 +202,7 @@ class ImageView extends StatefulWidget {
 class _ImageViewState extends State<ImageView> {
   @override
   Widget build(BuildContext context) {
+    if (ImageView.noPictureMode) return const SizedBox();
     return GestureDetector(
       onTap: widget.onTap,
       child: ExtendedImage(

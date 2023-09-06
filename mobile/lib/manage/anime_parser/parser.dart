@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:brotli/brotli.dart';
@@ -78,33 +79,44 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 获取番剧时间表
-  Future<TimeTableModel?> getTimeTable() async {
+  Future<TimeTableModel?> getTimeTable({CancelToken? cancelToken}) async {
     final content = await _readParserFileContent();
     if (content == null) return null;
     final request = AnimeParserRequestModel.fromTimeTable();
-    final result = await _doJSFunction(content, request);
+    final result =
+        await _doJSFunction(content, request, cancelToken: cancelToken);
+    if (result == null) return null;
     return TimeTableModel.from(jsonDecode(result));
   }
 
   // 获取过滤条件列表
-  Future<List<AnimeFilterModel>> loadFilterList() async {
+  Future<List<AnimeFilterModel>> loadFilterList(
+      {CancelToken? cancelToken}) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
     final request = AnimeParserRequestModel.fromFilter();
-    final result = await _doJSFunction(content, request);
+    final result =
+        await _doJSFunction(content, request, cancelToken: cancelToken);
+    if (result == null) return [];
     return jsonDecode(result)
         .map<AnimeFilterModel>(AnimeFilterModel.from)
         .toList();
   }
 
   // 搜索番剧列表
-  Future<List<AnimeModel>> searchAnimeList(String keyword,
-      {int pageIndex = 1, int pageSize = 25}) async {
+  Future<List<AnimeModel>> searchAnimeList(
+    String keyword, {
+    int pageIndex = 1,
+    int pageSize = 25,
+    CancelToken? cancelToken,
+  }) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
     final request = AnimeParserRequestModel.fromSearch(
         pageIndex: pageIndex, pageSize: pageSize, keyword: keyword);
-    final result = await _doJSFunction(content, request);
+    final result =
+        await _doJSFunction(content, request, cancelToken: cancelToken);
+    if (result == null) return [];
     return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
   }
 
@@ -113,18 +125,24 @@ class AnimeParserManage extends BaseManage {
     int pageIndex = 1,
     int pageSize = 25,
     Map<String, dynamic> filterSelect = const {},
+    CancelToken? cancelToken,
   }) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
     final request = AnimeParserRequestModel.fromHome(
         pageIndex: pageIndex, pageSize: pageSize, filterSelect: filterSelect);
-    final result = await _doJSFunction(content, request);
+    final result =
+        await _doJSFunction(content, request, cancelToken: cancelToken);
+    if (result == null) return [];
     return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
   }
 
   // 获取详情页数据(缓存时间：6小时)
-  Future<AnimeModel?> getAnimeDetail(String animeUrl,
-      [bool useCache = true]) async {
+  Future<AnimeModel?> getAnimeDetail(
+    String animeUrl, {
+    CancelToken? cancelToken,
+    bool useCache = true,
+  }) async {
     final content = await _readParserFileContent();
     if (content == null) return null;
     Map? animeDetail;
@@ -132,7 +150,10 @@ class AnimeParserManage extends BaseManage {
     if (useCache) animeDetail = cache.getJson(cacheKey);
     if (animeDetail != null) return AnimeModel.from(animeDetail);
     final request = AnimeParserRequestModel.fromDetail(animeUrl: animeUrl);
-    animeDetail = jsonDecode(await _doJSFunction(content, request));
+    final result =
+        await _doJSFunction(content, request, cancelToken: cancelToken);
+    if (result == null) return null;
+    animeDetail = jsonDecode(result);
     if (animeDetail == null) return null;
     await cache.setJsonMap(cacheKey, animeDetail,
         expiration: const Duration(hours: 6));
@@ -140,8 +161,11 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 获取视频播放地址（缓存时间：永久）
-  Future<List<VideoCache>> getPlayUrls(List<ResourceItemModel> items,
-      [bool useCache = true]) async {
+  Future<List<VideoCache>> getPlayUrls(
+    List<ResourceItemModel> items, {
+    CancelToken? cancelToken,
+    bool useCache = true,
+  }) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
     final tempList = <VideoCache>[];
@@ -159,7 +183,9 @@ class AnimeParserManage extends BaseManage {
       }
       // 如果不存在缓存地址则去获取播放地址并封装
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
-      final result = await _doJSFunction(content, request);
+      final result =
+          await _doJSFunction(content, request, cancelToken: cancelToken);
+      if (result == null) return [];
       for (final e in jsonDecode(result)) {
         final playUrl = e['playUrl'];
         useCache = e['useCache'] ?? true;
@@ -268,9 +294,13 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 执行js方法
-  Future<String> _doJSFunction(
-      String sourceCode, AnimeParserRequestModel request) async {
+  Future<String?> _doJSFunction(
+    String sourceCode,
+    AnimeParserRequestModel request, {
+    CancelToken? cancelToken,
+  }) async {
     final params = request.to();
+    final completer = Completer<String?>();
     final function = request.function.getCaseFunction(params);
     final result = await _jsRuntime.evaluateAsync('''
           $_injectionMethods
@@ -282,7 +312,19 @@ class AnimeParserManage extends BaseManage {
           doJSFunction()
     ''');
     _jsRuntime.executePendingJob();
-    return (await _jsRuntime.handlePromise(result)).stringResult;
+    _jsRuntime.handlePromise(result).then((result) {
+      if (completer.isCompleted) return;
+      completer.complete(result.stringResult);
+    }).catchError((_) {
+      if (completer.isCompleted) return;
+      completer.complete(null);
+    });
+    // 监听是否已取消
+    cancelToken?.whenCancel.then((_) {
+      if (completer.isCompleted) return;
+      completer.complete(null);
+    });
+    return completer.future;
   }
 
   // 初始化自定义方法

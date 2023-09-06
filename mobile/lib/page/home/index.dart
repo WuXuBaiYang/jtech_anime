@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -102,7 +102,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
 
   // 构建标题栏底部
   PreferredSize? _buildAppBarBottom() {
-    if (!animeParser.isSupport(AnimeParserFunction.timeTable)) return null;
+    if (!_supportTimeTable) return null;
     return const PreferredSize(
       preferredSize: Size.fromHeight(kToolbarHeight + 14),
       child: CustomTabBar(
@@ -150,14 +150,17 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         const SizedBox(width: 14),
       ];
 
+  // 判断是否支持番剧时间表
+  bool get _supportTimeTable =>
+      animeParser.isSupport(AnimeParserFunction.timeTable);
+
   // 构建首页内容体
   Widget _buildContent() {
-    return TabBarView(
-      physics: !animeParser.isSupport(AnimeParserFunction.timeTable)
-          ? const NeverScrollableScrollPhysics()
-          : null,
-      children: [_buildAnimeList(), _buildAnimeTimeTable()],
-    );
+    if (!_supportTimeTable) return _buildAnimeList();
+    return TabBarView(children: [
+      _buildAnimeList(),
+      _buildAnimeTimeTable(),
+    ]);
   }
 
   // 构建番剧列表
@@ -214,6 +217,9 @@ class _HomeLogic extends BaseLogic {
   // 维护分页数据量
   final _pageSize = 25;
 
+  // 缓存当前请求token
+  CancelToken? _cancelToken;
+
   @override
   void init() {
     super.init();
@@ -222,10 +228,12 @@ class _HomeLogic extends BaseLogic {
     // 监听解析源切换
     event.on<SourceChangeEvent>().listen((_) async {
       animeList.clear();
-      controller.finish();
       _loadFilterSelect();
       filterSelect.clear();
-      await Future.delayed(const Duration(milliseconds: 100));
+      if (_cancelToken != null) {
+        _cancelToken?.cancel('解析源切换');
+        await Future.delayed(const Duration(milliseconds: 1500));
+      }
       timeTableController.refreshValue();
       controller.startRefresh();
     });
@@ -242,10 +250,12 @@ class _HomeLogic extends BaseLogic {
       final filterSelect =
           filters.asMap().map((_, v) => MapEntry(v.key, v.value));
       final pageIndex = loadMore ? _pageIndex + 1 : 1;
+      _cancelToken = CancelToken();
       final result = await animeParser.loadHomeList(
         pageIndex: pageIndex,
         pageSize: _pageSize,
         filterSelect: filterSelect,
+        cancelToken: _cancelToken,
       );
       loadMore ? animeList.addValues(result) : animeList.setValue(result);
       if (loadMore && result.isEmpty) {
@@ -256,6 +266,7 @@ class _HomeLogic extends BaseLogic {
       SnackTool.showMessage(message: '番剧加载失败，请重试~');
     } finally {
       loading.setValue(false);
+      _cancelToken = null;
     }
   }
 

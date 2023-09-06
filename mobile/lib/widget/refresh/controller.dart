@@ -8,23 +8,10 @@ import 'package:jtech_anime/common/notifier.dart';
 */
 class CustomRefreshController extends ValueChangeNotifier<double> {
   // 控制器
-  final controller = EasyRefreshController(
-      controlFinishRefresh: true, controlFinishLoad: true);
+  final controller = EasyRefreshController();
 
   CustomRefreshController() : super(0);
 
   // 启动下拉刷新
   void startRefresh() => controller.callRefresh();
-
-  // 停止下拉刷新
-  void finishRefresh() => controller.finishRefresh();
-
-  // 停止上拉加载
-  void finishLoad() => controller.finishLoad();
-
-  // 停止全部动作
-  void finish() {
-    finishRefresh();
-    finishLoad();
-  }
 }

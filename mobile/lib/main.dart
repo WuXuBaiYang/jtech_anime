@@ -17,12 +17,15 @@ import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/home/index.dart';
 import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/tool/volume.dart';
+import 'package:jtech_anime/widget/image.dart';
 import 'package:jtech_anime/widget/stream_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:media_kit/media_kit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 是否启用无图模式
+  ImageView.noPictureMode = true;
   // 设置音量控制
   VolumeTool.setup();
   // 初始化视频播放器

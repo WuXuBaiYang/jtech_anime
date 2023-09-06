@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:jtech_anime/tool/file.dart';
 import 'package:background_downloader/background_downloader.dart';
-import 'package:jtech_anime/tool/tool.dart';
 
 // 下载进度回调
 typedef DownloaderProgressCallback = void Function(
@@ -27,62 +26,51 @@ abstract class Downloader {
 
   // 文件下载
   Future<File?> download(
-    String downloadUrl, {
+    String downloadUrl,
+    String savePath, {
     DownloaderProgressCallback? receiveProgress,
-    FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
-    String fileDir = '',
-    String? filename,
-    int retries = 3,
   }) async {
-    final downloader = FileDownloader();
-    // 生成下载任务
-    final taskId = Tool.md5(downloadUrl);
-    final downloadTask = DownloadTask(
-      baseDirectory: BaseDirectory.values[root.index],
-      updates: Updates.statusAndProgress,
-      requiresWiFi: false,
-      directory: fileDir,
-      filename: filename,
-      url: downloadUrl,
-      allowPause: true,
-      retries: retries,
-      taskId: taskId,
+    int beginIndex = 0;
+    final file = File(savePath);
+    // 如果存在已下载文件则获取文件长度
+    if (file.existsSync()) beginIndex = file.lengthSync();
+    final resp = await Dio().get<ResponseBody>(
+      downloadUrl,
+      options: Options(
+        responseType: ResponseType.stream,
+        followRedirects: false,
+        headers: {
+          "range": "bytes=$beginIndex-",
+        },
+      ),
     );
     final completer = Completer<File?>();
-    final fileSize = await _getNetFileSize(downloadUrl);
-    final downloadFile = File(await downloadTask.filePath());
-    // 监听任务销毁状态
-    cancelToken?.whenCancel.whenComplete(() {
-      downloader.pause(downloadTask);
+    final raf = file.openSync(mode: FileMode.append);
+    int lastReceived = beginIndex,
+        received = beginIndex,
+        total = _getContentLength(resp);
+    final subscription = resp.data?.stream.listen((data) {
+      received += data.length;
+      receiveProgress?.call(received, total, received - lastReceived);
+      lastReceived = received;
+      raf.writeFromSync(data);
+    }, onDone: () {
+      raf.close();
+      if (completer.isCompleted) return;
+      completer.complete(file);
+    }, onError: (e) {
+      raf.close();
+      if (completer.isCompleted) return;
+      completer.complete(null);
+    }, cancelOnError: true);
+    // 监听取消事件
+    cancelToken?.whenCancel.then((_) async {
+      subscription?.cancel();
+      raf.close();
+      if (completer.isCompleted) return;
       completer.complete(null);
     });
-    // 启动下载
-    double lastProgress = 0;
-    downloader.download(
-      downloadTask,
-      onProgress: (progress) {
-        final count = fileSize * progress;
-        final downloadSpeed = fileSize * (progress - lastProgress);
-        lastProgress = progress;
-        receiveProgress?.call(
-            min(count.toInt(), fileSize), fileSize, downloadSpeed.toInt());
-      },
-      onStatus: (status) {
-        switch (status) {
-          case TaskStatus.complete:
-            return completer.complete(downloadFile);
-          case TaskStatus.notFound:
-          case TaskStatus.failed:
-          case TaskStatus.canceled:
-          case TaskStatus.paused:
-            return completer.complete(null);
-          case TaskStatus.enqueued:
-          case TaskStatus.running:
-          case TaskStatus.waitingToRetry:
-        }
-      },
-    );
     return completer.future;
   }
 
@@ -211,13 +199,21 @@ abstract class Downloader {
         );
       }).toList();
 
-  // 获取网络附件大小
-  Future<int> _getNetFileSize(String url) async {
-    final resp = await Dio().head(url);
-    if (resp.statusCode != 200) return 0;
-    final contentLength = resp.headers.value(Headers.contentLengthHeader);
+  // 获取文件大小
+  int _getContentLength(Response<ResponseBody> response) {
+    var contentLength = response.headers.value(HttpHeaders.contentLengthHeader);
     return int.tryParse(contentLength ?? '') ?? 0;
   }
+
+  // // 判断是否支持断点续传
+  // bool _supportPause(Response<ResponseBody> response) {
+  //   final keys = response.headers.map.keys;
+  //   return [
+  //     HttpHeaders.contentRangeHeader,
+  //     HttpHeaders.ifRangeHeader,
+  //     HttpHeaders.rangeHeader,
+  //   ].any(keys.contains);
+  // }
 
   // 判断是否已取消
   bool isCanceled(CancelToken? cancelToken) {
