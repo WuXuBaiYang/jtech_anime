@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/model/filter.dart';
-import 'package:jtech_anime/model/database/filter_select.dart';
-import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:collection/collection.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 番剧过滤条件选择
@@ -210,6 +201,6 @@ class _HomeLatestAnimeFilterSheetState
     String tempKey = item is AnimeFilterModel
         ? '${item.key}_${item.name}'
         : '${item.key}_${item.parentName}';
-    return Tool.md5(tempKey);
+    return md5(tempKey);
   }
 }

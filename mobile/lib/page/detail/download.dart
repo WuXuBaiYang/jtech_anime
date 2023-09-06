@@ -1,19 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/tool/loading.dart';
+import 'package:jtech_anime/tool/network.dart';
 import 'package:jtech_anime/tool/permission.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/tab.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 资源下载弹窗
@@ -211,7 +200,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   // 添加下载任务
   Future<void> _addDownloadTask(BuildContext context) async {
     // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-    if (!await Tool.checkNetwork(context, widget.checkNetwork)) return;
+    if (!await Network.checkNetwork(context, widget.checkNetwork)) return;
     return Loading.show<void>(
       loadFuture: Future(() async {
         final source = animeParser.currentSource;

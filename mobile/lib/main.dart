@@ -1,26 +1,14 @@
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/common/common.dart';
-import 'package:jtech_anime/common/localization/chinese_cupertino_localizations.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/cache.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/event.dart';
+import 'package:jtech_anime/common/theme.dart';
 import 'package:jtech_anime/manage/notification.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/model/database/download_record.dart';
 import 'package:jtech_anime/page/home/index.dart';
+import 'package:jtech_anime/tool/network.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/tool/volume.dart';
-import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/stream_view.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:jtech_anime_base/base.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +19,7 @@ void main() async {
   // 初始化视频播放器
   MediaKit.ensureInitialized();
   // 强制竖屏
-  Tool.toggleScreenOrientation(true);
+  setScreenOrientation(true);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: SystemUiOverlay.values);
   // 初始化ffmpeg
@@ -55,7 +43,7 @@ void main() async {
   Connectivity().onConnectivityChanged.listen((status) async {
     // 当网络状态切换为流量时，则判断是否需要暂停所有下载任务
     if (status == ConnectivityResult.mobile) {
-      if (cache.getBool(Common.checkNetworkStatusKey) ?? true) {
+      if (cache.getBool(Network.checkNetworkStatusKey) ?? true) {
         // 只暂停当前资源下的所有下载任务，切换资源的时候则会暂停全部任务
         final source = animeParser.currentSource;
         if (source == null) return;
@@ -70,6 +58,8 @@ void main() async {
     // 暂停当前所有的下载任务
     download.stopAllTasks();
   });
+  // 设置初始化样式
+  theme.setup(CustomTheme.dataMap);
   runApp(const MyApp());
 }
 
@@ -78,26 +68,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeStreamView(
-      builder: (c, snap) => MaterialApp(
-        title: Common.appName,
-        theme: snap.data?.data,
-        navigatorKey: router.navigateKey,
-        debugShowCheckedModeBanner: false,
-        onGenerateRoute: router.onGenerateRoute(
-          routesMap: RoutePath.routes,
-        ),
-        localizationsDelegates: const [
-          GlobalWidgetsLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          ChineseCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', 'US'),
-          Locale('zh', 'CN'),
-        ],
-        home: const HomePage(),
-      ),
+    return CustomMaterialApp(
+      routesMap: RoutePath.routes,
+      home: const HomePage(),
     );
   }
 }

@@ -1,15 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/model/database/source.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/widget/source/import.dart';
-import 'package:jtech_anime/widget/source/logo.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
+import 'package:jtech_anime/widget/source_import.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 番剧解析源快速切换弹窗

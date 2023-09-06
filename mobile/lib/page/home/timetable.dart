@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/time_table.dart';
-import 'package:jtech_anime/tool/date.dart';
 import 'package:jtech_anime/widget/anime_list.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 首页番剧时间表

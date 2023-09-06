@@ -1,19 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/common/logic.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/cache.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/search_record.dart';
 import 'package:jtech_anime/page/search/search.dart';
-import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/widget/anime_list.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
-import 'package:jtech_anime/widget/refresh/controller.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 搜索页

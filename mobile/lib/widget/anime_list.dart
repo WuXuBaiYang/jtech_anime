@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/refresh/controller.dart';
-import 'package:jtech_anime/widget/refresh/refresh_view.dart';
-import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime_base/base.dart';
 
 // 番剧点击事件
 typedef AnimeListItemTap = void Function(AnimeModel item);

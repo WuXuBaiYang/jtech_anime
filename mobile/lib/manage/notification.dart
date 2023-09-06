@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:jtech_anime/common/manage.dart';
+import 'package:jtech_anime_base/base.dart';
 
 // 当收到消息通知时的回调
 typedef OnNotificationReceive = Future Function(

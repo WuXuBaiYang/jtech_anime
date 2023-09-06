@@ -1,33 +1,12 @@
 import 'dart:async';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/common.dart';
-import 'package:jtech_anime/common/logic.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/anime_parser/funtions.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/event.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/filter_select.dart';
-import 'package:jtech_anime/model/time_table.dart';
 import 'package:jtech_anime/page/home/list.dart';
 import 'package:jtech_anime/page/home/source.dart';
 import 'package:jtech_anime/page/home/timetable.dart';
-import 'package:jtech_anime/tool/debounce.dart';
-import 'package:jtech_anime/tool/loading.dart';
-import 'package:jtech_anime/tool/snack.dart';
 import 'package:jtech_anime/tool/version.dart';
-import 'package:jtech_anime/widget/source/logo.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/refresh/controller.dart';
-import 'package:jtech_anime/widget/status_box.dart';
-import 'package:jtech_anime/widget/stream_view.dart';
-import 'package:jtech_anime/widget/tab.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 首页

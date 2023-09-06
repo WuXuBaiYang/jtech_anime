@@ -1,17 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/cache.dart';
 import 'package:jtech_anime/manage/notification.dart';
-import 'package:jtech_anime/manage/router.dart';
 import 'package:jtech_anime/model/version.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/widget/message_dialog.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:ota_update/ota_update.dart';
-import 'log.dart';
 import 'permission.dart';
 
 /*

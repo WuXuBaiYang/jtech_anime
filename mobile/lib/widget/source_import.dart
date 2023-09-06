@@ -1,26 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_js/flutter_js.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/anime_parser/funtions.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/model/database/source.dart';
-import 'package:jtech_anime/tool/date.dart';
-import 'package:jtech_anime/tool/loading.dart';
-import 'package:jtech_anime/tool/log.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
 import 'package:jtech_anime/widget/qr_code/sheet.dart';
-import 'package:jtech_anime/widget/source/logo.dart';
-import 'package:jtech_anime/widget/status_box.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:jtech_anime_base/base.dart';
+import 'package:jtech_anime_base/manage/anime_parser/functions.dart';
 
 /*
 * 番剧解析源导入sheet

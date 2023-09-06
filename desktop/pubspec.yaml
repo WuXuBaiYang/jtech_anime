@@ -31,6 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # 通用核心库
+  jtech_anime_base:
+    path: ../base
+
   # 窗口管理
   window_manager: ^0.3.6
 
@@ -38,11 +42,6 @@ dependencies:
   media_kit_libs_macos_video: any
   media_kit_libs_windows_video: any
   media_kit_libs_linux: any
-
-  # 依赖移动端项目
-  # 等开发完成之后切换为共通依赖
-  jtech_anime_base:
-    path: ../base
 
 
   # The following adds the Cupertino Icons font to your application.

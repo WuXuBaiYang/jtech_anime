@@ -1,16 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/model/database/play_record.dart';
-import 'package:jtech_anime/model/download.dart';
-import 'package:jtech_anime/model/download_group.dart';
-import 'package:jtech_anime/tool/file.dart';
-import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/status_box.dart';
-import 'package:jtech_anime/widget/text_scroll.dart';
+import 'package:jtech_anime_base/base.dart';
 
 // 下载记录事件回调
 typedef DownloadRecordCallback = void Function(List<DownloadRecord> records);

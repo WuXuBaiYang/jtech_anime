@@ -1,6 +1,4 @@
-import 'package:jtech_anime/common/model.dart';
-import 'package:jtech_anime/tool/file.dart';
-import 'package:jtech_anime/tool/tool.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * app版本信息

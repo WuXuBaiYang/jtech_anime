@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/widget/player/controller.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 自定义播放器控制层-侧边

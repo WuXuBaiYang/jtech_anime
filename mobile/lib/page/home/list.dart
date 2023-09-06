@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/anime_parser/funtions.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/filter_select.dart';
 import 'package:jtech_anime/page/home/filter.dart';
 import 'package:jtech_anime/widget/anime_list.dart';
-import 'package:jtech_anime/widget/refresh/controller.dart';
-import 'package:jtech_anime/widget/refresh/refresh_view.dart';
+import 'package:jtech_anime_base/base.dart';
 
 // 过滤条件变化
 typedef HomeLatestAnimeFilterChange = void Function(List<FilterSelect> items);

@@ -31,69 +31,16 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_localizations:
-    sdk: flutter
-
-  # 国际化
-  intl: any
-
-  # 路径
-  path: ^1.8.3
-
-  # 路径管理
-  path_provider: ^2.1.0
-
-  # sp缓存
-  shared_preferences: ^2.2.0
-
-  # 加密
-  crypto: ^3.0.3
-
-  # 日志
-  logger: ^2.0.1
-
-  # 网络请求框架
-  dio: ^5.3.2
-
-  # 图片框架
-  extended_image: ^8.1.0
-
-  # 图标
-  font_awesome_flutter: ^10.5.0
-
-  # 数据库框架
-  isar: ^3.1.0+1
-
-  # 数据库框架核心
-  isar_flutter_libs: ^3.1.0+1
-
-  # 包信息
-  package_info_plus: ^4.1.0
-
-  # 动画
-  lottie: ^2.6.0
-
-  # 模糊
-  blur: ^3.1.0
-
-  # 跑马灯
-  text_scroll: ^0.2.0
-
-  # 刷新组件
-  easy_refresh: ^3.3.2+1
+  # 通用核心库
+  jtech_anime_base:
+    path: ../base
 
   # 电池容量
   battery_plus: ^4.0.2
 
   # 视频播放器
-  media_kit: ^1.1.7
-  media_kit_video: ^1.1.8
-  media_kit_native_event_loop: ^1.0.7
   media_kit_libs_android_video: any
   media_kit_libs_ios_video: any
-
-  # m3u8文件解析
-  flutter_hls_parser: ^2.0.1
 
   # 权限管理
   permission_handler: ^10.4.3
@@ -102,43 +49,16 @@ dependencies:
   ota_update: ^5.1.0
 
   # 通知栏消息
-  flutter_local_notifications: ^15.1.0+1
-
-  # ffmpeg
-  ffmpeg_helper: ^1.0.1
+  flutter_local_notifications: ^15.1.1
 
   # 连接状态检查
   connectivity_plus: ^4.0.2
-
-  # 后台下载器
-  background_downloader: ^7.9.2
-
-  # js运行时
-  flutter_js: ^0.8.0
-
-  # br解压缩
-  brotli: ^0.6.0
-
-  # html解析方法
-  html: ^0.15.4
-
-  # 图片选择器
-  image_picker: ^1.0.2
 
   # 二维码扫描/解码
   qr_code_dart_scan: ^0.7.2
 
   # 屏幕亮度
   screen_brightness: ^0.2.2+1
-
-  # 音量控制
-  flutter_volume_controller: ^1.2.7
-
-  # collection
-  collection: any
-
-  # url跳转
-  url_launcher: ^6.1.14
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -147,12 +67,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # 数据库框架生成器
-  isar_generator: ^3.1.0+1
-
-  # 构建器
-  build_runner: any
 
   # 原生启动页
   flutter_native_splash: ^2.3.2
@@ -191,13 +105,13 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-#  fonts:
-#    - family: SourceHan
-#      fonts:
-#        - asset: assets/fonts/SourceHanSansSC.otf
-#    - family: STHeiti
-#      fonts:
-#        - asset: assets/fonts/STHeiti-Medium-4.ttc
+  #  fonts:
+  #    - family: SourceHan
+  #      fonts:
+  #        - asset: assets/fonts/SourceHanSansSC.otf
+  #    - family: STHeiti
+  #      fonts:
+  #        - asset: assets/fonts/STHeiti-Medium-4.ttc
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

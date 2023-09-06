@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/tool/log.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime/widget/qr_code/scanner.dart';
+import 'package:jtech_anime_base/base.dart';
+import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 
 /*
 * 二维码扫描sheet
@@ -62,7 +60,7 @@ class _QRCodeSheetState extends State<QRCodeSheet> {
           title: const Text('从相册中选择'),
           onTap: () async {
             try {
-              router.pop(await Tool.decoderQRCodeFromGallery());
+              router.pop(await _decoderQRCodeFromGallery());
             } catch (e) {
               LogTool.e('二维码识别失败', error: e);
               SnackTool.showMessage(message: '二维码识别失败');
@@ -71,5 +69,16 @@ class _QRCodeSheetState extends State<QRCodeSheet> {
         ),
       ],
     );
+  }
+
+  // 选择图片并解码其中的二维码
+  static Future<String?> _decoderQRCodeFromGallery() async {
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(source: ImageSource.gallery);
+    if (xFile == null) return null;
+    final decoder = QRCodeDartScanDecoder(formats: [BarcodeFormat.QR_CODE]);
+    final result = await decoder.decodeFile(xFile);
+    if (result == null) return null;
+    return result.text;
   }
 }

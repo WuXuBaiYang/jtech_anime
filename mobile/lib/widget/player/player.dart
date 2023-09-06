@@ -1,25 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/brightness.dart';
-import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/tool/volume.dart';
-import 'package:jtech_anime/widget/listenable_builders.dart';
-import 'package:jtech_anime/widget/player/controller.dart';
-import 'package:jtech_anime/widget/player/controls/bottom.dart';
-import 'package:jtech_anime/widget/player/controls/progress.dart';
-import 'package:jtech_anime/widget/player/controls/side.dart';
-import 'package:jtech_anime/widget/player/controls/status.dart';
-import 'package:jtech_anime/widget/player/controls/top.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:jtech_anime_base/base.dart';
+import 'bottom.dart';
+import 'progress.dart';
+import 'side.dart';
+import 'status.dart';
+import 'top.dart';
 
 /*
 * 自定义视频播放器
 * @author wuxubaiyang
 * @Time 2023/8/19 14:30
 */
-class CustomVideoPlayer extends StatefulWidget {
+class CustomMobileVideoPlayer extends StatefulWidget {
   // 控制器
   final CustomVideoPlayerController controller;
 
@@ -38,7 +33,7 @@ class CustomVideoPlayer extends StatefulWidget {
   // 底部按钮集合
   final List<Widget> bottomActions;
 
-  const CustomVideoPlayer({
+  const CustomMobileVideoPlayer({
     super.key,
     required this.controller,
     this.title,
@@ -49,7 +44,7 @@ class CustomVideoPlayer extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => _CustomVideoPlayerState();
+  State<StatefulWidget> createState() => _CustomMobileVideoPlayerState();
 }
 
 /*
@@ -57,7 +52,7 @@ class CustomVideoPlayer extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/8/19 14:30
 */
-class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
+class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
   // 倍速显隐控制
   final controlPlaySpeed = ValueChangeNotifier<bool>(false);
 
@@ -72,11 +67,11 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Video(
-      pauseUponEnteringBackgroundMode: true,
-      resumeUponEnteringForegroundMode: true,
-      controller: widget.controller.controller,
-      controls: (state) => _buildControls(context, state),
+    return CustomVideoPlayer(
+      controller: widget.controller,
+      controls: (state) {
+        return _buildControls(context, state);
+      },
     );
   }
 

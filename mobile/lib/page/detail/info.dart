@@ -1,9 +1,5 @@
-import 'package:blur/blur.dart';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/widget/image.dart';
-import 'package:jtech_anime/widget/text_scroll.dart';
-
+import 'package:jtech_anime_base/base.dart';
 /*
 * 动漫详情信息
 * @author wuxubaiyang

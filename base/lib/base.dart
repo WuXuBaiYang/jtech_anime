@@ -7,8 +7,10 @@ export 'common/model.dart';
 export 'common/notifier.dart';
 
 /// 管理方法
+export 'manage/anime_parser/functions.dart';
 export 'manage/anime_parser/parser.dart';
 export 'manage/download/download.dart';
+export 'manage/download/parser.dart';
 export 'manage/cache.dart';
 export 'manage/db.dart';
 export 'manage/event.dart';
@@ -61,3 +63,14 @@ export 'widget/text_scroll.dart';
 /// 第三方库
 export 'package:media_kit/media_kit.dart';
 export 'package:ffmpeg_helper/ffmpeg_helper.dart';
+export 'package:font_awesome_flutter/font_awesome_flutter.dart';
+export 'package:media_kit_video/media_kit_video.dart';
+export 'package:flutter_js/javascript_runtime.dart';
+export 'package:image_picker/image_picker.dart';
+export 'package:url_launcher/url_launcher.dart';
+export 'package:flutter_js/flutter_js.dart';
+export 'package:collection/collection.dart';
+export 'package:lottie/lottie.dart';
+export 'package:isar/isar.dart';
+export 'package:dio/dio.dart';
+export 'package:blur/blur.dart';

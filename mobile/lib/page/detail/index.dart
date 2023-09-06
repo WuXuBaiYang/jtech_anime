@@ -1,29 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:isar/isar.dart';
-import 'package:jtech_anime/common/common.dart';
-import 'package:jtech_anime/common/logic.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/cache.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/collect.dart';
-import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/detail/download.dart';
 import 'package:jtech_anime/page/detail/info.dart';
-import 'package:jtech_anime/tool/loading.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/refresh/controller.dart';
-import 'package:jtech_anime/widget/refresh/refresh_view.dart';
-import 'package:jtech_anime/widget/status_box.dart';
-import 'package:jtech_anime/widget/tab.dart';
-import 'package:jtech_anime/widget/text_scroll.dart';
+import 'package:jtech_anime/tool/network.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 动漫详情页
@@ -304,7 +284,7 @@ class _AnimeDetailLogic extends BaseLogic {
 
   // 是否检查网络状态
   final checkNetwork = ValueChangeNotifier<bool>(
-      cache.getBool(Common.checkNetworkStatusKey) ?? true);
+      cache.getBool(Network.checkNetworkStatusKey) ?? true);
 
   @override
   void init() {

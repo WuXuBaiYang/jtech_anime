@@ -1,11 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/tool/brightness.dart';
-import 'package:jtech_anime/tool/volume.dart';
-import 'package:jtech_anime/widget/player/controller.dart';
-import 'package:jtech_anime/widget/status_box.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 自定义播放器控制层-状态层

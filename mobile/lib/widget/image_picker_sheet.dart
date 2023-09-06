@@ -1,8 +1,6 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:jtech_anime/manage/router.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 图片选择器sheet

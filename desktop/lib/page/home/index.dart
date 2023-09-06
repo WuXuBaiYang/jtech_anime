@@ -27,7 +27,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget buildWidget(BuildContext context) {
     return WindowPage(
       child: Center(
-        child: Text('测试'),
+        child: StatusBox(
+          status: StatusBoxStatus.loading,
+        ),
       ),
     );
   }

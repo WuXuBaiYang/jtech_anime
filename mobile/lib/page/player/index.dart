@@ -1,26 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/logic.dart';
-import 'package:jtech_anime/common/notifier.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/router.dart' as router;
-import 'package:jtech_anime/manage/theme.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/model/database/play_record.dart';
 import 'package:jtech_anime/page/player/resource.dart';
-import 'package:jtech_anime/tool/date.dart';
-import 'package:jtech_anime/tool/debounce.dart';
-import 'package:jtech_anime/tool/loading.dart';
-import 'package:jtech_anime/tool/m3u8.dart';
-import 'package:jtech_anime/tool/snack.dart';
-import 'package:jtech_anime/tool/throttle.dart';
 import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/player/controller.dart';
 import 'package:jtech_anime/widget/player/player.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 播放器页面（全屏播放）
@@ -106,7 +90,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return CustomVideoPlayer(
+    return CustomMobileVideoPlayer(
       subTitle: _buildSubTitle(),
       controller: logic.controller,
       title: Text(logic.animeInfo.value.name),
@@ -268,7 +252,7 @@ class _PlayerLogic extends BaseLogic {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
       changeVideo(resourceInfo.value, playTheRecord)
-          .catchError((_) => router.router.pop());
+          .catchError((_) => router.pop());
     });
   }
 
@@ -332,14 +316,14 @@ class _PlayerLogic extends BaseLogic {
   // 进入播放页面设置(横向布局且不显示状态栏)
   void entryPlayer() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    Tool.toggleScreenOrientation(false);
+    setScreenOrientation(false);
   }
 
   // 退出播放页面设置(恢复布局并显示状态栏)
   void quitPlayer() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
-    Tool.toggleScreenOrientation(true);
+    setScreenOrientation(true);
   }
 
   // 一定时间后关闭播放记录弹窗

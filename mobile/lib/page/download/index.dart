@@ -1,28 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/common/common.dart';
-import 'package:jtech_anime/common/logic.dart';
-import 'package:jtech_anime/common/notifier.dart';
 import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/manage/anime_parser/parser.dart';
-import 'package:jtech_anime/manage/cache.dart';
-import 'package:jtech_anime/manage/db.dart';
-import 'package:jtech_anime/manage/download/download.dart';
-import 'package:jtech_anime/manage/router.dart';
-import 'package:jtech_anime/model/anime.dart';
-import 'package:jtech_anime/model/database/download_record.dart';
-import 'package:jtech_anime/model/database/play_record.dart';
-import 'package:jtech_anime/model/download.dart';
-import 'package:jtech_anime/model/download_group.dart';
 import 'package:jtech_anime/page/download/list.dart';
-import 'package:jtech_anime/tool/file.dart';
-import 'package:jtech_anime/tool/log.dart';
+import 'package:jtech_anime/tool/network.dart';
 import 'package:jtech_anime/tool/permission.dart';
-import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/message_dialog.dart';
-import 'package:jtech_anime/widget/tab.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 下载管理页
@@ -163,7 +145,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
               onRemoveRecords: (records) => _showDeleteDialog(context, records),
               onStartDownloads: (records) async {
                 // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-                if (!await Tool.checkNetwork(context, logic.checkNetwork)) {
+                if (!await Network.checkNetwork(context, logic.checkNetwork)) {
                   return;
                 }
                 download.startTasks(records);
@@ -246,7 +228,7 @@ class _DownloadLogic extends BaseLogic {
 
   // 是否检查网络状态
   final checkNetwork = ValueChangeNotifier<bool>(
-      cache.getBool(Common.checkNetworkStatusKey) ?? true);
+      cache.getBool(Network.checkNetworkStatusKey) ?? true);
 
   // 播放记录缓存控制
   final playRecordController =

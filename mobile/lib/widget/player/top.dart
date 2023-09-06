@@ -1,9 +1,6 @@
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime/tool/date.dart';
-import 'package:jtech_anime/widget/future_builder.dart';
-import 'package:jtech_anime/widget/player/controller.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 自定义播放器控制层-顶部
