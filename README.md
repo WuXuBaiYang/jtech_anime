@@ -13,17 +13,23 @@
 
 2. 进入项目目录：
    ```
-   cd jtech_anime
+   cd jtech_anime/base
    ```
 
-3. 拉取依赖：
-   ```
-   flutter pub get
-   ```
-
-4. 执行脚本生成数据库文件：
+3. 执行脚本生成数据库文件：
    ```
    dart pub run build_runner watch --verbose
+   ```
+
+4. 进入到mobilie(移动端项目)/desktop(桌面端项目)：
+   ```
+   cd ../mobile
+   或
+   cd ../desktop
+   ```
+5. 拉取依赖
+   ```
+   flutter pub get
    ```
 
 ## 未来计划
@@ -34,7 +40,7 @@
 2. 使用 JS 插件方式加载数据源 --已完成
 3. 重做整体UI --已完成
 4. 插件开发相关的 Debug 工具
-5. 拆解核心模块抽取为独立库
+5. 拆解核心模块抽取为独立库 --已完成
 6. 开发 Windows、macOS 和 Linux 桌面端版本
 
 我们正在努力实现这些计划，并将持续改进 '看番咩？' 项目。如果您有任何其他建议或想法，我们也非常欢迎您的贡献！
