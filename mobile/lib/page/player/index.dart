@@ -251,8 +251,9 @@ class _PlayerLogic extends BaseLogic {
     // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
-      changeVideo(resourceInfo.value, playTheRecord)
-          .catchError((_) => router.pop());
+      changeVideo(resourceInfo.value, playTheRecord).catchError((_) {
+        if (context.mounted) router.pop();
+      });
     });
   }
 
