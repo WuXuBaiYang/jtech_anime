@@ -45,11 +45,16 @@ abstract class Downloader {
         },
       ),
     );
+    final supportPause = _supportPause(resp);
+    if (!supportPause) beginIndex = 0;
     final completer = Completer<File?>();
-    final raf = file.openSync(mode: FileMode.append);
+    final raf = file.openSync(
+      mode: supportPause ? FileMode.append : FileMode.write,
+    );
     int lastReceived = beginIndex,
         received = beginIndex,
         total = _getContentLength(resp);
+    if (supportPause) total += beginIndex;
     final subscription = resp.data?.stream.listen((data) {
       received += data.length;
       receiveProgress?.call(received, total, received - lastReceived);
@@ -205,15 +210,15 @@ abstract class Downloader {
     return int.tryParse(contentLength ?? '') ?? 0;
   }
 
-  // // 判断是否支持断点续传
-  // bool _supportPause(Response<ResponseBody> response) {
-  //   final keys = response.headers.map.keys;
-  //   return [
-  //     HttpHeaders.contentRangeHeader,
-  //     HttpHeaders.ifRangeHeader,
-  //     HttpHeaders.rangeHeader,
-  //   ].any(keys.contains);
-  // }
+  // 判断是否支持断点续传
+  bool _supportPause(Response<ResponseBody> response) {
+    final keys = response.headers.map.keys;
+    return [
+      HttpHeaders.contentRangeHeader,
+      HttpHeaders.ifRangeHeader,
+      HttpHeaders.rangeHeader,
+    ].any(keys.contains);
+  }
 
   // 判断是否已取消
   bool isCanceled(CancelToken? cancelToken) {
