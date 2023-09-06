@@ -1,0 +1,1 @@
+dart pub run build_runner watch --verbose

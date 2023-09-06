@@ -1,0 +1,11 @@
+{
+  "key": "hanime1",
+  "name": "H1里番站",
+  "homepage": "https://hanime1.me",
+  "version": "1.0.0",
+  "lastEditDate": "2023-08-26T17:19:42.113727",
+  "logoUrl": "https://cdn.jsdelivr.net/gh/jokogebai/jokogebai@v1.0.0/tab_logo.jpg",
+  "fileUri": "assets/source/default_1.js",
+  "nsfw": true,
+  "proxy": true
+}
