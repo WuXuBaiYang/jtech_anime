@@ -1,7 +1,8 @@
 import 'package:desktop/common/route.dart';
+import 'package:desktop/common/theme.dart';
 import 'package:desktop/page/home/index.dart';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/library.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
@@ -32,25 +33,13 @@ void main() async {
   await db.init(); // 数据库
   await download.init(); // 下载管理
   await animeParser.init(); // 番剧解析器
-  // 监听网络状态变化
-  Connectivity().onConnectivityChanged.listen((status) async {
-    // 当网络状态切换为流量时，则判断是否需要暂停所有下载任务
-    if (status == ConnectivityResult.mobile) {
-      if (cache.getBool(Common.checkNetworkStatusKey) ?? true) {
-        // 只暂停当前资源下的所有下载任务，切换资源的时候则会暂停全部任务
-        final source = animeParser.currentSource;
-        if (source == null) return;
-        final records = await db.getDownloadRecordList(source,
-            status: [DownloadRecordStatus.download]);
-        await download.stopTasks(records);
-      }
-    }
-  });
   // 监听解析源切换
   event.on<SourceChangeEvent>().listen((event) {
     // 暂停当前所有的下载任务
     download.stopAllTasks();
   });
+  // 设置初始化样式
+  theme.setup(CustomTheme.dataMap);
   runApp(const MyApp());
 }
 
@@ -59,26 +48,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeStreamView(
-      builder: (c, snap) => MaterialApp(
-        title: Common.appName,
-        theme: snap.data?.data,
-        navigatorKey: router.navigateKey,
-        debugShowCheckedModeBanner: false,
-        onGenerateRoute: router.onGenerateRoute(
-          routesMap: RoutePath.routes,
-        ),
-        localizationsDelegates: const [
-          GlobalWidgetsLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          ChineseCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', 'US'),
-          Locale('zh', 'CN'),
-        ],
-        home: const HomePage(),
-      ),
+    return CustomMaterialApp(
+      routesMap: RoutePath.routes,
+      home: const HomePage(),
     );
   }
 }

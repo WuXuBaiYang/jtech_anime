@@ -1,6 +1,6 @@
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/library.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 首页

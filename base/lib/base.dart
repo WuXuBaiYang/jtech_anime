@@ -1,5 +1,3 @@
-library jtech_anime_base;
-
 /// 通用方法
 export 'common/common.dart';
 export 'common/controller.dart';
@@ -59,3 +57,7 @@ export 'widget/status_box.dart';
 export 'widget/stream_view.dart';
 export 'widget/tab.dart';
 export 'widget/text_scroll.dart';
+
+/// 第三方库
+export 'package:media_kit/media_kit.dart';
+export 'package:ffmpeg_helper/ffmpeg_helper.dart';

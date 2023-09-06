@@ -41,8 +41,8 @@ dependencies:
 
   # 依赖移动端项目
   # 等开发完成之后切换为共通依赖
-  jtech_anime:
-    path: ../mobile
+  jtech_anime_base:
+    path: ../base
 
 
   # The following adds the Cupertino Icons font to your application.
