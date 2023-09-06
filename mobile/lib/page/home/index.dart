@@ -222,8 +222,9 @@ class _HomeLogic extends BaseLogic {
     // 监听解析源切换
     event.on<SourceChangeEvent>().listen((_) async {
       animeList.clear();
-      filterSelect.clear();
+      controller.finish();
       _loadFilterSelect();
+      filterSelect.clear();
       await Future.delayed(const Duration(milliseconds: 100));
       timeTableController.refreshValue();
       controller.startRefresh();
