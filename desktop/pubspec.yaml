@@ -38,12 +38,6 @@ dependencies:
   # 窗口管理
   window_manager: ^0.3.6
 
-  # 视频播放器依赖
-  media_kit_libs_macos_video: any
-  media_kit_libs_windows_video: any
-  media_kit_libs_linux: any
-
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6

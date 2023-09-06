@@ -63,7 +63,7 @@ dependencies:
   # 视频播放器(ALL)
   media_kit: ^1.1.7
   media_kit_video: ^1.1.8
-  media_kit_native_event_loop: ^1.0.7
+  media_kit_libs_video: ^1.0.1
 
   # hls文件解析(ALL)
   flutter_hls_parser: ^2.0.1

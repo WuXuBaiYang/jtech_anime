@@ -13,7 +13,7 @@ import 'package:mobile/tool/tool.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 初始化核心内容
-  ensureInitializedCore(
+  await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
     noPictureMode: false,
   );

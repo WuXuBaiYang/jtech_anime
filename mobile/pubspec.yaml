@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.6+106
+version: 1.1.7+107
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
@@ -38,12 +38,8 @@ dependencies:
   # 电池容量
   battery_plus: ^4.0.2
 
-  # 视频播放器
-  media_kit_libs_android_video: any
-  media_kit_libs_ios_video: any
-
   # 权限管理
-  permission_handler: ^10.4.3
+  permission_handler: ^10.4.4
 
   # android版本更新
   ota_update: ^5.1.0
