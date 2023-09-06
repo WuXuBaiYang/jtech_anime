@@ -25,7 +25,7 @@ import 'package:media_kit/media_kit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 是否启用无图模式
-  ImageView.noPictureMode = true;
+  ImageView.noPictureMode = false;
   // 设置音量控制
   VolumeTool.setup();
   // 初始化视频播放器
