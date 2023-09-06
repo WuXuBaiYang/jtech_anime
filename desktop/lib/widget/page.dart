@@ -1,3 +1,4 @@
+import 'package:desktop/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
@@ -32,7 +33,7 @@ class WindowPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
+        preferredSize: const Size.fromHeight(kToolbarHeightCustom),
         child: _buildStatusBar(),
       ),
       body: child,
@@ -44,12 +45,17 @@ class WindowPage extends StatelessWidget {
     return DragToMoveArea(
       child: AppBar(
         leading: leading,
-        actions: [...actions, ..._defaultActions],
         title: title ?? const Text(Common.appName),
+        actions: [...actions, _buildWindowCaption()],
       ),
     );
   }
 
-  // 默认操作按钮（最小化/最大化/关闭）
-  List<Widget> get _defaultActions => [];
+  // 构建窗口交互按钮
+  Widget _buildWindowCaption() {
+    return SizedBox.fromSize(
+      size: const Size.fromWidth(155),
+      child: const WindowCaption(),
+    );
+  }
 }
