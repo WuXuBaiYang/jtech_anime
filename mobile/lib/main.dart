@@ -58,6 +58,24 @@ void main() async {
     // 暂停当前所有的下载任务
     download.stopAllTasks();
   });
+  // 监听下载任务变化并弹出通知
+  const noticeFlag = 9527;
+  download.downloadProgress.listen((task) {
+    if (task != null && task.downloadingMap.isNotEmpty) {
+      final progress = task.totalRatio * 100;
+      final totalCount = task.downloadingMap.length;
+      final content = '(${progress.toStringAsFixed(1)}%)  正在下载 $totalCount 条视频';
+      notice.showProgress(
+        progress: progress.toInt(),
+        indeterminate: false,
+        maxProgress: 100,
+        title: content,
+        id: noticeFlag,
+      );
+      return;
+    }
+    notice.cancel(noticeFlag);
+  });
   // 设置初始化样式
   theme.setup(CustomTheme.dataMap);
   runApp(const MyApp());
