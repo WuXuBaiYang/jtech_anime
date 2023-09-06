@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/widget/qr_code/scanner.dart';
+import 'package:mobile/widget/qr_code/scanner.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/common/route.dart';
+import 'package:mobile/common/route.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*

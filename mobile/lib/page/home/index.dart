@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/page/home/list.dart';
-import 'package:jtech_anime/page/home/source.dart';
-import 'package:jtech_anime/page/home/timetable.dart';
-import 'package:jtech_anime/tool/version.dart';
+import 'package:mobile/common/route.dart';
+import 'package:mobile/page/home/list.dart';
+import 'package:mobile/page/home/source.dart';
+import 'package:mobile/page/home/timetable.dart';
+import 'package:mobile/tool/version.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*

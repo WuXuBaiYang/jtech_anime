@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/page/search/search.dart';
-import 'package:jtech_anime/widget/anime_list.dart';
+import 'package:mobile/common/route.dart';
+import 'package:mobile/page/search/search.dart';
+import 'package:mobile/widget/anime_list.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*

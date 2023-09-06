@@ -35,7 +35,8 @@ class AnimeParserManage extends BaseManage {
   final String _cacheAnimeDetailKey = 'cache_anime_detail_';
 
   // 默认资源配置文件路径
-  static const String defaultSourceConfigPath = 'assets/source/default.json';
+  static const String defaultSourceConfigPath =
+      'packages/jtech_anime_base/assets/source/default.json';
 
   static final AnimeParserManage _instance = AnimeParserManage._internal();
 
@@ -62,7 +63,7 @@ class AnimeParserManage extends BaseManage {
   Future<String?> _readParserFileContent() async {
     final fileUri = _source?.fileUri;
     if (fileUri == null) return null;
-    if (fileUri.startsWith('asset')) {
+    if (fileUri.startsWith(RegExp(r'packages|asset'))) {
       // 如果是assets文件则需要从assets中读取
       return _parserFileContent ??= await rootBundle.loadString(fileUri);
     }
@@ -84,7 +85,7 @@ class AnimeParserManage extends BaseManage {
     if (content == null) return null;
     final request = AnimeParserRequestModel.fromTimeTable();
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     if (result == null) return null;
     return TimeTableModel.from(jsonDecode(result));
   }
@@ -96,7 +97,7 @@ class AnimeParserManage extends BaseManage {
     if (content == null) return [];
     final request = AnimeParserRequestModel.fromFilter();
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     if (result == null) return [];
     return jsonDecode(result)
         .map<AnimeFilterModel>(AnimeFilterModel.from)
@@ -104,8 +105,7 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 搜索番剧列表
-  Future<List<AnimeModel>> searchAnimeList(
-    String keyword, {
+  Future<List<AnimeModel>> searchAnimeList(String keyword, {
     int pageIndex = 1,
     int pageSize = 25,
     CancelToken? cancelToken,
@@ -115,7 +115,7 @@ class AnimeParserManage extends BaseManage {
     final request = AnimeParserRequestModel.fromSearch(
         pageIndex: pageIndex, pageSize: pageSize, keyword: keyword);
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     if (result == null) return [];
     return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
   }
@@ -132,14 +132,13 @@ class AnimeParserManage extends BaseManage {
     final request = AnimeParserRequestModel.fromHome(
         pageIndex: pageIndex, pageSize: pageSize, filterSelect: filterSelect);
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     if (result == null) return [];
     return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
   }
 
   // 获取详情页数据(缓存时间：6小时)
-  Future<AnimeModel?> getAnimeDetail(
-    String animeUrl, {
+  Future<AnimeModel?> getAnimeDetail(String animeUrl, {
     CancelToken? cancelToken,
     bool useCache = true,
   }) async {
@@ -151,7 +150,7 @@ class AnimeParserManage extends BaseManage {
     if (animeDetail != null) return AnimeModel.from(animeDetail);
     final request = AnimeParserRequestModel.fromDetail(animeUrl: animeUrl);
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     if (result == null) return null;
     animeDetail = jsonDecode(result);
     if (animeDetail == null) return null;
@@ -161,8 +160,7 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 获取视频播放地址（缓存时间：永久）
-  Future<List<VideoCache>> getPlayUrls(
-    List<ResourceItemModel> items, {
+  Future<List<VideoCache>> getPlayUrls(List<ResourceItemModel> items, {
     CancelToken? cancelToken,
     bool useCache = true,
   }) async {
@@ -184,7 +182,7 @@ class AnimeParserManage extends BaseManage {
       // 如果不存在缓存地址则去获取播放地址并封装
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
       final result =
-          await _doJSFunction(content, request, cancelToken: cancelToken);
+      await _doJSFunction(content, request, cancelToken: cancelToken);
       if (result == null) return [];
       for (final e in jsonDecode(result)) {
         final playUrl = e['playUrl'];
@@ -192,9 +190,10 @@ class AnimeParserManage extends BaseManage {
         final result = useCache
             ? await db.cachePlayUrl(url, playUrl)
             : (VideoCache()
-              ..url = url
-              ..playUrl = playUrl);
-        tempList.add((result ?? VideoCache.from(e))..item = item);
+          ..url = url
+          ..playUrl = playUrl);
+        tempList.add((result ?? VideoCache.from(e))
+          ..item = item);
       }
     }
     return tempList;
@@ -242,7 +241,7 @@ class AnimeParserManage extends BaseManage {
         final localFile = await _writeAnimeParserFile(source, resp.data);
         if (localFile == null) return null;
         fileUri = localFile.path;
-      } else if (fileUri.startsWith('asset')) {
+      } else if (fileUri.startsWith(RegExp(r'packages|asset'))) {
         // 如果是assets文件，则将文件复制到本地
         final result = await rootBundle.loadString(fileUri);
         final localFile = await _writeAnimeParserFile(source, result);
@@ -263,8 +262,8 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 将解析js写入本地
-  Future<File?> _writeAnimeParserFile(
-      AnimeSource source, String content) async {
+  Future<File?> _writeAnimeParserFile(AnimeSource source,
+      String content) async {
     final savePath = await FileTool.getDirPath(FileDirPath.animeParserCachePath,
         root: FileDir.applicationDocuments);
     if (savePath == null) return null;
@@ -294,11 +293,10 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 执行js方法
-  Future<String?> _doJSFunction(
-    String sourceCode,
-    AnimeParserRequestModel request, {
-    CancelToken? cancelToken,
-  }) async {
+  Future<String?> _doJSFunction(String sourceCode,
+      AnimeParserRequestModel request, {
+        CancelToken? cancelToken,
+      }) async {
     final params = request.to();
     final completer = Completer<String?>();
     final function = request.function.getCaseFunction(params);
@@ -353,15 +351,15 @@ class AnimeParserManage extends BaseManage {
       // 如果是br压缩则
       String data = resp.data.isNotEmpty
           ? (contentEncoding == 'br'
-              ? brotli.decodeToString(resp.data)
-              : utf8.decode(resp.data))
+          ? brotli.decodeToString(resp.data)
+          : utf8.decode(resp.data))
           : '';
       dynamic json;
       try {
         json = jsonDecode(data);
       } catch (_) {}
       final headers = resp.headers.map.map(
-        (k, v) => MapEntry(k, v.join(';')),
+            (k, v) => MapEntry(k, v.join(';')),
       );
       return {
         'ok': resp.statusCode == 200,
@@ -408,7 +406,8 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 注入方法
-  String get _injectionMethods => [
+  String get _injectionMethods =>
+      [
         // 扩展string方法querySelectorAll
         '''
         String.prototype.querySelectorAll = async function (selector, attr) {

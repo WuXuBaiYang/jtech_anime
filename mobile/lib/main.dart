@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/common/theme.dart';
-import 'package:jtech_anime/manage/notification.dart';
-import 'package:jtech_anime/page/home/index.dart';
-import 'package:jtech_anime/tool/network.dart';
-import 'package:jtech_anime/tool/tool.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/common/route.dart';
+import 'package:mobile/common/theme.dart';
+import 'package:mobile/manage/notification.dart';
+import 'package:mobile/page/home/index.dart';
+import 'package:mobile/tool/network.dart';
+import 'package:mobile/tool/tool.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

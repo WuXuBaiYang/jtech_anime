@@ -11,20 +11,23 @@ class Common {
 
   // 动画-加载动画
   static String get statusLoadingAsset => [
-        'assets/anime/status_loading1.json',
-        'assets/anime/status_loading2.json',
-        'assets/anime/status_loading3.json',
-        'assets/anime/status_loading4.json',
+        'packages/jtech_anime_base/assets/anime/status_loading1.json',
+        'packages/jtech_anime_base/assets/anime/status_loading2.json',
+        'packages/jtech_anime_base/assets/anime/status_loading3.json',
+        'packages/jtech_anime_base/assets/anime/status_loading4.json',
       ][Random().nextInt(4)];
 
   // 动画-空内容
-  static const String statusEmptyAsset = 'assets/anime/status_empty.json';
+  static const String statusEmptyAsset =
+      'packages/jtech_anime_base/assets/anime/status_empty.json';
 
   // 动画-错误
-  static const String statusErrorAsset = 'assets/anime/status_error.json';
+  static const String statusErrorAsset =
+      'packages/jtech_anime_base/assets/anime/status_error.json';
 
   // 动画-扫码
-  static const String qrCodeScannerAsset = 'assets/anime/qrcode_scanner.json';
+  static const String qrCodeScannerAsset =
+      'packages/jtech_anime_base/assets/anime/qrcode_scanner.json';
 }
 
 /*

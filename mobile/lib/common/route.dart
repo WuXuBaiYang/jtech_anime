@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/page/collect/index.dart';
-import 'package:jtech_anime/page/detail/index.dart';
-import 'package:jtech_anime/page/download/index.dart';
-import 'package:jtech_anime/page/home/index.dart';
-import 'package:jtech_anime/page/player/index.dart';
-import 'package:jtech_anime/page/record/index.dart';
-import 'package:jtech_anime/page/search/index.dart';
-import 'package:jtech_anime/page/source/index.dart';
+import 'package:mobile/page/collect/index.dart';
+import 'package:mobile/page/detail/index.dart';
+import 'package:mobile/page/download/index.dart';
+import 'package:mobile/page/home/index.dart';
+import 'package:mobile/page/player/index.dart';
+import 'package:mobile/page/record/index.dart';
+import 'package:mobile/page/search/index.dart';
+import 'package:mobile/page/source/index.dart';
 
 /*
 * 路由路径静态变量

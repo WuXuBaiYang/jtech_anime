@@ -48,6 +48,7 @@ class StatusBox extends StatelessWidget {
           Lottie.asset(
             status.assetsFile,
             width: animSize * ratio,
+            bundle: DefaultAssetBundle.of(context),
           ),
           if (title != null) ...[
             SizedBox(height: space),

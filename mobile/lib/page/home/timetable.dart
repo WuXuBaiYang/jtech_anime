@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/widget/anime_list.dart';
+import 'package:mobile/widget/anime_list.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*

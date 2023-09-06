@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/tool/brightness.dart';
+import 'package:mobile/tool/brightness.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'bottom.dart';
 import 'progress.dart';

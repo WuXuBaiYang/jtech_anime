@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime/common/route.dart';
-import 'package:jtech_anime/tool/network.dart';
-import 'package:jtech_anime/tool/permission.dart';
+import 'package:mobile/common/route.dart';
+import 'package:mobile/tool/network.dart';
+import 'package:mobile/tool/permission.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*

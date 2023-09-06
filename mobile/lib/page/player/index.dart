@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/page/player/resource.dart';
-import 'package:jtech_anime/tool/tool.dart';
-import 'package:jtech_anime/widget/player/player.dart';
+import 'package:mobile/page/player/resource.dart';
+import 'package:mobile/tool/tool.dart';
+import 'package:mobile/widget/player/player.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*

@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime/widget/qr_code/sheet.dart';
+import 'package:mobile/widget/qr_code/sheet.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:jtech_anime_base/manage/anime_parser/functions.dart';
 
 /*
 * 番剧解析源导入sheet
