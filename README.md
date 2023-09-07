@@ -18,6 +18,9 @@
 
 3. 执行脚本生成数据库文件：
    ```
+   dart pub run build_runner
+   // 以下是持续监听命令
+   // 会让控制台阻塞等待，执行后面的命令需要重开窗口
    dart pub run build_runner watch --verbose
    ```
 
@@ -31,6 +34,7 @@
    ```
    flutter pub get
    ```
+6. 使用开发工具打开mobile或者deskktop目录开始使用吧~
 
 ## 未来计划
 
