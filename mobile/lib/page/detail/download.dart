@@ -80,7 +80,13 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Widget _buildResourceOptions() {
     return Row(
       children: [
-        Expanded(child: _buildResourceTab()),
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 220,
+          ),
+          child: _buildResourceTab(),
+        ),
+        const Spacer(),
         TextButton(
           onPressed: () => router
               .pushNamed(RoutePath.download)

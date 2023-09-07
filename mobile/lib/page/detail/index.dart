@@ -137,10 +137,12 @@ class _AnimeDetailPageState
   Widget _buildAppbarBottom(List<List<ResourceItemModel>> resources) {
     return Row(
       children: [
-        Expanded(
-            child: Row(children: [
-          if (resources.isNotEmpty)
-            CustomTabBar(
+        if (resources.isNotEmpty)
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 220,
+            ),
+            child: CustomTabBar(
               isScrollable: true,
               controller: tabController,
               onTap: logic.resourceIndex.setValue,
@@ -148,7 +150,8 @@ class _AnimeDetailPageState
                 return Tab(text: '资源${i + 1}', height: 35);
               }),
             ),
-        ])),
+          ),
+        const Spacer(),
         ValueListenableBuilder<bool>(
           valueListenable: logic.sortUp,
           builder: (_, sortUp, __) {
