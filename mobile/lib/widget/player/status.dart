@@ -44,14 +44,14 @@ class _CustomPlayerControlsStatusState
   void initState() {
     super.initState();
     // 长按快进状态监听
-    double speed = 1.0;
+    final controller = widget.controller;
+    double speed = controller.state.rate;
     widget.controlPlaySpeed.addListener(() {
       if (widget.controlPlaySpeed.value) {
         speed = widget.controller.state.rate;
-        widget.controller.setRate(3.0);
+        widget.controller.setRate(speed + 1.0);
       } else {
         widget.controller.setRate(speed);
-        speed = 1.0;
       }
     });
   }

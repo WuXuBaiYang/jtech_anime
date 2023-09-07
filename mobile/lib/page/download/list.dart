@@ -175,13 +175,11 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
               ),
             ),
           ),
-        Padding(
-          padding: count > 0 ? const EdgeInsets.only(left: 8) : EdgeInsets.zero,
-          child: Text(
-            content,
-            style: const TextStyle(color: Colors.black38, fontSize: 12),
-          ),
-        ),
+        Text(content,
+            style: const TextStyle(
+              color: Colors.black38,
+              fontSize: 12,
+            )),
       ],
     );
   }

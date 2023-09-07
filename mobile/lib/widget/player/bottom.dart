@@ -157,7 +157,7 @@ class _CustomPlayerControlsBottomState
   Widget _buildRateAction() {
     const itemHeight = 35.0;
     final controller = widget.controller;
-    final ratios = [4.0, 3.0, 2.0, 1.0, 0.5];
+    final ratios = [3.0, 2.0, 1.0, 0.5];
     final offsetDY = ratios.length * itemHeight + 20;
     return StreamBuilder(
       stream: controller.stream.rate,

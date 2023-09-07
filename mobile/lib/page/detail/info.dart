@@ -105,6 +105,12 @@ class AnimeDetailInfo extends StatelessWidget {
 
   // 构建消息文本部分
   _buildInfoText() {
+    final lines = <String>[
+      animeInfo.status,
+      animeInfo.updateTime,
+      animeInfo.types.join('/'),
+      animeInfo.region,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -113,22 +119,12 @@ class AnimeDetailInfo extends StatelessWidget {
           animeInfo.name,
           style: textStyle.copyWith(color: Colors.black, fontSize: 20),
         ),
-        if (animeInfo.status.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(animeInfo.status, maxLines: 2),
-        ],
-        if (animeInfo.updateTime.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text('时间：${animeInfo.updateTime}'),
-        ],
-        if (animeInfo.types.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text('类型：${animeInfo.types.join('/')}'),
-        ],
-        if (animeInfo.region.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text('地区：${animeInfo.region}'),
-        ],
+        const SizedBox(height: 4),
+        ...lines
+            .where((e) => e.isNotEmpty)
+            .map<Widget>((e) => Text(e))
+            .expand((e) => [const SizedBox(height: 4), e])
+            .toList(),
       ],
     );
   }
