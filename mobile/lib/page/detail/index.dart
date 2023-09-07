@@ -61,11 +61,7 @@ class _AnimeDetailPageState
       builder: (_, showAppbar, __) {
         return SliverAppBar(
           pinned: true,
-          leading: AnimatedOpacity(
-            opacity: showAppbar ? 1 : 0,
-            duration: const Duration(milliseconds: 200),
-            child: const BackButton(),
-          ),
+          leading:  const BackButton(),
           title: AnimatedOpacity(
             opacity: showAppbar ? 1 : 0,
             duration: const Duration(milliseconds: 200),
@@ -94,24 +90,16 @@ class _AnimeDetailPageState
               padding: const EdgeInsets.only(
                 bottom: kToolbarHeight,
               ),
-              child: ValueListenableBuilder<PlayRecord?>(
-                valueListenable: logic.playRecord,
-                builder: (_, playRecord, __) {
-                  return AnimeDetailInfo(
-                    animeInfo: item,
-                    continueButton: playRecord != null
-                        ? ElevatedButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll(
-                                  kPrimaryColor.withOpacity(0.8)),
-                            ),
-                            onPressed: () => logic.playTheRecord(),
-                            child: const Text('继续观看',
-                                style: TextStyle(color: Colors.white)),
-                          )
-                        : null,
-                  );
-                },
+              child: InkWell(
+                child: AnimeDetailInfo(
+                  animeInfo: item,
+                  continueButton: _buildContinueButton(),
+                ),
+                onTap: () => AnimeDetailInfo.show(
+                  context,
+                  animeInfo: item,
+                  continueButton: _buildContinueButton(),
+                ),
               ),
             ),
           ),
@@ -122,6 +110,24 @@ class _AnimeDetailPageState
               child: _buildAppbarBottom(item.resources),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // 构建继续播放按钮
+  Widget _buildContinueButton() {
+    return ValueListenableBuilder<PlayRecord?>(
+      valueListenable: logic.playRecord,
+      builder: (_, playRecord, __) {
+        if (playRecord == null) return const SizedBox();
+        return ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStatePropertyAll(kPrimaryColor.withOpacity(0.8)),
+          ),
+          onPressed: () => logic.playTheRecord(),
+          child: const Text('继续观看', style: TextStyle(color: Colors.white)),
         );
       },
     );

@@ -39,7 +39,7 @@ dependencies:
   battery_plus: ^4.0.2
 
   # 权限管理
-  permission_handler: ^10.4.4
+  permission_handler: ^10.4.5
 
   # android版本更新
   ota_update: ^5.1.0

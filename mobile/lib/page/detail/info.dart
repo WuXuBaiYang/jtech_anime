@@ -13,17 +13,45 @@ class AnimeDetailInfo extends StatelessWidget {
   // 继续播放按钮
   final Widget? continueButton;
 
-  const AnimeDetailInfo(
-      {super.key, required this.animeInfo, this.continueButton});
+  // 是否可以展开
+  final bool expanded;
+
+  const AnimeDetailInfo({
+    super.key,
+    required this.animeInfo,
+    this.continueButton,
+    this.expanded = false,
+  });
+
+  // 展示为sheet
+  static Future<void> show(
+    BuildContext context, {
+    required AnimeModel animeInfo,
+    Widget? continueButton,
+  }) {
+    return showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return SingleChildScrollView(
+          child: AnimeDetailInfo(
+            expanded: true,
+            animeInfo: animeInfo,
+            continueButton: continueButton,
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
       clipBehavior: Clip.antiAlias,
       child: Stack(
-        fit: StackFit.expand,
+        fit: expanded ? StackFit.loose : StackFit.expand,
         children: [
-          _buildInfoBackground(),
+          if (!expanded) _buildInfoBackground(),
           _buildInfo(),
         ],
       ),
@@ -57,13 +85,13 @@ class AnimeDetailInfo extends StatelessWidget {
   Widget _buildInfo() {
     return SafeArea(
       child: DefaultTextStyle(
-        maxLines: 1,
         style: textStyle,
+        maxLines: expanded ? 999 : 1,
         overflow: TextOverflow.ellipsis,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const BackButton(),
+            if (!expanded) const SizedBox(height: kToolbarHeight),
             Padding(
               padding: padding,
               child: Row(
@@ -80,14 +108,17 @@ class AnimeDetailInfo extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Expanded(child: Text('简介：${animeInfo.intro}', maxLines: 3)),
-                  if (continueButton != null) ...[
+                  Expanded(
+                      child: Text('简介：${animeInfo.intro}',
+                          maxLines: expanded ? null : 3)),
+                  if (continueButton != null && !expanded) ...[
                     const SizedBox(width: 14),
                     continueButton!,
                   ],
                 ],
               ),
             ),
+            if (expanded) const SizedBox(height: 8),
           ],
         ),
       ),
@@ -111,14 +142,14 @@ class AnimeDetailInfo extends StatelessWidget {
       animeInfo.types.join('/'),
       animeInfo.region,
     ];
+    final nameStyle = textStyle.copyWith(color: Colors.black, fontSize: 20);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 8),
-        CustomScrollText.slow(
-          animeInfo.name,
-          style: textStyle.copyWith(color: Colors.black, fontSize: 20),
-        ),
+        expanded
+            ? Text(animeInfo.name, style: nameStyle)
+            : CustomScrollText.slow(animeInfo.name, style: nameStyle),
         const SizedBox(height: 4),
         ...lines
             .where((e) => e.isNotEmpty)
