@@ -61,7 +61,7 @@ class _AnimeDetailPageState
       builder: (_, showAppbar, __) {
         return SliverAppBar(
           pinned: true,
-          leading:  const BackButton(),
+          leading: const BackButton(),
           title: AnimatedOpacity(
             opacity: showAppbar ? 1 : 0,
             duration: const Duration(milliseconds: 200),
@@ -138,20 +138,28 @@ class _AnimeDetailPageState
     return Row(
       children: [
         Expanded(
-          child: Row(
-            children: [
-              if (resources.isNotEmpty)
-                CustomTabBar(
-                  isScrollable: true,
-                  controller: tabController,
-                  onTap: logic.resourceIndex.setValue,
-                  tabs: List.generate(
-                    resources.length,
-                    (i) => Tab(text: '资源${i + 1}', height: 35),
-                  ),
-                ),
-            ],
-          ),
+            child: Row(children: [
+          if (resources.isNotEmpty)
+            CustomTabBar(
+              isScrollable: true,
+              controller: tabController,
+              onTap: logic.resourceIndex.setValue,
+              tabs: List.generate(resources.length, (i) {
+                return Tab(text: '资源${i + 1}', height: 35);
+              }),
+            ),
+        ])),
+        ValueListenableBuilder<bool>(
+          valueListenable: logic.sortUp,
+          builder: (_, sortUp, __) {
+            return IconButton(
+              iconSize: 24,
+              icon: Icon(sortUp
+                  ? FontAwesomeIcons.arrowUpShortWide
+                  : FontAwesomeIcons.arrowDownWideShort),
+              onPressed: logic.toggleSort,
+            );
+          },
         ),
         IconButton(
           iconSize: 24,
@@ -188,24 +196,8 @@ class _AnimeDetailPageState
                 child: TabBarView(
                   controller: tabController,
                   children: List.generate(resources.length, (i) {
-                    final items = resources[i];
-                    return GridView.builder(
-                      itemCount: items.length,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 14, horizontal: 8),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        mainAxisExtent: 40,
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                      ),
-                      itemBuilder: (_, i) {
-                        final item = items[i];
-                        return _buildAnimeResourcesItem(
-                            item, downloadMap, playRecord?.resUrl);
-                      },
-                    );
+                    return _buildAnimeResourcesTabItem(
+                        resources[i], playRecord, downloadMap);
                   }),
                 ),
                 onRefresh: (_) => logic.loadAnimeDetail(false),
@@ -213,6 +205,25 @@ class _AnimeDetailPageState
             },
           );
         });
+  }
+
+  // 构建番剧资源tab页
+  Widget _buildAnimeResourcesTabItem(List<ResourceItemModel> items,
+      PlayRecord? playRecord, Map<String, DownloadRecord> downloadMap) {
+    return GridView.builder(
+      itemCount: items.length,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        mainAxisExtent: 40,
+        crossAxisCount: 4,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+      ),
+      itemBuilder: (_, i) {
+        final item = items[i];
+        return _buildAnimeResourcesItem(item, downloadMap, playRecord?.resUrl);
+      },
+    );
   }
 
   // 构建番剧资源子项
@@ -291,6 +302,9 @@ class _AnimeDetailLogic extends BaseLogic {
   // 是否检查网络状态
   final checkNetwork = ValueChangeNotifier<bool>(
       cache.getBool(Network.checkNetworkStatusKey) ?? true);
+
+  // 排序方向
+  final sortUp = ValueChangeNotifier<bool>(true);
 
   @override
   void init() {
@@ -415,5 +429,18 @@ class _AnimeDetailLogic extends BaseLogic {
     final result = await db
         .getDownloadRecordList(source, animeList: [animeDetail.value.url]);
     return result.asMap().map((_, v) => MapEntry(v.resUrl, v));
+  }
+
+  // 切换排序方向
+  void toggleSort() {
+    final sort = !sortUp.value;
+    sortUp.setValue(sort);
+    final detail = animeDetail.value;
+    if (detail.resources.isEmpty) return;
+    animeDetail.setValue(detail.copyWith(
+      resources: detail.resources.map((e) {
+        return e.reversed.toList();
+      }).toList(),
+    ));
   }
 }

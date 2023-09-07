@@ -62,27 +62,46 @@ class AnimeModel extends BaseModel {
 
   // 合并详情（将传入对象合并到当前对象中）
   AnimeModel merge(AnimeModel model) {
-    return AnimeModel(
-      url: _mergeString(model.url, url),
-      name: _mergeString(model.name, name),
-      cover: _mergeString(model.cover, cover),
-      status: _mergeString(model.status, status),
-      region: _mergeString(model.region, region),
-      intro: _mergeString(model.intro, intro),
-      updateTime: _mergeString(model.updateTime, updateTime),
-      types: model.types.isNotEmpty ? model.types : types,
-      resources: model.resources.isNotEmpty ? model.resources : resources,
+    return copyWith(
+      name: model.name,
+      cover: model.cover,
+      status: model.status,
+      types: model.types,
+      region: model.region,
+      intro: model.intro,
+      updateTime: model.updateTime,
+      url: model.url,
+      resources: model.resources,
     );
   }
 
-  // 合并字符串
-  String _mergeString(String from, String to) {
-    if (from.isEmpty) return to;
-    return from;
+  AnimeModel copyWith({
+    String? name,
+    String? cover,
+    String? status,
+    List<String>? types,
+    String? region,
+    String? intro,
+    String? updateTime,
+    String? url,
+    List<List<ResourceItemModel>>? resources,
+  }) {
+    return AnimeModel(
+      name: name ?? this.name,
+      cover: cover ?? this.cover,
+      status: status ?? this.status,
+      types: types ?? this.types,
+      region: region ?? this.region,
+      intro: intro ?? this.intro,
+      updateTime: updateTime ?? this.updateTime,
+      url: url ?? this.url,
+      resources: resources ?? this.resources,
+    );
   }
 
   @override
-  Map<String, dynamic> to() => {
+  Map<String, dynamic> to() =>
+      {
         'name': name,
         'cover': cover,
         'status': status,
@@ -124,7 +143,8 @@ class ResourceItemModel extends BaseModel {
         order = obj['order'] ?? 0;
 
   @override
-  Map<String, dynamic> to() => {
+  Map<String, dynamic> to() =>
+      {
         'name': name,
         'url': url,
         'order': order,
