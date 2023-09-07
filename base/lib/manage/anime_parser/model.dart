@@ -63,7 +63,8 @@ class AnimeParserRequestModel extends BaseModel {
     this.pageIndex = 1,
     this.pageSize = 25,
     this.filterSelect,
-  })  : keyword = null,
+  })
+      : keyword = null,
         animeUrl = null,
         resourceUrls = null,
         function = AnimeParserFunction.home;
@@ -73,15 +74,17 @@ class AnimeParserRequestModel extends BaseModel {
     this.pageIndex = 1,
     this.pageSize = 25,
     this.keyword,
-  })  : animeUrl = null,
-        filterSelect = null,
+    this.filterSelect,
+  })
+      : animeUrl = null,
         resourceUrls = null,
         function = AnimeParserFunction.search;
 
   // 构建详情页请求数据结构
   AnimeParserRequestModel.fromDetail({
     required this.animeUrl,
-  })  : pageIndex = null,
+  })
+      : pageIndex = null,
         pageSize = null,
         keyword = null,
         filterSelect = null,
@@ -91,7 +94,8 @@ class AnimeParserRequestModel extends BaseModel {
   // 构建视频播放地址请求数据
   AnimeParserRequestModel.fromPlayUrl({
     required this.resourceUrls,
-  })  : pageIndex = null,
+  })
+      : pageIndex = null,
         pageSize = null,
         keyword = null,
         animeUrl = null,
@@ -99,7 +103,8 @@ class AnimeParserRequestModel extends BaseModel {
         function = AnimeParserFunction.playUrl;
 
   @override
-  Map<String, dynamic> to() => {
+  Map<String, dynamic> to() =>
+      {
         'pageIndex': pageIndex,
         'pageSize': pageSize,
         'filterSelect': filterSelect,

@@ -1,3 +1,4 @@
+import 'package:desktop/page/detail/index.dart';
 import 'package:desktop/page/home/index.dart';
 import 'package:flutter/material.dart';
 
@@ -10,8 +11,12 @@ class RoutePath {
   // 创建路由表
   static Map<String, WidgetBuilder> get routes => {
         home: (_) => const HomePage(),
+    animeDetail: (_) => const AnimeDetailPage(),
       };
 
   // 首页
   static const String home = '/home';
+
+  // 番剧详情页
+  static const String animeDetail = '/anime/detail';
 }

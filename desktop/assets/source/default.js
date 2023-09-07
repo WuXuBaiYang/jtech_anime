@@ -329,6 +329,7 @@ async function loadFilterList() {
  * @param {number} pageIndex 当前页码(默认值1)
  * @param {number} pageSize 当前页数据量(默认值25)
  * @param {string} keyword 搜索关键字
+ * @param {Map.<string,string>} filterSelect 用户选择的过滤条件(key：过滤项 value：过滤值)
  * @returns {Array} [
  *         {
  *             'name': '番剧名称',
@@ -340,9 +341,9 @@ async function loadFilterList() {
  *         }
  *     ]
  */
-async function searchAnimeList(pageIndex, pageSize, keyword) {
+async function searchAnimeList(pageIndex, pageSize, keyword, filterSelect) {
     let resp = await request(getUri('/s_all', {
-        'pageindex': pageIndex - 1, 'pagesize': pageSize, 'kw': keyword
+        'pageindex': pageIndex - 1, 'pagesize': pageSize, 'kw': keyword, ...filterSelect
     }), getFetchOptions())
     if (!resp.ok) {
         if (resp.code === 404) return []

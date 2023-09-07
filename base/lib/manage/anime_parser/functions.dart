@@ -27,7 +27,8 @@ enum AnimeParserFunction {
 */
 extension AnimeParserFunctionExtension on AnimeParserFunction {
   // 获取方法中文名
-  String get functionNameCN => {
+  String get functionNameCN =>
+      {
         AnimeParserFunction.timeTable: '番剧时间表',
         AnimeParserFunction.filter: '过滤条件',
         AnimeParserFunction.search: '搜索',
@@ -37,7 +38,8 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
       }[this]!;
 
   // 获取方法名
-  String get functionName => {
+  String get functionName =>
+      {
         AnimeParserFunction.timeTable: 'getTimeTable',
         AnimeParserFunction.filter: 'loadFilterList',
         AnimeParserFunction.search: 'searchAnimeList',
@@ -47,7 +49,8 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
       }[this]!;
 
   // 判断方法是否为必须
-  bool get required => {
+  bool get required =>
+      {
         AnimeParserFunction.timeTable: false,
         AnimeParserFunction.filter: false,
         AnimeParserFunction.search: false,
@@ -57,20 +60,24 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
       }[this]!;
 
   // 拼装方法请求
-  String getCaseFunction(Map<String, dynamic> params) => {
+  String getCaseFunction(Map<String, dynamic> params) =>
+      {
         AnimeParserFunction.timeTable: (params) => '$functionName()',
         AnimeParserFunction.search: (params) {
           final pageIndex = params['pageIndex'];
           final pageSize = params['pageSize'];
           final keyword = params['keyword'];
-          return '$functionName($pageIndex, $pageSize, "$keyword")';
+          final filterSelect = params['filterSelect'];
+          return '$functionName($pageIndex, $pageSize, "$keyword", ${jsonEncode(
+              filterSelect)})';
         },
         AnimeParserFunction.filter: (params) => '$functionName()',
         AnimeParserFunction.home: (params) {
           final pageIndex = params['pageIndex'];
           final pageSize = params['pageSize'];
           final filterSelect = params['filterSelect'];
-          return '$functionName($pageIndex, $pageSize, ${jsonEncode(filterSelect)})';
+          return '$functionName($pageIndex, $pageSize, ${jsonEncode(
+              filterSelect)})';
         },
         AnimeParserFunction.detail: (params) {
           final animeUrl = params['animeUrl'];

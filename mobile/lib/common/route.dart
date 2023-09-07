@@ -44,7 +44,7 @@ class RoutePath {
   // 下载管理页
   static const String download = '/download';
 
-  // 动漫详情页
+  // 番剧详情页
   static const String animeDetail = '/anime/detail';
 
   // 番剧解析源管理页

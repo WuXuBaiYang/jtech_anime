@@ -6,7 +6,7 @@ import 'package:mobile/tool/network.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*
-* 动漫详情页
+* 番剧详情页
 * @author wuxubaiyang
 * @Time 2023/7/12 9:07
 */
@@ -18,7 +18,7 @@ class AnimeDetailPage extends StatefulWidget {
 }
 
 /*
-* 动漫详情页-状态
+* 番剧详情页-状态
 * @author wuxubaiyang
 * @Time 2023/7/12 9:07
 */
@@ -269,7 +269,7 @@ class _AnimeDetailPageState
 }
 
 /*
-* 动漫详情页-逻辑
+* 番剧详情页-逻辑
 * @author wuxubaiyang
 * @Time 2023/7/12 9:07
 */

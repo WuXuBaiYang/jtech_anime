@@ -223,17 +223,14 @@ class _HomeLogic extends BaseLogic {
     if (isLoading) return;
     try {
       loading.setValue(true);
-      final source = animeParser.currentSource;
-      if (source == null) throw Exception('数据源不存在');
-      final filters = await db.getFilterSelectList(source);
-      final filterSelect =
-          filters.asMap().map((_, v) => MapEntry(v.key, v.value));
       final pageIndex = loadMore ? _pageIndex + 1 : 1;
       _cancelToken = CancelToken();
       final result = await animeParser.loadHomeList(
         pageIndex: pageIndex,
         pageSize: _pageSize,
-        filterSelect: filterSelect,
+        filterSelect: filterSelect.value.asMap().map(
+              (_, v) => MapEntry(v.key, v.value),
+            ),
         cancelToken: _cancelToken,
       );
       loadMore ? animeList.addValues(result) : animeList.setValue(result);

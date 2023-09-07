@@ -28,7 +28,7 @@ abstract class BaseLogic {
 * @Time 2022/11/2 11:19
 */
 abstract class LogicState<T extends StatefulWidget, C extends BaseLogic>
-    extends State<T> {
+    extends State<T> with AutomaticKeepAliveClientMixin {
   // 初始化逻辑管理
   C initLogic();
 
@@ -49,6 +49,7 @@ abstract class LogicState<T extends StatefulWidget, C extends BaseLogic>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (_argumentsOnce) {
       final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
       if (arguments != null && arguments.isNotEmpty) {
@@ -66,4 +67,7 @@ abstract class LogicState<T extends StatefulWidget, C extends BaseLogic>
     logic.dispose();
     super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

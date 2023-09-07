@@ -25,6 +25,7 @@ class CustomTheme {
         useMaterial3: true,
         colorScheme: colorScheme,
         appBarTheme: const AppBarTheme(
+          toolbarHeight: kToolbarHeightCustom,
           titleTextStyle: TextStyle(
             color: Colors.black,
             fontSize: 16,
@@ -43,7 +44,7 @@ class CustomTheme {
             vertical: 4,
           ),
         ),
-        iconTheme: const IconThemeData(size: 30),
+        iconTheme: const IconThemeData(size: 20),
         bottomSheetTheme: const BottomSheetThemeData(
           surfaceTintColor: Colors.white,
           backgroundColor: Colors.white,
@@ -73,5 +74,4 @@ class CustomTheme {
       );
 }
 
-// 工具栏高度
-const double kToolbarHeightCustom = 35.0;
+const kToolbarHeightCustom = 40.0;
