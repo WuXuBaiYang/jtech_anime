@@ -315,13 +315,13 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 进入播放页面设置(横向布局且不显示状态栏)
-  void entryPlayer() {
+  void entryPlayer() async {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     setScreenOrientation(false);
   }
 
   // 退出播放页面设置(恢复布局并显示状态栏)
-  void quitPlayer() {
+  void quitPlayer() async {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     setScreenOrientation(true);
