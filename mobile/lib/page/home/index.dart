@@ -7,6 +7,7 @@ import 'package:mobile/page/home/source.dart';
 import 'package:mobile/page/home/timetable.dart';
 import 'package:mobile/tool/version.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/qr_code/scanner.dart';
 
 /*
 * 首页
@@ -40,6 +41,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
       AppVersionTool.check(context);
+
+      /// 测试代码
+      QRCodeScanner.start(context);
     });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {

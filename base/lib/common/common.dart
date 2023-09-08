@@ -24,10 +24,6 @@ class Common {
   // 动画-错误
   static const String statusErrorAsset =
       'packages/jtech_anime_base/assets/anime/status_error.json';
-
-  // 动画-扫码
-  static const String qrCodeScannerAsset =
-      'packages/jtech_anime_base/assets/anime/qrcode_scanner.json';
 }
 
 /*

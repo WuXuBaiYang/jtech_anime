@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile/widget/mask_view.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
@@ -36,6 +37,9 @@ class QRCodeScanner extends StatefulWidget {
 * @Time 2023/8/17 10:32
 */
 class _QRCodeScannerState extends State<QRCodeScanner> {
+  // 动画-扫码
+  static const String qrCodeScannerAsset = 'assets/anime/qrcode_scanner.json';
+
   // 闪光灯模式
   final flashMode = ValueChangeNotifier<FlashMode>(FlashMode.off);
 
@@ -48,32 +52,57 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // 隐藏全部状态栏
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     final screenSize = MediaQuery.of(context).size;
-    final maskSize = Size.square(screenSize.width * 0.6);
-    return Scaffold(
-      appBar: AppBar(
-        title: widget.title,
-        actions: [
-          _buildFlashButton(),
-        ],
-      ),
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        alignment: Alignment.topLeft,
-        children: [
-          _buildScanner(context),
-          _buildAnimaMask(context, screenSize, maskSize),
-          _buildScannerAnima(maskSize),
-        ],
+    final pixelRatio = mediaQuery.devicePixelRatio;
+    final ratio = screenSize.width / (1080 / pixelRatio);
+    final previewSize = Size(screenSize.width, (1920 / pixelRatio) * ratio);
+    final maskSize = Size.square(previewSize.width * 0.6);
+    final bottomSize = Size.fromHeight(screenSize.height -
+        previewSize.height -
+        kToolbarHeight -
+        mediaQuery.padding.top);
+    final maskRect = Rect.fromLTWH(
+      (previewSize.width - maskSize.width) / 2,
+      (previewSize.height - maskSize.height) / 2,
+      maskSize.width,
+      maskSize.height,
+    );
+    return Theme(
+      data: ThemeData.dark(useMaterial3: true),
+      child: Scaffold(
+        appBar: AppBar(
+          title: widget.title,
+        ),
+        backgroundColor: Colors.black,
+        bottomNavigationBar: SizedBox.fromSize(
+          size: bottomSize,
+          child: _buildBottomActions(),
+        ),
+        body: SizedBox.fromSize(
+          size: previewSize,
+          child: Stack(
+            children: [
+              _buildScanner(previewSize),
+              _buildAnimaMask(previewSize, maskRect),
+              _buildScannerAnima(maskRect),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   // 构建扫描器
-  Widget _buildScanner(BuildContext context) {
-    final previewSize = _genPreviewSize(context);
+  Widget _buildScanner(Size previewSize) {
     return QRCodeDartScanView(
       formats: formats,
       controller: controller,
@@ -87,60 +116,55 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   }
 
   // 构建扫码动画遮罩层
-  Widget _buildAnimaMask(BuildContext context, Size screenSize, Size maskSize) {
-    final padding = MediaQuery.of(context).padding;
-    final rect = Rect.fromLTWH(
-      (screenSize.width - maskSize.width) / 2,
-      (screenSize.height - maskSize.height - kToolbarHeight - padding.top) / 2,
-      maskSize.width,
-      maskSize.height,
-    );
+  Widget _buildAnimaMask(Size previewSize, Rect maskRect) {
     return MaskView(
-      maskViewSize: screenSize,
       color: Colors.transparent,
+      maskViewSize: previewSize,
       backgroundColor: Colors.black45,
-      rRect: RRect.fromRectAndRadius(rect, const Radius.circular(8)),
+      rRect: RRect.fromRectAndRadius(
+        maskRect,
+        const Radius.circular(8),
+      ),
     );
   }
 
   // 构建扫码动画
-  Widget _buildScannerAnima(Size maskSize) {
-    return Center(
+  Widget _buildScannerAnima(Rect maskRect) {
+    return Positioned.fromRect(
+      rect: maskRect,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: LottieView(
-          Common.qrCodeScannerAsset,
-          height: maskSize.height,
-          width: maskSize.width,
+          qrCodeScannerAsset,
           fit: BoxFit.cover,
+          width: maskRect.width,
+          height: maskRect.height,
         ),
       ),
     );
   }
 
-  // 获取预览尺寸
-  Size _genPreviewSize(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final pixelRatio = mediaQuery.devicePixelRatio;
-    return Size(1080 / pixelRatio, 1920 / pixelRatio);
-  }
-
-  // 闪光灯按钮
-  Widget _buildFlashButton() {
-    return ValueListenableBuilder<FlashMode>(
-      valueListenable: flashMode,
-      builder: (_, mode, __) {
-        final torchLight = mode == FlashMode.torch;
-        return IconButton(
-          color: torchLight ? kPrimaryColor : null,
-          icon: const Icon(FontAwesomeIcons.boltLightning),
-          onPressed: () {
-            mode = torchLight ? FlashMode.off : FlashMode.torch;
-            controller.setFlashMode(mode);
-            flashMode.setValue(mode);
+  // 构建底部操作按钮集合
+  Widget _buildBottomActions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ValueListenableBuilder<FlashMode>(
+          valueListenable: flashMode,
+          builder: (_, mode, __) {
+            final torchLight = mode == FlashMode.torch;
+            return IconButton.outlined(
+              color: torchLight ? kPrimaryColor : Colors.white,
+              icon: const Icon(FontAwesomeIcons.boltLightning),
+              onPressed: () {
+                mode = torchLight ? FlashMode.off : FlashMode.torch;
+                controller.setFlashMode(mode);
+                flashMode.setValue(mode);
+              },
+            );
           },
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -148,6 +172,9 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   void dispose() {
     // 关闭闪光灯
     controller.setFlashMode(FlashMode.off);
+    // 恢复屏幕状态
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
     super.dispose();
   }
 }
