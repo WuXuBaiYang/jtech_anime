@@ -1,4 +1,3 @@
-import 'package:desktop/page/home/anime.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -27,7 +26,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return WindowPage(
-      child: HomeAnimePage(),
+      child: SizedBox(),
     );
   }
 }
