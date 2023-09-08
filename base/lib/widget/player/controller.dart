@@ -51,7 +51,7 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     controlVisible.setValue(visible);
     _cancelTimer();
     if (!visible || ongoing) return;
-    _timer = Timer(const Duration(milliseconds: 1200), () {
+    _timer = Timer(const Duration(milliseconds: 2400), () {
       controlVisible.setValue(false);
       _cancelTimer();
     });
