@@ -28,16 +28,27 @@ class AnimeSourceImportSheet extends StatefulWidget {
     Widget? title,
   }) async {
     return QRCodeSheet.show(context, title: title).then((result) {
-      if (result == null) return null;
-      final source = AnimeSource.from(jsonDecode(result));
-      return showModalBottomSheet<AnimeSource>(
-        context: context,
-        builder: (_) {
-          return AnimeSourceImportSheet(
-            source: source,
-          );
-        },
-      );
+      try {
+        if (result?.isNotEmpty == false) return null;
+        final source = AnimeSource.from(jsonDecode(result!));
+        // 检查是否存在必须信息
+        if (!source.checkRequireInfo()) {
+          SnackTool.showMessage(message: '缺少必要信息');
+          return null;
+        }
+        return showModalBottomSheet<AnimeSource>(
+          context: context,
+          builder: (_) {
+            return AnimeSourceImportSheet(
+              source: source,
+            );
+          },
+        );
+      } catch (e) {
+        LogTool.e('解析源导入失败', error: e);
+        SnackTool.showMessage(message: '解析源导入失败');
+      }
+      return null;
     });
   }
 

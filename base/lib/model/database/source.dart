@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:jtech_anime_base/manage/anime_parser/functions.dart';
 import 'package:jtech_anime_base/tool/tool.dart';
+
 part 'source.g.dart';
 
 @collection
@@ -65,5 +66,14 @@ class AnimeSource {
       ..nsfw = obj['nsfw'] ?? false
       ..proxy = obj['proxy'] ?? false
       ..functions = functions.map((e) => e.name).toList();
+  }
+
+  // 检查必须信息是否满足
+  bool checkRequireInfo() {
+    return key.isNotEmpty &&
+        name.isNotEmpty &&
+        homepage.isNotEmpty &&
+        version.isNotEmpty &&
+        fileUri.isNotEmpty;
   }
 }

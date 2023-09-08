@@ -41,9 +41,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
       AppVersionTool.check(context);
-
-      /// 测试代码
-      QRCodeScanner.start(context);
     });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {
