@@ -49,7 +49,7 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
       // 跳转到当前周天
       final context = _weekdayKeys[DateTime.now().weekday - 1].currentContext;
       if (context != null) await Scrollable.ensureVisible(context);
-      controller.jumpTo(controller.position.pixels - kToolbarHeight);
+      controller.jumpTo(controller.position.pixels);
     });
   }
 
@@ -105,14 +105,11 @@ class _HomeAnimeTimeTableState extends State<HomeAnimeTimeTable>
 
   // 构建周天番剧列表
   Widget _buildAnimeList(List<TimeTableItemModel> animeList) {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      sliver: SliverList.builder(
-        itemCount: animeList.length,
-        itemBuilder: (_, i) {
-          return _buildAnimeListItem(animeList[i]);
-        },
-      ),
+    return SliverList.builder(
+      itemCount: animeList.length,
+      itemBuilder: (_, i) {
+        return _buildAnimeListItem(animeList[i]);
+      },
     );
   }
 
