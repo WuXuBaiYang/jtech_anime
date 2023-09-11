@@ -1,5 +1,4 @@
 import 'package:desktop/page/detail/index.dart';
-import 'package:desktop/page/home/anime.dart';
 import 'package:desktop/page/home/index.dart';
 import 'package:flutter/material.dart';
 

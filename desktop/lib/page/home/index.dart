@@ -1,5 +1,6 @@
 import 'package:desktop/common/icon.dart';
-import 'package:desktop/page/home/anime.dart';
+import 'package:desktop/page/anime/index.dart';
+import 'package:desktop/page/timetable/index.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -142,7 +143,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       index: index,
       children: [
         HomeAnimePage(),
-        Text('page'),
+        HomeTimeTablePage(),
         Text('page'),
         Text('page'),
         Text('page'),

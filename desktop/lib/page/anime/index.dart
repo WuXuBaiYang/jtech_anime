@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
 import 'filter.dart';
-import 'search.dart';
+import '../anime/search.dart';
 
 /*
 * 首页番剧列表（过滤/搜索）

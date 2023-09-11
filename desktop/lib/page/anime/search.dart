@@ -76,6 +76,7 @@ class SearchBarView extends StatelessWidget {
           onSubmitted: search,
           focusNode: focusNode,
           controller: controller,
+          cursorRadius: const Radius.circular(4),
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
               hintText: '嗖嗖嗖~',

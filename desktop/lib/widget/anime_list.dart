@@ -221,7 +221,7 @@ class _AnimeListViewState extends State<AnimeListView> {
       child: StatusBox(
         status: StatusBoxStatus.empty,
         title: widget.emptyHint,
-        animSize: 180,
+        animSize: 100,
       ),
     );
   }
