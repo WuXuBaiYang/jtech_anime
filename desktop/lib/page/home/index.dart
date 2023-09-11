@@ -1,3 +1,4 @@
+import 'package:desktop/common/icon.dart';
 import 'package:desktop/page/home/anime.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           return Row(
             children: [
               _buildSideNavigation(index),
+              const VerticalDivider(),
               Expanded(child: _buildNavigationPage(index)),
             ],
           );
@@ -43,39 +45,44 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   // 构建侧边导航栏
   Widget _buildSideNavigation(int index) {
-    return NavigationRail(
-      elevation: 1,
-      selectedIndex: index,
-      leading: _buildAnimeSource(),
-      labelType: NavigationRailLabelType.selected,
-      onDestinationSelected: logic.selectIndex.setValue,
-      destinations: [
-        NavigationRailDestination(
-          icon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          selectedIcon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          label: Text('最新'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          selectedIcon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          label: Text('时间轴'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          selectedIcon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          label: Text('下载'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          selectedIcon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          label: Text('记录'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          selectedIcon: Icon(FontAwesomeIcons.arrowDownWideShort),
-          label: Text('收藏'),
-        ),
-      ],
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.expanded,
+      builder: (_, expanded, __) {
+        return NavigationRail(
+          extended: expanded,
+          selectedIndex: index,
+          minExtendedWidth: 120,
+          minWidth: 70,
+          leading: _buildAnimeSource(),
+          trailing: _buildExpandedButton(),
+          onDestinationSelected: logic.selectIndex.setValue,
+          destinations: [
+            NavigationRailDestination(
+              label: const Text('最新'),
+              icon: Image.asset(CustomIcon.homeNavigationNewest,
+                  width: 24, height: 24),
+              selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
+                  width: 24, height: 24),
+            ),
+            const NavigationRailDestination(
+              label: Text('时间轴'),
+              icon: Icon(FontAwesomeIcons.solidClock),
+            ),
+            const NavigationRailDestination(
+              label: Text('下载'),
+              icon: Icon(FontAwesomeIcons.solidCircleDown),
+            ),
+            const NavigationRailDestination(
+              label: Text('记录'),
+              icon: Icon(FontAwesomeIcons.ghost),
+            ),
+            const NavigationRailDestination(
+              label: Text('收藏'),
+              icon: Icon(FontAwesomeIcons.solidHeart),
+            )
+          ],
+        );
+      },
     );
   }
 
@@ -87,22 +94,43 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         if (source == null) return const SizedBox();
         return Column(
           children: [
-            Transform.translate(
-              offset: const Offset(0, -4),
-              child: GestureDetector(
-                child: AnimeSourceLogo(
-                  source: source,
-                ),
-                onTap: () {
-                  /// 跳转到插件设置页面
-                },
-                onLongPress: () {
-                  /// 弹出插件设置菜单
-                },
+            const SizedBox(height: 8),
+            GestureDetector(
+              child: AnimeSourceLogo(
+                source: source,
               ),
+              onTap: () {
+                /// 跳转到插件设置页面
+              },
+              onLongPress: () {
+                /// 弹出插件设置菜单
+              },
             ),
             const SizedBox(height: 14),
           ],
+        );
+      },
+    );
+  }
+
+  // 构建收缩按钮
+  Widget _buildExpandedButton() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.expanded,
+      builder: (_, expanded, __) {
+        return Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                icon: Icon(expanded
+                    ? FontAwesomeIcons.barsStaggered
+                    : FontAwesomeIcons.bars),
+                onPressed: () => logic.expanded.setValue(!expanded),
+              ),
+              const SizedBox(height: 14),
+            ],
+          ),
         );
       },
     );
@@ -131,4 +159,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 class _HomeLogic extends BaseLogic {
   // 当前选中导航下标
   final selectIndex = ValueChangeNotifier<int>(0);
+
+  // 侧栏菜单展开状态
+  final expanded = ValueChangeNotifier<bool>(false);
 }

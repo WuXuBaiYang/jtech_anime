@@ -53,7 +53,7 @@ class CustomTheme {
         ),
         dividerTheme: const DividerThemeData(
           color: Colors.black12,
-          thickness: 0.2,
+          thickness: 0.3,
           space: 1,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(

@@ -39,7 +39,9 @@ class StatusBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ratio = MediaQuery.of(context).devicePixelRatio;
+    final ratio = MediaQuery
+        .of(context)
+        .devicePixelRatio;
     return DefaultTextStyle(
       style: TextStyle(color: color, fontSize: 14),
       child: Column(
@@ -82,7 +84,8 @@ enum StatusBoxStatus { loading, empty, error }
 */
 extension StatusBoxStatusExtension on StatusBoxStatus {
   // 获取当前状态的素材
-  String get assetsFile => {
+  String get assetsFile =>
+      {
         StatusBoxStatus.loading: Common.statusLoadingAsset,
         StatusBoxStatus.empty: Common.statusEmptyAsset,
         StatusBoxStatus.error: Common.statusErrorAsset,
