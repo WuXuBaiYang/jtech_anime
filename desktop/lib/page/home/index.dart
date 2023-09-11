@@ -1,5 +1,6 @@
 import 'package:desktop/common/icon.dart';
 import 'package:desktop/page/anime/index.dart';
+import 'package:desktop/page/record/index.dart';
 import 'package:desktop/page/timetable/index.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +67,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                   width: 24, height: 24),
             ),
             const NavigationRailDestination(
-              label: Text('时间轴'),
+              label: Text('时间表'),
               icon: Icon(FontAwesomeIcons.solidClock),
             ),
             const NavigationRailDestination(
@@ -74,11 +75,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               icon: Icon(FontAwesomeIcons.solidCircleDown),
             ),
             const NavigationRailDestination(
-              label: Text('记录'),
+              label: Text('浏览'),
               icon: Icon(FontAwesomeIcons.ghost),
             ),
             const NavigationRailDestination(
-              label: Text('收藏'),
+              label: Text('喜欢'),
               icon: Icon(FontAwesomeIcons.solidHeart),
             )
           ],
@@ -141,11 +142,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget _buildNavigationPage(int index) {
     return IndexedStack(
       index: index,
-      children: [
+      children: const [
         HomeAnimePage(),
         HomeTimeTablePage(),
         Text('page'),
-        Text('page'),
+        HomeRecordPage(),
         Text('page'),
       ],
     );

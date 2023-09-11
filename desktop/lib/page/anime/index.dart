@@ -179,11 +179,8 @@ class _HomeAnimeLogic extends BaseLogic {
   // 刷新控制器
   final controller = CustomRefreshController();
 
-  // 维护分页页码
+  // 分页下标
   int _pageIndex = 1;
-
-  // 维护分页数据量
-  final _pageSize = 25;
 
   // 缓存最后一次搜索关键字
   String? _lastKeyword;
@@ -247,7 +244,6 @@ class _HomeAnimeLogic extends BaseLogic {
       _cancelToken = CancelToken();
       final result = await animeParser.loadHomeList(
         pageIndex: pageIndex,
-        pageSize: _pageSize,
         filterSelect: filterSelect.value.asMap().map(
               (_, v) => MapEntry(v.key, v.value),
             ),
@@ -295,7 +291,6 @@ class _HomeAnimeLogic extends BaseLogic {
       final pageIndex = loadMore ? _pageIndex + 1 : 1;
       final result = await animeParser.searchAnimeList(keyword,
           pageIndex: pageIndex,
-          pageSize: _pageSize,
           filterSelect: filterSelect.value.asMap().map(
                 (_, v) => MapEntry(v.key, v.value),
               ),

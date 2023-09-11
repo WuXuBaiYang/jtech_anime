@@ -190,11 +190,8 @@ class _HomeLogic extends BaseLogic {
   // 番剧时间表控制器
   final timeTableController = CacheFutureBuilderController<TimeTableModel?>();
 
-  // 维护分页页码
+  // 分页下标
   int _pageIndex = 1;
-
-  // 维护分页数据量
-  final _pageSize = 25;
 
   // 缓存当前请求token
   CancelToken? _cancelToken;
@@ -227,7 +224,6 @@ class _HomeLogic extends BaseLogic {
       _cancelToken = CancelToken();
       final result = await animeParser.loadHomeList(
         pageIndex: pageIndex,
-        pageSize: _pageSize,
         filterSelect: filterSelect.value.asMap().map(
               (_, v) => MapEntry(v.key, v.value),
             ),

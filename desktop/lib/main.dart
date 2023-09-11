@@ -14,12 +14,14 @@ void main() async {
   );
   // 初始化窗口管理
   await windowManager.ensureInitialized();
+  const size = Size(800, 600);
   const windowOptions = WindowOptions(
+    size: size,
     center: true,
+    minimumSize: size,
     skipTaskbar: false,
-    size: Size(800, 600),
-    backgroundColor: Colors.transparent,
     titleBarStyle: TitleBarStyle.hidden,
+    backgroundColor: Colors.transparent,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();

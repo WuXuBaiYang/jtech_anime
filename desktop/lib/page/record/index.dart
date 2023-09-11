@@ -1,36 +1,33 @@
+import 'package:desktop/common/route.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/common/route.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*
-* 播放记录页
+* 番剧浏览记录页面
 * @author wuxubaiyang
-* @Time 2023/7/13 17:31
+* @Time 2023/9/11 14:48
 */
-class PlayRecordPage extends StatefulWidget {
-  const PlayRecordPage({super.key});
+class HomeRecordPage extends StatefulWidget {
+  const HomeRecordPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _PlayRecordPageState();
+  State<StatefulWidget> createState() => _HomeRecordPageState();
 }
 
 /*
-* 播放记录页-状态
+* 番剧浏览记录页面-状态
 * @author wuxubaiyang
-* @Time 2023/7/13 17:31
+* @Time 2023/9/11 14:48
 */
-class _PlayRecordPageState
-    extends LogicState<PlayRecordPage, _PlayRecordLogic> {
+class _HomeRecordPageState
+    extends LogicState<HomeRecordPage, _HomeRecordLogic> {
   @override
-  _PlayRecordLogic initLogic() => _PlayRecordLogic();
+  _HomeRecordLogic initLogic() => _HomeRecordLogic();
 
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('播放记录'),
-      ),
-      body: _buildPlayRecords(),
+      body: _buildRecords(),
       floatingActionButton: _buildPlayFAB(),
     );
   }
@@ -50,7 +47,7 @@ class _PlayRecordPageState
   }
 
   // 构建播放记录列表
-  Widget _buildPlayRecords() {
+  Widget _buildRecords() {
     return ValueListenableBuilder<List<PlayRecord>>(
       valueListenable: logic.playRecords,
       builder: (_, playRecords, __) {
@@ -63,8 +60,9 @@ class _PlayRecordPageState
               if (playRecords.isEmpty)
                 const Center(
                   child: StatusBox(
-                    status: StatusBoxStatus.empty,
+                    animSize: 100,
                     title: Text('还没有播放记录~'),
+                    status: StatusBoxStatus.empty,
                   ),
                 ),
               ListView.builder(
@@ -72,7 +70,7 @@ class _PlayRecordPageState
                 padding: const EdgeInsets.only(bottom: kToolbarHeight * 1.5),
                 itemBuilder: (_, i) {
                   final item = playRecords[i];
-                  return _buildPlayRecordsItem(item);
+                  return _buildRecordsItem(item);
                 },
               ),
             ],
@@ -83,7 +81,7 @@ class _PlayRecordPageState
   }
 
   // 构建播放记录项
-  Widget _buildPlayRecordsItem(PlayRecord item) {
+  Widget _buildRecordsItem(PlayRecord item) {
     final progress = Duration(milliseconds: item.progress);
     const titleStyle = TextStyle(fontSize: 16, color: Colors.black87);
     const subTitleStyle = TextStyle(fontSize: 12, color: Colors.black38);
@@ -133,16 +131,16 @@ class _PlayRecordPageState
 }
 
 /*
-* 播放记录页-逻辑
+* 番剧浏览记录页面-逻辑
 * @author wuxubaiyang
-* @Time 2023/7/13 17:31
+* @Time 2023/9/11 14:48
 */
-class _PlayRecordLogic extends BaseLogic {
+class _HomeRecordLogic extends BaseLogic {
   // 播放记录列表
   final playRecords = ListValueChangeNotifier<PlayRecord>.empty();
 
-  // 当前页码
-  var _pageIndex = 1;
+  // 分页下标
+  int _pageIndex = 1;
 
   @override
   void init() {
