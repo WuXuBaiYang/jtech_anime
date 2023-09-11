@@ -38,6 +38,14 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     WidgetsBinding.instance.addObserver(this);
   }
 
+  // 播放器页面样式
+  ThemeData get _themeData => ThemeData.dark(useMaterial3: true).copyWith(
+        colorScheme: ColorScheme.dark(
+          primary: kPrimaryColor,
+          secondary: kSecondaryColor,
+        ),
+      );
+
   @override
   Widget buildWidget(BuildContext context) {
     return Theme(
@@ -62,14 +70,6 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       ),
     );
   }
-
-  // 播放器页面样式
-  ThemeData get _themeData => ThemeData.dark(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSecondaryColor,
-        ),
-      );
 
   // 构建资源侧栏弹窗
   Widget _buildResourceDrawer() {

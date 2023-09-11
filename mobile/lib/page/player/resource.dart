@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -29,10 +30,12 @@ class PlayerResourceDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final length = animeInfo.resources.length;
+    final index = _findResourceIndex(currentItem);
     return Drawer(
       backgroundColor: Colors.black54,
       child: DefaultTabController(
         length: length,
+        initialIndex: index,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -133,5 +136,17 @@ class PlayerResourceDrawer extends StatelessWidget {
     if (source == null) return {};
     return db.getDownloadRecordList(source, animeList: [animeInfo.url]).then(
         (v) => v.asMap().map((_, v) => MapEntry(v.resUrl, v)));
+  }
+
+  // 获取资源下标
+  int _findResourceIndex(ResourceItemModel? item) {
+    if (item == null) return 0;
+    final index = animeInfo.resources.indexWhere((e) {
+      final first = e.firstWhereOrNull((e) {
+        return e.url == item.url;
+      });
+      return first != null;
+    });
+    return max(index, 0);
   }
 }
