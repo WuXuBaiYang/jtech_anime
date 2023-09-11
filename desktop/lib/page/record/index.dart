@@ -61,7 +61,7 @@ class _HomeRecordPageState
                 const Center(
                   child: StatusBox(
                     animSize: 100,
-                    title: Text('还没有播放记录~'),
+                    title: Text('还没有浏览记录~'),
                     status: StatusBoxStatus.empty,
                   ),
                 ),
