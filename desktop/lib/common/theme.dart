@@ -25,10 +25,11 @@ class CustomTheme {
         useMaterial3: true,
         colorScheme: colorScheme,
         appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 0,
           toolbarHeight: kToolbarHeightCustom,
           titleTextStyle: TextStyle(
             color: Colors.black,
-            fontSize: 16,
+            fontSize: 14,
           ),
         ),
         cardTheme: CardTheme(
@@ -74,4 +75,4 @@ class CustomTheme {
       );
 }
 
-const kToolbarHeightCustom = 40.0;
+const kToolbarHeightCustom = 35.0;
