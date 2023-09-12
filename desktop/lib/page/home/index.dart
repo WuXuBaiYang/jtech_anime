@@ -1,6 +1,7 @@
 import 'package:desktop/common/icon.dart';
 import 'package:desktop/page/anime/index.dart';
 import 'package:desktop/page/collect/index.dart';
+import 'package:desktop/page/download/index.dart';
 import 'package:desktop/page/record/index.dart';
 import 'package:desktop/page/timetable/index.dart';
 import 'package:desktop/widget/page.dart';
@@ -146,7 +147,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       children: const [
         HomeAnimePage(),
         HomeTimeTablePage(),
-        Text('page'),
+        HomeDownloadPage(),
         HomeRecordPage(),
         HomeCollectPage(),
       ],

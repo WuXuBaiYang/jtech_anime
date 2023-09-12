@@ -123,14 +123,13 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
   Widget _buildFilterButton() {
     return IconButton(
       icon: const Icon(Icons.sort),
-      onPressed: () {
-        HomeAnimeFilterSheet.show(
-          context,
-          selectFilters: logic.filterSelect.value,
-        ).then((v) {
-          if (v != null) logic.updateFilterSelect(v);
-        });
-      },
+      onPressed: () => HomeAnimeFilterSheet.show(
+        context,
+        selectFilters: logic.filterSelect.value,
+      ).then((v) {
+        if (v == null) return;
+        Loading.show(loadFuture: logic.updateFilterSelect(v));
+      }),
     );
   }
 

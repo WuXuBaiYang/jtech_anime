@@ -78,14 +78,10 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
     );
   }
 
-  // 标题文本样式
-  final titleStyle = const TextStyle(fontSize: 16, color: Colors.black87);
-
-  // 内容文本样式
-  final subTitleStyle = const TextStyle(fontSize: 12, color: Colors.black38);
-
   // 构建收藏列表项
   Widget _buildCollectListItem(Collect item, int i) {
+    const titleStyle = TextStyle(fontSize: 16, color: Colors.black87);
+    const subTitleStyle = TextStyle(fontSize: 12, color: Colors.black38);
     return InkWell(
       key: ValueKey(item),
       child: DefaultTextStyle(

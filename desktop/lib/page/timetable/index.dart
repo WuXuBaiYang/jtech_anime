@@ -34,9 +34,11 @@ class _HomeTimeTablePageState
   // 构建番剧时间表
   Widget _buildTimeTable() {
     return StatusBoxCacheFuture<TimeTableModel?>(
-      animSize: 100,
+      animSize: 80,
       controller: logic.controller,
-      future: animeParser.getTimeTable,
+      future: () => animeParser.getTimeTable().whenComplete(
+            logic.scrollToWeekday,
+          ),
       builder: (timeTable) {
         if (timeTable == null) return const SizedBox();
         return CustomScrollView(
@@ -146,13 +148,6 @@ class _HomeTimeTableLogic extends BaseLogic {
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
     weekdayTime = List.generate(7, (i) => monday.add(Duration(days: i)));
-    // 组件初始化后加载
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 跳转到当前周天
-      final context = weekdayKeys[DateTime.now().weekday - 1].currentContext;
-      if (context != null) await Scrollable.ensureVisible(context);
-      scrollController.jumpTo(scrollController.position.pixels);
-    });
   }
 
   // 跳转到详情
@@ -161,5 +156,16 @@ class _HomeTimeTableLogic extends BaseLogic {
       RoutePath.animeDetail,
       arguments: {'animeDetail': item},
     );
+  }
+
+  // 滚动到当前周天
+  void scrollToWeekday() {
+    // 判断滚动控制器是否已经加载
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!scrollController.hasClients) return;
+      final context = weekdayKeys[DateTime.now().weekday - 1].currentContext;
+      if (context != null) await Scrollable.ensureVisible(context);
+      scrollController.jumpTo(scrollController.position.pixels);
+    });
   }
 }
