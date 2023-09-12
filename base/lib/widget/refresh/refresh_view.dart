@@ -36,6 +36,12 @@ class CustomRefreshView extends StatefulWidget {
   // 刷新组件控制器
   final CustomRefreshController controller;
 
+  // 头部枚举
+  final CustomRefreshViewHeader header;
+
+  // 足部枚举
+  final CustomRefreshViewFooter footer;
+
   CustomRefreshView({
     super.key,
     required this.child,
@@ -46,6 +52,8 @@ class CustomRefreshView extends StatefulWidget {
     this.refreshTriggerOffset = 80,
     this.loadMoreTriggerOffset = 80,
     CustomRefreshController? controller,
+    this.header = CustomRefreshViewHeader.bezier,
+    this.footer = CustomRefreshViewFooter.classic,
   }) : controller = controller ?? CustomRefreshController();
 
   @override
@@ -82,14 +90,70 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
       onLoad: onloadMore,
       onRefresh: onRefresh,
       triggerAxis: Axis.vertical,
-      footer: BezierFooter(
+      footer: widget.footer.getFooter(
         triggerOffset: widget.loadMoreTriggerOffset,
       ),
-      header: BezierCircleHeader(
+      header: widget.header.getHeader(
         triggerOffset: widget.refreshTriggerOffset,
       ),
       controller: widget.controller.controller,
       child: widget.child,
     );
+  }
+}
+
+// 自定义刷新组件头部枚举
+enum CustomRefreshViewHeader { classic, bezier }
+
+// 自定义刷新组件头部枚举扩展
+extension _CustomRefreshViewHeaderExtension on CustomRefreshViewHeader {
+  // 获取刷新组件头部
+  Header getHeader({double triggerOffset = 100}) {
+    switch (this) {
+      case CustomRefreshViewHeader.classic:
+        return ClassicHeader(
+          triggerOffset: triggerOffset,
+          dragText: '下拉刷新',
+          armedText: '释放刷新',
+          readyText: '准备刷新',
+          processingText: '正在刷新',
+          processedText: '刷新完成',
+          noMoreText: '没有更多了',
+          failedText: '刷新失败',
+          messageText: '上次刷新时间',
+        );
+      case CustomRefreshViewHeader.bezier:
+        return BezierCircleHeader(
+          triggerOffset: triggerOffset,
+        );
+    }
+  }
+}
+
+// 自定义刷新组件足部枚举
+enum CustomRefreshViewFooter { classic, bezier }
+
+// 自定义刷新组件足部枚举扩展
+extension _CustomRefreshViewFooterExtension on CustomRefreshViewFooter {
+  // 获取刷新组件足部
+  Footer getFooter({double triggerOffset = 100}) {
+    switch (this) {
+      case CustomRefreshViewFooter.classic:
+        return ClassicFooter(
+          triggerOffset: triggerOffset,
+          dragText: '上拉加载',
+          armedText: '释放加载',
+          readyText: '准备加载',
+          processingText: '正在加载',
+          processedText: '加载完成',
+          noMoreText: '没有更多了',
+          failedText: '加载失败',
+          messageText: '上次加载时间',
+        );
+      case CustomRefreshViewFooter.bezier:
+        return BezierFooter(
+          triggerOffset: triggerOffset,
+        );
+    }
   }
 }

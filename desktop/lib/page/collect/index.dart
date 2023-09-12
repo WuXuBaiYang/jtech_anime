@@ -36,6 +36,7 @@ class _HomeCollectPageState
     return CustomRefreshView(
       enableRefresh: true,
       enableLoadMore: true,
+      header: CustomRefreshViewHeader.classic,
       onRefresh: (loadMore) => logic.loadCollectList(loadMore),
       child: ValueListenableBuilder<List<Collect>>(
         valueListenable: logic.collectList,

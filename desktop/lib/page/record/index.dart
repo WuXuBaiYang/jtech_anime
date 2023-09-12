@@ -54,6 +54,7 @@ class _HomeRecordPageState
         return CustomRefreshView(
           enableRefresh: true,
           enableLoadMore: true,
+          header: CustomRefreshViewHeader.classic,
           onRefresh: (loadMore) => logic.loadPlayRecords(loadMore),
           child: Stack(
             children: [

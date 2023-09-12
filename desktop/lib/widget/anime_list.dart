@@ -76,6 +76,7 @@ class _AnimeListViewState extends State<AnimeListView> {
       controller: widget.refreshController,
       enableLoadMore: widget.enableLoadMore,
       initialRefresh: widget.initialRefresh,
+      header: CustomRefreshViewHeader.classic,
       child: _buildAnimeList(),
     );
   }
