@@ -1,6 +1,5 @@
 import 'package:desktop/common/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
 
 /*
@@ -21,22 +20,40 @@ class WindowPage extends StatelessWidget {
   // 动作按钮（接在默认操作按钮左边）
   final List<Widget> actions;
 
+  // 侧边栏
+  final Widget? sideBar;
+
   const WindowPage({
     super.key,
     required this.child,
     this.title,
     this.leading,
+    this.sideBar,
     this.actions = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeightCustom),
-        child: _buildStatusBar(),
+      body: Row(
+        children: [
+          sideBar ?? const SizedBox(),
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  PreferredSize(
+                    preferredSize: const Size.fromHeight(kToolbarHeightCustom),
+                    child: _buildStatusBar(),
+                  ),
+                  Expanded(child: child),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
-      body: child,
     );
   }
 
@@ -44,9 +61,12 @@ class WindowPage extends StatelessWidget {
   Widget _buildStatusBar() {
     return DragToMoveArea(
       child: AppBar(
+        title: title,
         leading: leading,
-        title: title ?? const Text(Common.appName),
-        actions: [...actions, _buildWindowCaption()],
+        actions: [
+          ...actions,
+          _buildWindowCaption(),
+        ],
       ),
     );
   }

@@ -31,19 +31,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    return WindowPage(
-      child: ValueListenableBuilder<int>(
-        valueListenable: logic.selectIndex,
-        builder: (_, index, __) {
-          return Row(
-            children: [
-              _buildSideNavigation(index),
-              const VerticalDivider(),
-              Expanded(child: _buildNavigationPage(index)),
-            ],
-          );
-        },
-      ),
+    return ValueListenableBuilder<int>(
+      valueListenable: logic.selectIndex,
+      builder: (_, index, __) {
+        return WindowPage(
+          sideBar: _buildSideNavigation(index),
+          child: _buildNavigationPage(index),
+        );
+      },
     );
   }
 
@@ -53,12 +48,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       valueListenable: logic.expanded,
       builder: (_, expanded, __) {
         return NavigationRail(
+          minWidth: 70,
           extended: expanded,
           selectedIndex: index,
           minExtendedWidth: 120,
-          minWidth: 70,
           leading: _buildAnimeSource(),
           trailing: _buildExpandedButton(),
+          backgroundColor: Colors.white.withOpacity(0.9),
           onDestinationSelected: logic.selectIndex.setValue,
           destinations: [
             NavigationRailDestination(
@@ -83,7 +79,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
             const NavigationRailDestination(
               label: Text('喜欢'),
               icon: Icon(FontAwesomeIcons.solidHeart),
-            )
+            ),
           ],
         );
       },
