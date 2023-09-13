@@ -77,6 +77,7 @@ class WindowPage extends StatelessWidget {
             if (title != null) title!,
             const Spacer(),
             ...actions,
+            const SizedBox(width: 14),
             ...windowCaptions,
           ].expand<Widget>((child) {
             return [child, const SizedBox(width: 4)];
@@ -86,10 +87,18 @@ class WindowPage extends StatelessWidget {
     );
   }
 
+  // 按钮样式
+  static const buttonStyle = ButtonStyle(
+    iconSize: MaterialStatePropertyAll(14),
+    padding: MaterialStatePropertyAll(EdgeInsets.all(10)),
+    minimumSize: MaterialStatePropertyAll(Size.square(30)),
+  );
+
   // 窗口交互按钮集合
   List<Widget> get windowCaptions => [
         // 最小化按钮
         IconButton(
+          style: buttonStyle,
           icon: const Icon(FontAwesomeIcons.windowMinimize),
           onPressed: () => windowManager.isMinimized().then((isMinimized) =>
               isMinimized ? windowManager.restore() : windowManager.minimize()),
@@ -99,6 +108,7 @@ class WindowPage extends StatelessWidget {
           valueListenable: maximized,
           builder: (_, isMaximized, __) {
             return IconButton(
+              style: buttonStyle,
               icon: Icon(isMaximized
                   ? FontAwesomeIcons.windowRestore
                   : FontAwesomeIcons.windowMaximize),
@@ -108,6 +118,7 @@ class WindowPage extends StatelessWidget {
         ),
         // 关闭按钮
         IconButton(
+          style: buttonStyle,
           onPressed: windowManager.close,
           hoverColor: kPrimaryColor.withOpacity(0.12),
           highlightColor: kPrimaryColor.withOpacity(0.2),
