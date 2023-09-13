@@ -44,45 +44,58 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   // 构建侧边导航栏
   Widget _buildSideNavigation(int index) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: logic.expanded,
-      builder: (_, expanded, __) {
-        return NavigationRail(
-          minWidth: 70,
-          extended: expanded,
-          selectedIndex: index,
-          minExtendedWidth: 120,
-          leading: _buildAnimeSource(),
-          trailing: _buildExpandedButton(),
-          backgroundColor: Colors.white.withOpacity(0.9),
-          onDestinationSelected: logic.selectIndex.setValue,
-          destinations: [
-            NavigationRailDestination(
-              label: const Text('最新'),
-              icon: Image.asset(CustomIcon.homeNavigationNewest,
-                  width: 24, height: 24),
-              selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
-                  width: 24, height: 24),
-            ),
-            const NavigationRailDestination(
-              label: Text('时间表'),
-              icon: Icon(FontAwesomeIcons.solidClock),
-            ),
-            const NavigationRailDestination(
-              label: Text('下载'),
-              icon: Icon(FontAwesomeIcons.solidCircleDown),
-            ),
-            const NavigationRailDestination(
-              label: Text('浏览'),
-              icon: Icon(FontAwesomeIcons.ghost),
-            ),
-            const NavigationRailDestination(
-              label: Text('喜欢'),
-              icon: Icon(FontAwesomeIcons.solidHeart),
-            ),
-          ],
-        );
-      },
+    return Stack(
+      fit: StackFit.loose,
+      children: [
+        Positioned.fill(
+          child: BlurView(
+            blur: 40,
+            child: Container(color: Color(0xCDCBD4).withOpacity(0.6)),
+          ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: logic.expanded,
+          builder: (_, expanded, __) {
+            return NavigationRail(
+              minWidth: 70,
+              extended: expanded,
+              selectedIndex: index,
+              minExtendedWidth: 120,
+              leading: _buildAnimeSource(),
+              trailing: _buildExpandedButton(),
+              // backgroundColor: Colors.transparent,
+              onDestinationSelected: logic.selectIndex.setValue,
+              destinations: [
+                NavigationRailDestination(
+                  label: const Text('最新'),
+                  icon: Image.asset(CustomIcon.homeNavigationNewest,
+                      width: 24, height: 24),
+                  selectedIcon: Image.asset(
+                      CustomIcon.homeNavigationNewestSelected,
+                      width: 24,
+                      height: 24),
+                ),
+                const NavigationRailDestination(
+                  label: Text('时间表'),
+                  icon: Icon(FontAwesomeIcons.solidClock),
+                ),
+                const NavigationRailDestination(
+                  label: Text('下载'),
+                  icon: Icon(FontAwesomeIcons.solidCircleDown),
+                ),
+                const NavigationRailDestination(
+                  label: Text('浏览'),
+                  icon: Icon(FontAwesomeIcons.ghost),
+                ),
+                const NavigationRailDestination(
+                  label: Text('喜欢'),
+                  icon: Icon(FontAwesomeIcons.solidHeart),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 

@@ -50,11 +50,8 @@ class AppVersionTool {
         'installUrl': data['install_url'],
       });
       return appVersion.checkUpdate().then((isUpdate) {
-        if (isUpdate) {
-          return _showAndroidUpdateDialog(context, appVersion)
-              .then((value) => value ?? false);
-        }
-        return Future.value(false);
+        if (isUpdate) _showAndroidUpdateDialog(context, appVersion);
+        return isUpdate;
       });
     }
     return false;
