@@ -31,9 +31,6 @@ class AnimeListView extends StatefulWidget {
   // 空内容提示
   final Widget? emptyHint;
 
-  // 列数
-  final int columnCount;
-
   // 番剧点击事件
   final AnimeListItemTap? itemTap;
 
@@ -43,13 +40,20 @@ class AnimeListView extends StatefulWidget {
   // 内间距
   final EdgeInsetsGeometry? padding;
 
+  // 子项最大尺寸
+  final Size? maxItemExtent;
+
+  // 子项间距
+  final double itemSpacing;
+
   const AnimeListView({
     super.key,
     this.header,
     this.itemTap,
     this.padding,
     this.emptyHint,
-    this.columnCount = 3,
+    this.maxItemExtent,
+    this.itemSpacing = 8,
     this.refreshController,
     this.enableRefresh = true,
     this.enableLoadMore = true,
@@ -83,8 +87,7 @@ class _AnimeListViewState extends State<AnimeListView> {
 
   // 构建番剧列表
   Widget _buildAnimeList() {
-    final isMultiLine = widget.columnCount > 1;
-    final isThird = widget.columnCount == 3;
+    final itemExtent = widget.maxItemExtent ?? const Size(180, 240);
     return Stack(
       children: [
         if (widget.animeList.isEmpty) _buildEmptyResults(),
@@ -97,22 +100,18 @@ class _AnimeListViewState extends State<AnimeListView> {
                 ),
               ),
             SliverPadding(
-              padding: widget.padding ??
-                  (widget.columnCount > 1
-                      ? const EdgeInsets.all(8)
-                      : EdgeInsets.zero),
+              padding: widget.padding ?? const EdgeInsets.all(8),
               sliver: SliverGrid.builder(
                 itemCount: widget.animeList.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: widget.columnCount,
-                  mainAxisSpacing: isMultiLine ? 4 : 0,
-                  crossAxisSpacing: isMultiLine ? 4 : 0,
-                  mainAxisExtent: isMultiLine ? (isThird ? 160 : 240) : 120,
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  mainAxisSpacing: widget.itemSpacing,
+                  crossAxisSpacing: widget.itemSpacing,
+                  mainAxisExtent: itemExtent.height,
+                  maxCrossAxisExtent: itemExtent.width,
                 ),
                 itemBuilder: (_, i) {
                   final item = widget.animeList[i];
-                  if (!isMultiLine) return _buildAnimeListItem(item);
-                  return _buildAnimeItemMulti(item);
+                  return _buildAnimeGridItem(item);
                 },
               ),
             ),
@@ -122,53 +121,8 @@ class _AnimeListViewState extends State<AnimeListView> {
     );
   }
 
-  // 构建搜索列表子项
-  Widget _buildAnimeListItem(AnimeModel item) {
-    return InkWell(
-      child: DefaultTextStyle(
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 12, color: Colors.black38),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: ImageView.net(item.cover,
-                    width: 80, height: 120, fit: BoxFit.cover),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 8),
-                    Text(item.name,
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        )),
-                    const SizedBox(height: 8),
-                    Text('${item.status.trim()}'
-                        '${item.types.isNotEmpty ? ' · ${item.types.join('/')}' : ''}'),
-                    const SizedBox(height: 4),
-                    Text(item.intro.trim()),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      onTap: () => widget.itemTap?.call(item),
-    );
-  }
-
-  // 构建列表子项-多行模式
-  Widget _buildAnimeItemMulti(AnimeModel item) {
+  // 构建列表子项
+  Widget _buildAnimeGridItem(AnimeModel item) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       child: Padding(

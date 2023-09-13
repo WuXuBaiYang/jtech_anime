@@ -58,7 +58,6 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
     return SizedBox(
       width: 180,
       child: SearchBarView(
-        inSearching: logic.loading,
         searchRecordList: logic.searchRecordList,
         search: (keyword) => logic.startSearch(keyword),
         recordDelete: (item) => logic.deleteSearchRecord(item),
@@ -116,7 +115,6 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
     return ValueListenableBuilder<List<AnimeModel>>(
       valueListenable: logic.animeList,
       builder: (_, animeList, __) {
-        animeList.clear();
         return AnimeListView(
           animeList: animeList,
           initialRefresh: true,
