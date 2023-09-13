@@ -23,9 +23,7 @@ class CustomTheme {
   static ThemeData _createThemeData({required ColorScheme colorScheme}) =>
       ThemeData(
         useMaterial3: true,
-        colorScheme: colorScheme.copyWith(
-          background: Colors.transparent,
-        ),
+        colorScheme: colorScheme,
         appBarTheme: const AppBarTheme(
           scrolledUnderElevation: 0,
           toolbarHeight: kToolbarHeightCustom,

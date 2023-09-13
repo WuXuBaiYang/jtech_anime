@@ -139,9 +139,10 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
       first: logic.animeList,
       second: logic.columnCount,
       builder: (_, animeList, columnCount, __) {
+        animeList.clear();
         return AnimeListView(
           animeList: animeList,
-          // initialRefresh: true,
+          initialRefresh: true,
           itemTap: logic.goDetail,
           columnCount: columnCount,
           onRefresh: logic.loadAnimeList,
