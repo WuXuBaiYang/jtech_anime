@@ -52,8 +52,8 @@ class SearchBarView extends StatelessWidget {
             );
           },
           fieldViewBuilder: _buildFieldView,
-          displayStringForOption: (e) => e.keyword,
           optionsViewBuilder: _buildOptionsView,
+          displayStringForOption: (e) => e.keyword,
           onSelected: (v) => search(v.keyword.trim()),
         );
       },
@@ -78,13 +78,15 @@ class SearchBarView extends StatelessWidget {
           controller: controller,
           cursorRadius: const Radius.circular(4),
           textInputAction: TextInputAction.search,
+          style: const TextStyle(height: 1.0, fontSize: 16),
           decoration: InputDecoration(
               hintText: '嗖嗖嗖~',
               isCollapsed: true,
               border: InputBorder.none,
               hintStyle: const TextStyle(color: Colors.black12),
               suffix: _buildFieldViewSubmit(controller, focusNode),
-              contentPadding: const EdgeInsets.symmetric(vertical: 4)),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 4).copyWith(bottom: 6)),
         ),
       ),
     );

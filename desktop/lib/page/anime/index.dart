@@ -2,9 +2,8 @@ import 'package:desktop/common/route.dart';
 import 'package:desktop/widget/anime_list.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-
 import 'filter.dart';
-import '../anime/search.dart';
+import 'search.dart';
 
 /*
 * 首页番剧列表（过滤/搜索）
@@ -44,10 +43,9 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
         children: [
           const SizedBox(width: 8),
           if (supportSearch) _buildSearchBar(),
-          if (supportFilter) Expanded(child: _buildFilterChips()),
-          if (!supportFilter) const Spacer(),
-          _buildColumnCountButton(),
-          const SizedBox(width: 4),
+          const SizedBox(width: 14),
+          if (supportFilter) Expanded(child: _buildFilterChips(context)),
+          const SizedBox(width: 8),
           if (supportFilter) _buildFilterButton(),
           const SizedBox(width: 4),
         ],
@@ -58,7 +56,7 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
   // 构建搜索框
   Widget _buildSearchBar() {
     return SizedBox(
-      width: 220,
+      width: 180,
       child: SearchBarView(
         inSearching: logic.loading,
         searchRecordList: logic.searchRecordList,
@@ -68,29 +66,8 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
     );
   }
 
-  // 构建列数切换按钮
-  Widget _buildColumnCountButton() {
-    return ValueListenableBuilder(
-      valueListenable: logic.columnCount,
-      builder: (_, columnCount, __) {
-        return IconButton(
-          onPressed: () {
-            int value = columnCount + 1;
-            if (value > 3) value = 1;
-            logic.columnCount.setValue(value);
-          },
-          icon: Icon([
-            Icons.format_list_bulleted_rounded,
-            Icons.drag_indicator_rounded,
-            Icons.apps_rounded,
-          ][columnCount - 1]),
-        );
-      },
-    );
-  }
-
   // 构建番剧过滤配置组件
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(BuildContext context) {
     return ValueListenableBuilder<List<FilterSelect>>(
       valueListenable: logic.filterSelect,
       builder: (_, filters, __) {
@@ -102,17 +79,18 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
                   ..name = '全部',
               ];
         return SingleChildScrollView(
+          reverse: true,
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(right: 8),
+          physics: const ClampingScrollPhysics(),
           child: Row(
             children: List.generate(tempFilters.length, (i) {
               final item = tempFilters[i];
               final text = '${item.parentName} · ${item.name}';
-              return Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: RawChip(label: Text(text)),
-              );
-            }),
+              return RawChip(label: Text(text));
+            })
+                .expand((child) => [const SizedBox(width: 8), child])
+                .skip(1)
+                .toList(),
           ),
         );
       },
@@ -135,16 +113,14 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
 
   // 构建番剧列表
   Widget _buildAnimeList() {
-    return ValueListenableBuilder2<List<AnimeModel>, int>(
-      first: logic.animeList,
-      second: logic.columnCount,
-      builder: (_, animeList, columnCount, __) {
+    return ValueListenableBuilder<List<AnimeModel>>(
+      valueListenable: logic.animeList,
+      builder: (_, animeList, __) {
         animeList.clear();
         return AnimeListView(
           animeList: animeList,
           initialRefresh: true,
           itemTap: logic.goDetail,
-          columnCount: columnCount,
           onRefresh: logic.loadAnimeList,
           header: _buildAnimeListHeader(),
           refreshController: logic.controller,
@@ -160,9 +136,6 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
 * @Time 2023/9/7 16:13
 */
 class _HomeAnimeLogic extends BaseLogic {
-  // 首页列表列数缓存key
-  static const String homeAnimeColumnsKey = 'home_anime_columns';
-
   // 记录过滤条件
   final filterSelect = ListValueChangeNotifier<FilterSelect>.empty();
 
@@ -171,10 +144,6 @@ class _HomeAnimeLogic extends BaseLogic {
 
   // 缓存搜索记录
   final searchRecordList = ListValueChangeNotifier<SearchRecord>.empty();
-
-  // 记录番剧展示列数
-  late ValueChangeNotifier<int> columnCount =
-      ValueChangeNotifier(cache.getInt(homeAnimeColumnsKey) ?? 3);
 
   // 刷新控制器
   final controller = CustomRefreshController();
@@ -206,9 +175,6 @@ class _HomeAnimeLogic extends BaseLogic {
     });
     // 初始化搜索记录
     db.getSearchRecordList().then(searchRecordList.setValue);
-    // 监听列数变化，并覆盖缓存记录
-    columnCount.addListener(
-        () => cache.setInt(homeAnimeColumnsKey, columnCount.value));
   }
 
   // 加载过滤条件配置

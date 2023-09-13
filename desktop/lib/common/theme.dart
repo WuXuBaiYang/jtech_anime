@@ -36,8 +36,11 @@ class CustomTheme {
           color: colorScheme.primary.withOpacity(0.12),
           elevation: 0,
         ),
-        chipTheme: const ChipThemeData(
+        chipTheme: ChipThemeData(
           pressElevation: 0,
+          labelPadding: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          labelStyle: TextStyle(fontSize: 12, color: colorScheme.onSurface),
         ),
         dialogTheme: const DialogTheme(
           actionsPadding: EdgeInsets.symmetric(
