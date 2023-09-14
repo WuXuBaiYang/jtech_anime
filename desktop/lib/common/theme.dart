@@ -32,10 +32,6 @@ class CustomTheme {
             fontSize: 14,
           ),
         ),
-        cardTheme: CardTheme(
-          color: colorScheme.primary.withOpacity(0.12),
-          elevation: 0,
-        ),
         chipTheme: ChipThemeData(
           pressElevation: 0,
           labelPadding: EdgeInsets.zero,

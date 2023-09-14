@@ -77,6 +77,7 @@ class SearchBarView extends StatelessWidget {
           focusNode: focusNode,
           controller: controller,
           textInputAction: TextInputAction.search,
+          scrollPhysics: const ClampingScrollPhysics(),
           decoration: InputDecoration(
             hintStyle: const TextStyle(color: Colors.black12),
             border: InputBorder.none,

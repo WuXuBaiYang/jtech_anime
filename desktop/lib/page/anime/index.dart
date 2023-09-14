@@ -55,13 +55,10 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
 
   // 构建搜索框
   Widget _buildSearchBar() {
-    return SizedBox(
-      width: 180,
-      child: SearchBarView(
-        searchRecordList: logic.searchRecordList,
-        search: (keyword) => logic.startSearch(keyword),
-        recordDelete: (item) => logic.deleteSearchRecord(item),
-      ),
+    return SearchBarView(
+      search: logic.startSearch,
+      recordDelete: logic.deleteSearchRecord,
+      searchRecordList: logic.searchRecordList,
     );
   }
 
@@ -70,13 +67,13 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
     return ValueListenableBuilder<List<FilterSelect>>(
       valueListenable: logic.filterSelect,
       builder: (_, filters, __) {
-        final tempFilters = filters.isNotEmpty
-            ? filters
-            : [
-                FilterSelect()
-                  ..parentName = '默认'
-                  ..name = '全部',
-              ];
+        final tempFilters = [
+          ...filters,
+          if (filters.isEmpty)
+            FilterSelect()
+              ..parentName = '默认'
+              ..name = '全部',
+        ];
         return SingleChildScrollView(
           reverse: true,
           scrollDirection: Axis.horizontal,
@@ -115,6 +112,7 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
     return ValueListenableBuilder<List<AnimeModel>>(
       valueListenable: logic.animeList,
       builder: (_, animeList, __) {
+        animeList.clear();
         return AnimeListView(
           animeList: animeList,
           initialRefresh: true,
@@ -227,7 +225,7 @@ class _HomeAnimeLogic extends BaseLogic {
   }
 
   // 启动刷新
-  void startSearch(String keyword) {
+  Future<void> startSearch(String keyword) async {
     _lastKeyword = keyword;
     controller.startRefresh();
   }

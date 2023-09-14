@@ -26,11 +26,21 @@ class SearchBarView extends StatelessWidget {
   // 动作按钮集合
   final List<Widget> actions;
 
-  const SearchBarView({
+  // 容器限制
+  final BoxConstraints constraints;
+
+  // 是否存在搜索内容
+  final hasSearchContent = ValueChangeNotifier<bool>(false);
+
+  SearchBarView({
     super.key,
     required this.searchRecordList,
     required this.recordDelete,
     required this.search,
+    this.constraints = const BoxConstraints(
+      maxWidth: 180,
+      maxHeight: 450,
+    ),
     this.actions = const [],
   });
 
@@ -39,18 +49,21 @@ class SearchBarView extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: searchRecordList,
       builder: (_, searchRecords, ___) {
-        return Autocomplete<SearchRecord>(
-          optionsBuilder: (v) {
-            final keyword = v.text.trim().toLowerCase();
-            if (keyword.isEmpty) return [];
-            return searchRecords.where(
-              (e) => e.keyword.contains(keyword),
-            );
-          },
-          fieldViewBuilder: _buildFieldView,
-          optionsViewBuilder: _buildOptionsView,
-          displayStringForOption: (e) => e.keyword,
-          onSelected: (v) => search(v.keyword.trim()),
+        return ConstrainedBox(
+          constraints: constraints,
+          child: Autocomplete<SearchRecord>(
+            optionsBuilder: (v) {
+              final keyword = v.text.trim().toLowerCase();
+              if (keyword.isEmpty) return [];
+              return searchRecords.where(
+                (e) => e.keyword.contains(keyword),
+              );
+            },
+            fieldViewBuilder: _buildFieldView,
+            optionsViewBuilder: _buildOptionsView,
+            displayStringForOption: (e) => e.keyword,
+            onSelected: (v) => search(v.keyword.trim()),
+          ),
         );
       },
     );
@@ -71,29 +84,31 @@ class SearchBarView extends StatelessWidget {
       focusNode: focusNode,
       controller: controller,
       cursorRadius: const Radius.circular(4),
-      textInputAction: TextInputAction.search,
-      style: const TextStyle(fontSize: 16),
+      scrollPhysics: const ClampingScrollPhysics(),
+      style: const TextStyle(fontSize: 14, height: 1.3),
       decoration: InputDecoration(
         hintText: '嗖~',
         isCollapsed: true,
         enabledBorder: border,
         focusedBorder: focusBorder,
+        contentPadding: const EdgeInsets.only(top: 4),
+        constraints: const BoxConstraints(maxHeight: 35),
         hintStyle: const TextStyle(color: Colors.black12),
-        suffix: _buildFieldViewSubmit(controller, focusNode),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 2).copyWith(left: 20),
+        suffix: _buildFieldViewClear(controller, focusNode),
+        prefixIcon: const Icon(FontAwesomeIcons.magnifyingGlass, size: 14),
       ),
     );
   }
 
-  // 构建搜索条输入框的确认按钮
-  Widget _buildFieldViewSubmit(
+  // 构建搜索条输入框的清除按钮
+  Widget _buildFieldViewClear(
       TextEditingController controller, FocusNode focusNode) {
     return IconButton(
-      icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+      iconSize: 14,
+      icon: const Icon(FontAwesomeIcons.xmark),
       onPressed: () {
-        search(controller.text.trim());
-        focusNode.unfocus();
+        controller.clear();
+        search('');
       },
     );
   }
@@ -104,14 +119,13 @@ class SearchBarView extends StatelessWidget {
     AutocompleteOnSelected<SearchRecord> onSelected,
     Iterable<SearchRecord> options,
   ) {
-    return const SizedBox();
     return Align(
       alignment: Alignment.topLeft,
-      child: Material(
-        color: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: constraints,
         child: Card(
           clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.only(left: 4, right: 30, top: 8),
+          margin: const EdgeInsets.symmetric(vertical: 8),
           child: ListView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
