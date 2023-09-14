@@ -29,7 +29,12 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: _buildAnimeList(),
+      body: Column(
+        children: [
+          _buildAnimeListHeader(),
+          Expanded(child: _buildAnimeList()),
+        ],
+      ),
     );
   }
 
@@ -37,19 +42,16 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
   Widget _buildAnimeListHeader() {
     final supportSearch = animeParser.isSupport(AnimeParserFunction.search);
     final supportFilter = animeParser.isSupport(AnimeParserFunction.filter);
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          if (supportSearch) _buildSearchBar(),
-          const SizedBox(width: 14),
-          if (supportFilter) Expanded(child: _buildFilterChips(context)),
-          const SizedBox(width: 8),
-          if (supportFilter) _buildFilterButton(),
-          const SizedBox(width: 4),
-        ],
-      ),
+    return Row(
+      children: [
+        const SizedBox(width: 8),
+        if (supportSearch) _buildSearchBar(),
+        const SizedBox(width: 14),
+        if (supportFilter) Expanded(child: _buildFilterChips(context)),
+        const SizedBox(width: 8),
+        if (supportFilter) _buildFilterButton(),
+        const SizedBox(width: 4),
+      ],
     );
   }
 
@@ -112,13 +114,11 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
     return ValueListenableBuilder<List<AnimeModel>>(
       valueListenable: logic.animeList,
       builder: (_, animeList, __) {
-        animeList.clear();
         return AnimeListView(
           animeList: animeList,
           initialRefresh: true,
           itemTap: logic.goDetail,
           onRefresh: logic.loadAnimeList,
-          header: _buildAnimeListHeader(),
           refreshController: logic.controller,
         );
       },
