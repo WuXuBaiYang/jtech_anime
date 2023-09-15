@@ -10,7 +10,7 @@ void main() async {
   // 初始化核心内容
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
-    noPictureMode: true,
+    noPictureMode: false,
   );
   // 初始化窗口管理
   await windowManager.ensureInitialized();
