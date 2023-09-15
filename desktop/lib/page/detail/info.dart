@@ -13,22 +13,18 @@ class AnimeDetailInfo extends StatelessWidget {
   // 继续播放按钮
   final Widget? continueButton;
 
-  // 是否可以展开
-  final bool expanded;
-
   const AnimeDetailInfo({
     super.key,
     required this.animeInfo,
     this.continueButton,
-    this.expanded = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
-      fit: expanded ? StackFit.loose : StackFit.expand,
+      fit: StackFit.expand,
       children: [
-        if (!expanded) _buildInfoBackground(),
+        _buildInfoBackground(),
         _buildInfo(),
       ],
     );
@@ -51,11 +47,11 @@ class AnimeDetailInfo extends StatelessWidget {
   // 构建信息部分
   Widget _buildInfo() {
     return DefaultTextStyle(
+      maxLines: 999,
       style: const TextStyle(
         color: Colors.black54,
         fontSize: 14,
       ),
-      maxLines: expanded ? 999 : 1,
       overflow: TextOverflow.ellipsis,
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -117,15 +113,12 @@ class AnimeDetailInfo extends StatelessWidget {
                         .toList(),
                   ),
                 ),
-                if (continueButton != null && !expanded) continueButton!,
+                if (continueButton != null) continueButton!,
               ],
             ),
           ),
         ),
-        Text(
-          '简介：${animeInfo.intro}',
-          maxLines: expanded ? null : 5,
-        ),
+        Text('简介：${animeInfo.intro}', maxLines: 5),
       ],
     );
   }
