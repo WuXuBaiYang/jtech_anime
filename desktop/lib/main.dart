@@ -10,7 +10,7 @@ void main() async {
   // 初始化核心内容
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
-    noPictureMode: false,
+    noPictureMode: true,
   );
   // 初始化窗口管理
   await windowManager.ensureInitialized();
@@ -21,7 +21,6 @@ void main() async {
     minimumSize: size,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    backgroundColor: Colors.transparent,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();

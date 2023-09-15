@@ -20,7 +20,7 @@ class VolumeTool {
     FlutterVolumeController.showSystemUI = true;
     // 获取当前音量
     FlutterVolumeController.getVolume().then(
-      (v) => _currentVolume = v ?? 0,
+          (v) => _currentVolume = v ?? 0,
     );
     // 监听音量变化
     FlutterVolumeController.addListener((v) {
@@ -38,6 +38,18 @@ class VolumeTool {
     _currentVolume = volume;
     _streamController.sink.add(_currentVolume);
     FlutterVolumeController.setVolume(_currentVolume);
+  }
+
+  // 增加音量
+  static Future<void> raise([double step = 0.1]) async {
+    if (_currentVolume >= 1) return;
+    return set(_currentVolume + step);
+  }
+
+  // 降低音量
+  static Future<void> lower([double step = 0.1]) async {
+    if (_currentVolume <= 0) return;
+    return set(_currentVolume - step);
   }
 
   // 设置静音
