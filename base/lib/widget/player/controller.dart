@@ -16,6 +16,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 是否展示控制
   final controlVisible = ValueChangeNotifier<bool>(false);
 
+  // 全屏按钮控制
+  final controlFullscreen = ValueChangeNotifier<bool>(false);
+
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);
 
@@ -58,7 +61,16 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   }
 
   // 切换锁定状态
+  void toggleScreenLocked() => setScreenLocked(!screenLocked.value);
+
+  // 设置锁定状态
   void setScreenLocked(bool locked) => screenLocked.setValue(locked);
+
+  // 切换全屏状态
+  void toggleFullscreen() => setFullscreen(!controlFullscreen.value);
+
+  // 设置全屏状态
+  void setFullscreen(bool fullscreen) => controlFullscreen.setValue(fullscreen);
 
   // 跳转到播放进度
   Future<void> seekTo(Duration duration) => _player.seek(duration);

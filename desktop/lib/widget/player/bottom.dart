@@ -45,9 +45,6 @@ class _CustomPlayerControlsBottomState
   // 音量调节按钮显示控制
   final controlSpeed = ValueChangeNotifier<bool>(false);
 
-  // 全屏按钮控制
-  final controlFullscreen = ValueChangeNotifier<bool>(false);
-
   @override
   void initState() {
     super.initState();
@@ -317,17 +314,14 @@ class _CustomPlayerControlsBottomState
 
   // 构建全屏按钮
   Widget _buildFullscreenAction() {
+    final controller = widget.controller;
     return ValueListenableBuilder<bool>(
-      valueListenable: controlFullscreen,
+      valueListenable: controller.controlFullscreen,
       builder: (_, expanded, __) {
         return IconButton(
           icon: Icon(
               expanded ? FontAwesomeIcons.compress : FontAwesomeIcons.expand),
-          onPressed: () {
-            final value = !expanded;
-            controlFullscreen.setValue(value);
-            windowManager.setFullScreen(value);
-          },
+          onPressed: () => controller.toggleFullscreen(),
         );
       },
     );

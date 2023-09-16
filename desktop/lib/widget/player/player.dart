@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:window_manager/window_manager.dart';
 import 'bottom.dart';
 import 'status.dart';
 import 'top.dart';
@@ -54,6 +55,18 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   final playerSeekStream = StreamController<Duration?>.broadcast();
 
   @override
+  void initState() {
+    super.initState();
+    // 控制器
+    final controller = widget.controller;
+    // 监听全屏状态切换
+    widget.controller.controlFullscreen.addListener(() {
+      final value = controller.controlFullscreen.value;
+      windowManager.setFullScreen(value);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CustomVideoPlayer(
       controller: widget.controller,
@@ -83,6 +96,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
                       widget.controller.resumeOrPause().then((playing) {
                     if (playing) controller.setControlVisible(true);
                   }),
+                  onDoubleTap: () => controller.toggleFullscreen(),
                   child: AnimatedOpacity(
                     opacity: visible ? 1 : 0,
                     duration: const Duration(milliseconds: 180),

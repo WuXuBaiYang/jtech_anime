@@ -47,13 +47,14 @@ class _CustomPlayerControlsSideState extends State<CustomPlayerControlsSide> {
 
   // 构建锁定按钮
   Widget _buildLockAction() {
+    final controller = widget.controller;
     return IconButton(
       icon: Icon(
           widget.locked ? FontAwesomeIcons.lock : FontAwesomeIcons.lockOpen),
       color: widget.locked ? kPrimaryColor : null,
       onPressed: () {
-        widget.controller.setControlVisible(true);
-        widget.controller.setScreenLocked(!widget.locked);
+        controller.setControlVisible(true);
+        controller.toggleScreenLocked();
       },
     );
   }
