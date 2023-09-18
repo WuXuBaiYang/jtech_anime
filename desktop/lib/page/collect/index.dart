@@ -1,4 +1,5 @@
 import 'package:desktop/common/route.dart';
+import 'package:desktop/model/event.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -145,6 +146,10 @@ class _HomeCollectLogic extends BaseLogic {
     super.init();
     // 初始化加载收藏列表
     loadCollectList(false);
+    // 监听收藏变化事件
+    event.on<CollectEvent>().listen((_) {
+      loadCollectList(false);
+    });
   }
 
   // 加载收藏列表
@@ -156,12 +161,10 @@ class _HomeCollectLogic extends BaseLogic {
       final source = animeParser.currentSource;
       if (source == null) throw Exception('数据源不存在');
       final result = await db.getCollectList(source, pageIndex: index);
-      if (result.isNotEmpty) {
-        _pageIndex = index;
-        return loadMore
-            ? collectList.addValues(result)
-            : collectList.setValue(result);
-      }
+      _pageIndex = index;
+      return loadMore
+          ? collectList.addValues(result)
+          : collectList.setValue(result);
     } catch (e) {
       SnackTool.showMessage(message: '收藏列表加载失败，请重试~');
     } finally {

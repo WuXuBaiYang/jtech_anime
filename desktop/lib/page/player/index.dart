@@ -1,3 +1,4 @@
+import 'package:desktop/model/event.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:desktop/widget/player/player.dart';
 import 'package:flutter/material.dart';
@@ -287,14 +288,17 @@ class _PlayerLogic extends BaseLogic {
     if (source == null) return;
     final item = animeInfo.value;
     final resItem = resourceInfo.value;
-    db.updatePlayRecord(PlayRecord()
+    final record = PlayRecord()
       ..url = item.url
       ..name = item.name
       ..cover = item.cover
       ..source = source.key
       ..resUrl = resItem.url
       ..resName = resItem.name
-      ..progress = progress.inMilliseconds);
+      ..progress = progress.inMilliseconds;
+    db.updatePlayRecord(record);
+    // 发送播放记录变化通知
+    event.send(PlayRecordEvent(playRecord: record));
   }
 
   // 跳转到视频的指定位置

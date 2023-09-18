@@ -1,4 +1,5 @@
 import 'package:desktop/common/route.dart';
+import 'package:desktop/model/event.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -390,6 +391,7 @@ class _AnimeDetailLogic extends BaseLogic {
         id: result?.id ?? dbAutoIncrementId,
         collected: result != null,
       ));
+      event.send(CollectEvent(collect: result));
     } catch (e) {
       SnackTool.showMessage(
           message: '${item.id != dbAutoIncrementId ? '取消收藏' : '收藏'}失败，请重试~');

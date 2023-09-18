@@ -1,4 +1,5 @@
 import 'package:desktop/common/route.dart';
+import 'package:desktop/model/event.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -148,6 +149,10 @@ class _HomeRecordLogic extends BaseLogic {
     super.init();
     // 初始化加载收藏列表
     loadPlayRecords(false);
+    // 监听播放记录变化
+    event.on<PlayRecordEvent>().listen((_) {
+      loadPlayRecords(false);
+    });
   }
 
   // 加载播放记录

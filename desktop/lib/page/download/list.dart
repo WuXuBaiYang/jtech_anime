@@ -304,7 +304,10 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   // 标题文本样式
   Widget _buildEmptyView() {
     return const Center(
-      child: StatusBox(status: StatusBoxStatus.empty),
+      child: StatusBox(
+        status: StatusBoxStatus.empty,
+        animSize: 100,
+      ),
     );
   }
 
