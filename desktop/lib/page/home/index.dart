@@ -9,6 +9,8 @@ import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
+import 'source.dart';
+
 /*
 * 首页
 * @author wuxubaiyang
@@ -31,12 +33,24 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   _HomeLogic initLogic() => _HomeLogic();
 
   @override
+  void initState() {
+    super.initState();
+    // 监听解析源变化
+    event.on<SourceChangeEvent>().listen((event) {
+      // 如果解析源为空则弹出不可取消的强制选择弹窗
+      if (event.source == null) {
+        AnimeSourceChangeDialog.show(context, dismissible: false);
+      }
+    });
+  }
+
+  @override
   Widget buildWidget(BuildContext context) {
     return ValueListenableBuilder<int>(
       valueListenable: logic.selectIndex,
       builder: (_, index, __) {
         return WindowPage(
-          sideBar: _buildSideNavigation(index),
+          sideBar: _buildSideNavigation(context, index),
           child: _buildNavigationPage(index),
         );
       },
@@ -44,7 +58,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 构建侧边导航栏
-  Widget _buildSideNavigation(int index) {
+  Widget _buildSideNavigation(BuildContext context, int index) {
     return ValueListenableBuilder<bool>(
       valueListenable: logic.expanded,
       builder: (_, expanded, __) {
@@ -53,8 +67,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           extended: expanded,
           selectedIndex: index,
           minExtendedWidth: 120,
-          leading: _buildAnimeSource(),
           trailing: _buildExpandedButton(),
+          leading: _buildAnimeSource(context),
           // backgroundColor: Colors.transparent,
           onDestinationSelected: logic.selectIndex.setValue,
           destinations: [
@@ -88,7 +102,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   }
 
   // 构建插件入口方法
-  Widget _buildAnimeSource() {
+  Widget _buildAnimeSource(BuildContext context) {
     return SourceStreamView(
       builder: (_, snap) {
         final source = snap.data?.source;
@@ -101,9 +115,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 source: source,
               ),
               onTap: () => router.pushNamed(RoutePath.animeSource),
-              onLongPress: () {
-                /// 弹出插件设置菜单
-              },
+              onLongPress: () => AnimeSourceChangeDialog.show(context),
             ),
             const SizedBox(height: 14),
           ],
