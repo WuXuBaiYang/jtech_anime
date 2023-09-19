@@ -68,10 +68,10 @@ export 'widget/tab.dart';
 export 'widget/text_scroll.dart';
 export 'widget/lottie.dart';
 export 'widget/blur.dart';
+export 'tool/qrcode.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
-export 'package:image_picker/image_picker.dart';
 export 'package:url_launcher/url_launcher.dart';
 export 'package:collection/collection.dart';
 export 'package:dio/dio.dart';

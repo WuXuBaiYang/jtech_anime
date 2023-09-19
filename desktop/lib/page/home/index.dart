@@ -1,4 +1,5 @@
 import 'package:desktop/common/icon.dart';
+import 'package:desktop/common/route.dart';
 import 'package:desktop/page/anime/index.dart';
 import 'package:desktop/page/collect/index.dart';
 import 'package:desktop/page/download/index.dart';
@@ -61,10 +62,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               label: const Text('最新'),
               icon: Image.asset(CustomIcon.homeNavigationNewest,
                   width: 24, height: 24),
-              selectedIcon: Image.asset(
-                  CustomIcon.homeNavigationNewestSelected,
-                  width: 24,
-                  height: 24),
+              selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
+                  width: 24, height: 24),
             ),
             const NavigationRailDestination(
               label: Text('时间表'),
@@ -101,9 +100,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               child: AnimeSourceLogo(
                 source: source,
               ),
-              onTap: () {
-                /// 跳转到插件设置页面
-              },
+              onTap: () => router.pushNamed(RoutePath.animeSource),
               onLongPress: () {
                 /// 弹出插件设置菜单
               },

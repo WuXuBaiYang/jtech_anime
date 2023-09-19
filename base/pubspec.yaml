@@ -95,6 +95,12 @@ dependencies:
   # url跳转(ALL)
   url_launcher: ^6.1.14
 
+  # zxing基础库
+  zxing_lib: ^1.1.1
+
+  # zxing扫码组件
+  zxing_widget: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

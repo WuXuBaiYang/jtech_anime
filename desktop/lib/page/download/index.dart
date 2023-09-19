@@ -69,7 +69,9 @@ class _HomeDownloadPageState
             children: [
               CustomTabBar(
                 controller: tabController,
-                tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
+                tabs: ['下载队列', '已下载'].map((e) {
+                  return Tab(text: e);
+                }).toList(),
               ),
               Expanded(
                 child: TabBarView(
