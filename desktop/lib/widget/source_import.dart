@@ -26,46 +26,23 @@ class AnimeSourceImportSheet extends StatefulWidget {
     BuildContext context, {
     Widget? title,
   }) async {
-    // ImagePicker().pickImage(source: ImageSource.gallery).then((result) {
-    //   if (result == null) return null;
-    //   final source = AnimeSource.from(jsonDecode(result!));
-    //   // 检查是否存在必须信息
-    //   if (!source.checkRequireInfo()) {
-    //     SnackTool.showMessage(message: '缺少必要信息');
-    //     return null;
-    //   }
-    //   return showModalBottomSheet<AnimeSource>(
-    //     context: context,
-    //     builder: (_) {
-    //       return AnimeSourceImportSheet(
-    //         source: source,
-    //       );
-    //     },
-    //   );
-    // });
-    // return QRCodeSheet.show(context, title: title).then((result) {
-    //   try {
-    //     if (result?.isNotEmpty == false) return null;
-    //     final source = AnimeSource.from(jsonDecode(result!));
-    //     // 检查是否存在必须信息
-    //     if (!source.checkRequireInfo()) {
-    //       SnackTool.showMessage(message: '缺少必要信息');
-    //       return null;
-    //     }
-    //     return showModalBottomSheet<AnimeSource>(
-    //       context: context,
-    //       builder: (_) {
-    //         return AnimeSourceImportSheet(
-    //           source: source,
-    //         );
-    //       },
-    //     );
-    //   } catch (e) {
-    //     LogTool.e('解析源导入失败', error: e);
-    //     SnackTool.showMessage(message: '解析源导入失败');
-    //   }
-    //   return null;
-    // });
+    return QRCode.decodeFromGallery().then((result) {
+      if (result == null) return null;
+      final source = AnimeSource.from(jsonDecode(result));
+      // 检查是否存在必须信息
+      if (!source.checkRequireInfo()) {
+        SnackTool.showMessage(message: '缺少必要信息');
+        return null;
+      }
+      return showModalBottomSheet<AnimeSource>(
+        context: context,
+        builder: (_) {
+          return AnimeSourceImportSheet(
+            source: source,
+          );
+        },
+      );
+    });
   }
 
   static Future<AnimeSource?> showInfo(BuildContext context,

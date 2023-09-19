@@ -38,7 +38,7 @@ class QRCode {
     final ui.Image image = await decodeImageFromList(bytes);
     final byteData = await image.toByteData();
     if (byteData == null) return null;
-    final results = await decodeImageInIsolate(
+    final results = await _decodeImageInIsolate(
       byteData.buffer.asUint8List(),
       image.width,
       image.height,
@@ -49,12 +49,13 @@ class QRCode {
   }
 
   /// decode image in an isolate(except web).
-  static Future<List<Result>?> decodeImageInIsolate(Uint8List image,
-      int width,
-      int height, {
-        bool isRgb = true,
-        int maxSize = 600,
-      }) async {
+  static Future<List<Result>?> _decodeImageInIsolate(
+    Uint8List image,
+    int width,
+    int height, {
+    bool isRgb = true,
+    int maxSize = 600,
+  }) async {
     if (kIsWeb) {
       return isRgb
           ? _decodeImage(_IsoMessage(null, image, width, height, maxSize))
@@ -63,7 +64,7 @@ class QRCode {
     final complete = Completer<List<Result>?>();
     final port = ReceivePort();
     port.listen(
-          (message) {
+      (message) {
         if (!complete.isCompleted) {
           complete.complete(message as List<Result>?);
         }
@@ -88,12 +89,14 @@ class QRCode {
     return complete.future;
   }
 
-  static Uint8List _scaleDown(Uint8List data,
-      int width,
-      int height,
-      int newWidth,
-      int newHeight,
-      double scale,) {
+  static Uint8List _scaleDown(
+    Uint8List data,
+    int width,
+    int height,
+    int newWidth,
+    int newHeight,
+    double scale,
+  ) {
     final scaleCeil = scale.ceil();
     final newBuffer = Uint8List(newWidth * newHeight);
     final colors = List<int?>.filled(scaleCeil * scaleCeil, null);
@@ -220,10 +223,11 @@ class _IsoMessage {
   final int height;
   final int maxSize;
 
-  _IsoMessage(this.sendPort,
-      this.byteData,
-      this.width,
-      this.height, [
-        this.maxSize = 600,
-      ]);
+  _IsoMessage(
+    this.sendPort,
+    this.byteData,
+    this.width,
+    this.height, [
+    this.maxSize = 600,
+  ]);
 }

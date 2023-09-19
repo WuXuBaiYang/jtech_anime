@@ -65,6 +65,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  charset:
+    dependency: transitive
+    description:
+      name: charset
+      sha256: "27802032a581e01ac565904ece8c8962564b1070690794f0072f6865958ce8b9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   clock:
     dependency: transitive
     description:
@@ -1089,6 +1097,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.3.0"
+  zxing_lib:
+    dependency: transitive
+    description:
+      name: zxing_lib
+      sha256: "43933edb81f1eda56aa8823d5ec482c1da154781b8d901d33c9f6db884935960"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
+  zxing_widget:
+    dependency: transitive
+    description:
+      name: zxing_widget
+      sha256: "21bf84e4cd8b307e32a4c246832da273dcbfcfcad3510a06bfdc6899494dd4be"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
 sdks:
   dart: ">=3.1.0 <4.0.0"
   flutter: ">=3.13.0"
