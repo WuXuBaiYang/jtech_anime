@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:extended_image/extended_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
 import 'status_box.dart';
 
 // 图片状态加载
@@ -202,7 +201,9 @@ class ImageView extends StatefulWidget {
 class _ImageViewState extends State<ImageView> {
   @override
   Widget build(BuildContext context) {
-    if (ImageView.noPictureMode) return const SizedBox();
+    if (ImageView.noPictureMode && kDebugMode) {
+      return const SizedBox();
+    }
     return GestureDetector(
       onTap: widget.onTap,
       child: ExtendedImage(

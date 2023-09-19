@@ -1,4 +1,5 @@
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:media_kit/media_kit.dart';
@@ -82,7 +83,7 @@ Future<void> ensureInitializedCore({
   bool noPictureMode = false,
 }) async {
   // 设置是否为无图模式
-  if (kDarkMode) ImageView.noPictureMode = noPictureMode;
+  ImageView.noPictureMode = noPictureMode;
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
   // 设置音量控制
