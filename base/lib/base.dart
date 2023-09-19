@@ -82,7 +82,7 @@ Future<void> ensureInitializedCore({
   bool noPictureMode = false,
 }) async {
   // 设置是否为无图模式
-  ImageView.noPictureMode = noPictureMode;
+  if (kDarkMode) ImageView.noPictureMode = noPictureMode;
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
   // 设置音量控制
