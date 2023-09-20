@@ -78,6 +78,24 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     return _player.seek(duration);
   }
 
+  // 快进播放进度
+  Future<void> seekForward(
+      {Duration duration = const Duration(seconds: 3)}) async {
+    final current = state.position;
+    final target = current + duration;
+    if (target > state.duration) return;
+    return _player.seek(target);
+  }
+
+  // 快进播放进度
+  Future<void> seekBackward(
+      {Duration duration = const Duration(seconds: 3)}) async {
+    final current = state.position;
+    final target = current - duration;
+    if (target < Duration.zero) return;
+    return _player.seek(target);
+  }
+
   // 设置播放倍速
   Future<void> setRate(double rate) => _player.setRate(rate);
 

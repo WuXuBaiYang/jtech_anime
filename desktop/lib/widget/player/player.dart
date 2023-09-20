@@ -54,6 +54,9 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   // 播放进度控制
   final playerSeekStream = StreamController<Duration?>.broadcast();
 
+  // 焦点管理
+  final focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -79,9 +82,9 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   // 构建控制器
   Widget _buildControls(BuildContext context, state) {
     final controller = widget.controller;
-    return KeyboardListener(
-      focusNode: FocusNode(),
-      onKeyEvent: _keyEvent,
+    return RawKeyboardListener(
+      onKey: _keyEvent,
+      focusNode: focusNode,
       child: MouseRegion(
         onHover: (_) => controller.setControlVisible(true),
         onEnter: (_) => controller.setControlVisible(true),
@@ -145,27 +148,19 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   }
 
   // 处理键盘事件
-  void _keyEvent(KeyEvent event) {
+  void _keyEvent(RawKeyEvent event) {
     final controller = widget.controller;
     // 监听方向键，上下控制音量，左右控制进度,空格键暂停/恢复播放
-    switch (event.logicalKey) {
-      case LogicalKeyboardKey.arrowUp: // 增加音量
-        VolumeTool.raise();
-        break;
-      case LogicalKeyboardKey.arrowDown: // 降低音量
-        VolumeTool.lower();
-        break;
-      case LogicalKeyboardKey.arrowLeft: // 快退
-        controller
-            .seekTo(controller.state.position - const Duration(seconds: 3));
-        break;
-      case LogicalKeyboardKey.arrowRight: // 快进
-        controller
-            .seekTo(controller.state.position + const Duration(seconds: 3));
-        break;
-      case LogicalKeyboardKey.space: // 暂停/恢复播放
-        controller.resumeOrPause();
-        break;
+    if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
+      VolumeTool.raise();
+    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
+      VolumeTool.lower();
+    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowLeft)) {
+      controller.seekBackward();
+    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowRight)) {
+      controller.seekForward();
+    } else if (event.isKeyPressed(LogicalKeyboardKey.space)) {
+      controller.resumeOrPause();
     }
   }
 }
