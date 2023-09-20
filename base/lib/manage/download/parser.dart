@@ -113,13 +113,14 @@ class M3U8Parser {
     if (playlist.segments.isEmpty) return null;
     final baseUri = Uri.parse(playlist.baseUri ?? '');
     // 获取密钥下载地址（如果存在）
-    String? keyUrl, key = playlist.segments.first.fullSegmentEncryptionKeyUri;
+    String? keyUrl,
+        key = playlist.segments.first.fullSegmentEncryptionKeyUri;
     if (key != null) {
       keyUrl = _mergeUrl(key, baseUri);
       content = content.replaceAll(key, keyFilename);
     }
     // 遍历分片列表并同时生成本地索引文件
-    var prev = -1;
+    // var prev = -1;
     final resources = <String, String>{};
     for (final item in playlist.segments) {
       // 拼接分片下载地址
@@ -127,12 +128,12 @@ class M3U8Parser {
       if (url == null) continue;
       url = _mergeUrl(url, baseUri);
       final filename = basename(url);
-      final temp = _absoluteIndex(filename);
-      if (prev != -1 && temp != prev + 1) {
-        content = content.replaceAll(filename, '');
-        continue;
-      }
-      prev = temp;
+      // final temp = _absoluteIndex(filename);
+      // if (prev != -1 && temp != prev + 1) {
+      //   content = content.replaceAll(filename, '');
+      //   continue;
+      // }
+      // prev = temp;
       resources[filename] = url;
       // 替换m3u8文件中得分片地址为本地或远程地址
       content = content.replaceAll(item.url ?? '', filename);

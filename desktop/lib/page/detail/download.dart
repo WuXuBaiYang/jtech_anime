@@ -223,6 +223,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
         SnackTool.showMessage(message: message);
         cacheController.refreshValue();
         selectResources.setValue([]);
+        router.pop();
       }),
     )?.catchError((_) {
       SnackTool.showMessage(message: '资源解析异常,请更换资源重试');
