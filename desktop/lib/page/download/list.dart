@@ -291,10 +291,12 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.white.withOpacity(0.8)),
             ),
-            child: hasPlayRecord
-                ? CustomScrollText.slow('上次看到 ${item.name}',
-                    style: TextStyle(color: kPrimaryColor))
-                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: hasPlayRecord ? kPrimaryColor : null),
+            ),
           ),
         );
       },

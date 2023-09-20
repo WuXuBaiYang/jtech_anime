@@ -1,3 +1,4 @@
+import 'package:desktop/model/event.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -218,6 +219,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
             ? '未能成功添加下载任务'
             : '已成功添加 $successCount 条任务'
                 '${failCount > 0 ? '，失败 $failCount 条' : ''}';
+        event.send(NewDownloadEvent(downloadRecords: downloadRecords));
         SnackTool.showMessage(message: message);
         cacheController.refreshValue();
         selectResources.setValue([]);

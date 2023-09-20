@@ -21,3 +21,14 @@ class PlayRecordEvent extends EventModel {
 
   PlayRecordEvent({this.playRecord});
 }
+
+/*
+* 新的下载记录事件
+* @author wuxubaiyang
+* @Time 2023/9/20 15:16
+*/
+class NewDownloadEvent extends EventModel {
+  final List<DownloadRecord> downloadRecords;
+
+  NewDownloadEvent({this.downloadRecords = const []});
+}

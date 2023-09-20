@@ -1,4 +1,5 @@
 import 'package:desktop/common/route.dart';
+import 'package:desktop/model/event.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -56,6 +57,16 @@ class _HomeDownloadPageState
       if (tabController.animation == null) return;
       final inDownloadingTab = tabController.animation!.value <= 0.5;
       logic.downloadingTab.setValue(inDownloadingTab);
+    });
+    // 监听新增下载事件
+    event.on<NewDownloadEvent>().listen((event) {
+      if (!mounted) return;
+      logic.loadDownloadRecords();
+    });
+    // 监听播放记录事件
+    event.on<PlayRecordEvent>().listen((event) {
+      if (!mounted) return;
+      logic.playRecordController.refreshValue();
     });
   }
 
@@ -139,7 +150,9 @@ class _HomeDownloadPageState
               onStopDownloads: download.stopTasks,
               onStartDownloads: download.startTasks,
               downloadTask: snap.data ?? DownloadTask(),
-              onRemoveRecords: (records) => _showDeleteDialog(context, records),
+              onRemoveRecords: (records) {
+                _showDeleteDialog(context, records);
+              },
             );
           },
         );

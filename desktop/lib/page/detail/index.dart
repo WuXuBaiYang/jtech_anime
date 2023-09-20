@@ -257,10 +257,13 @@ class _AnimeDetailPageState
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.black26),
             ),
-            child: playResUrl == item.url
-                ? CustomScrollText.slow('上次看到 ${item.name}',
-                    style: TextStyle(color: kPrimaryColor))
-                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: playResUrl == item.url ? kPrimaryColor : null),
+            ),
           ),
           if (downloadRecord != null)
             Align(

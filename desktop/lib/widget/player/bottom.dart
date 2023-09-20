@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:window_manager/window_manager.dart';
 
 /*
 * 自定义播放器控制层-底部

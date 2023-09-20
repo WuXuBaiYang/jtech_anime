@@ -73,7 +73,10 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   void setFullscreen(bool fullscreen) => controlFullscreen.setValue(fullscreen);
 
   // 跳转到播放进度
-  Future<void> seekTo(Duration duration) => _player.seek(duration);
+  Future<void> seekTo(Duration duration) async {
+    if (duration > state.duration || duration < Duration.zero) return;
+    return _player.seek(duration);
+  }
 
   // 设置播放倍速
   Future<void> setRate(double rate) => _player.setRate(rate);

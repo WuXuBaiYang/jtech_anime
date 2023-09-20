@@ -135,8 +135,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
             children: [
               IconButton(
                 icon: Icon(expanded
-                    ? FontAwesomeIcons.barsStaggered
-                    : FontAwesomeIcons.bars),
+                    ? FontAwesomeIcons.bars
+                    : FontAwesomeIcons.barsStaggered),
                 onPressed: () => logic.expanded.setValue(!expanded),
               ),
               const SizedBox(height: 14),

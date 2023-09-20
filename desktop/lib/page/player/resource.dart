@@ -108,15 +108,16 @@ class PlayerResourceDrawer extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.white24),
             ),
-            child: currentItem?.url == item.url
-                ? CustomScrollText.slow('正在看 ${item.name}',
-                    style: TextStyle(color: kPrimaryColor))
-                : Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white54),
-                  ),
+            child: Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: currentItem?.url == item.url
+                    ? kPrimaryColor
+                    : Colors.white54,
+              ),
+            ),
           ),
           if (downloaded)
             Align(
