@@ -35,14 +35,8 @@ class CustomTheme {
         chipTheme: ChipThemeData(
           pressElevation: 0,
           labelPadding: EdgeInsets.zero,
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
           labelStyle: TextStyle(fontSize: 12, color: colorScheme.onSurface),
-        ),
-        dialogTheme: const DialogTheme(
-          actionsPadding: EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
-          ),
         ),
         iconTheme: const IconThemeData(size: 20),
         bottomSheetTheme: const BottomSheetThemeData(

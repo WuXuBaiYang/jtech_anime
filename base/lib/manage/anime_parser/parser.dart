@@ -86,8 +86,7 @@ class AnimeParserManage extends BaseManage {
     final request = AnimeParserRequestModel.fromTimeTable();
     final result =
     await _doJSFunction(content, request, cancelToken: cancelToken);
-    if (result == null) return null;
-    return TimeTableModel.from(jsonDecode(result));
+    return TimeTableModel.from(result ?? {});
   }
 
   // 获取过滤条件列表
@@ -98,9 +97,10 @@ class AnimeParserManage extends BaseManage {
     final request = AnimeParserRequestModel.fromFilter();
     final result =
     await _doJSFunction(content, request, cancelToken: cancelToken);
-    if (result == null) return [];
-    return jsonDecode(result)
-        .map<AnimeFilterModel>(AnimeFilterModel.from)
+    return (result ?? [])
+        .map<AnimeFilterModel>(
+          (e) => AnimeFilterModel.from(e),
+    )
         .toList();
   }
 
@@ -117,8 +117,11 @@ class AnimeParserManage extends BaseManage {
         pageIndex: pageIndex, pageSize: pageSize, keyword: keyword);
     final result =
     await _doJSFunction(content, request, cancelToken: cancelToken);
-    if (result == null) return [];
-    return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
+    return (result ?? [])
+        .map<AnimeModel>(
+          (e) => AnimeModel.from(e),
+    )
+        .toList();
   }
 
   // 获取首页番剧列表
@@ -134,8 +137,11 @@ class AnimeParserManage extends BaseManage {
         pageIndex: pageIndex, pageSize: pageSize, filterSelect: filterSelect);
     final result =
     await _doJSFunction(content, request, cancelToken: cancelToken);
-    if (result == null) return [];
-    return jsonDecode(result).map<AnimeModel>(AnimeModel.from).toList();
+    return (result ?? [])
+        .map<AnimeModel>(
+          (e) => AnimeModel.from(e),
+    )
+        .toList();
   }
 
   // 获取详情页数据(缓存时间：6小时)
@@ -150,10 +156,8 @@ class AnimeParserManage extends BaseManage {
     if (useCache) animeDetail = cache.getJson(cacheKey);
     if (animeDetail != null) return AnimeModel.from(animeDetail);
     final request = AnimeParserRequestModel.fromDetail(animeUrl: animeUrl);
-    final result =
+    animeDetail =
     await _doJSFunction(content, request, cancelToken: cancelToken);
-    if (result == null) return null;
-    animeDetail = jsonDecode(result);
     if (animeDetail == null) return null;
     await cache.setJsonMap(cacheKey, animeDetail,
         expiration: const Duration(hours: 6));
@@ -184,8 +188,7 @@ class AnimeParserManage extends BaseManage {
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
       final result =
       await _doJSFunction(content, request, cancelToken: cancelToken);
-      if (result == null) return [];
-      for (final e in jsonDecode(result)) {
+      for (final e in (result ?? [])) {
         final playUrl = e['playUrl'];
         useCache = e['useCache'] ?? true;
         final result = useCache
@@ -294,12 +297,12 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 执行js方法
-  Future<String?> _doJSFunction(String sourceCode,
+  Future<T?> _doJSFunction<T>(String sourceCode,
       AnimeParserRequestModel request, {
         CancelToken? cancelToken,
       }) async {
     final params = request.to();
-    final completer = Completer<String?>();
+    final completer = Completer<T?>();
     final function = request.function.getCaseFunction(params);
     _jsRuntime.eval('''
           $_injectionMethods
@@ -311,7 +314,10 @@ class AnimeParserManage extends BaseManage {
           doJSFunction()
     ''').then((result) {
       if (completer.isCompleted) return;
-      completer.complete(result);
+      final json = jsonDecode(result);
+      // ios的执行结果会多一层双引号，需要decode两次才能去除
+      if (Platform.isIOS) return completer.complete(jsonDecode(json));
+      completer.complete(json);
     }).catchError((_) {
       if (completer.isCompleted) return;
       completer.complete(null);
