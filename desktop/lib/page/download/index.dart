@@ -114,6 +114,7 @@ class _HomeDownloadPageState
         return FloatingActionButton.extended(
           label: Text(totalSpeed),
           isExtended: hasDownloadTask,
+          heroTag: 'download_status_fab',
           icon: Center(
             child: Icon(hasDownloadTask
                 ? FontAwesomeIcons.pause
@@ -188,8 +189,8 @@ class _HomeDownloadPageState
   }
 
   // 展示删除弹窗
-  Future<void> _showDeleteDialog(
-      BuildContext context, List<DownloadRecord> records) async {
+  Future<void> _showDeleteDialog(BuildContext context,
+      List<DownloadRecord> records) async {
     if (records.isEmpty) return;
     final item = records.first;
     final content = '是否删除 ${item.title} ${item.name} '
@@ -230,7 +231,7 @@ class _HomeDownloadLogic extends BaseLogic {
 
   // 播放记录缓存控制
   final playRecordController =
-      CacheFutureBuilderController<Map<String, PlayRecord>>();
+  CacheFutureBuilderController<Map<String, PlayRecord>>();
 
   // 获取下载队列与已下载队列
   Future<void> loadDownloadRecords() async {
@@ -257,7 +258,8 @@ class _HomeDownloadLogic extends BaseLogic {
     final result = await db.getDownloadRecordList(source, status: status);
     // 遍历下载记录并将记录分组排序
     String? lastUrl;
-    final groupList = <DownloadGroup>[], subList = <DownloadRecord>[];
+    final groupList = <DownloadGroup>[],
+        subList = <DownloadRecord>[];
     for (int i = 0; i < result.length; i++) {
       final item = result[i];
       if ((lastUrl ??= item.url) != item.url) {

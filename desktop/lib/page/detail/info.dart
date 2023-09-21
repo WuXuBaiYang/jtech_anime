@@ -32,9 +32,16 @@ class AnimeDetailInfo extends StatelessWidget {
 
   // 构建背景图
   Widget _buildInfoBackground() {
-    return BlurView(
-      blur: 20,
-      color: Colors.white,
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 1, end: 20),
+      duration: const Duration(milliseconds: 800),
+      builder: (_, value, child) {
+        return BlurView(
+          blur: value,
+          color: Colors.white,
+          child: child ?? const SizedBox(),
+        );
+      },
       child: Image.network(
         animeInfo.cover,
         fit: BoxFit.cover,
