@@ -42,7 +42,7 @@ class DownloadManage extends BaseManage {
 
   // 下载任务流
   final _downloadProgressController =
-      StreamController<DownloadTask?>.broadcast();
+  StreamController<DownloadTask?>.broadcast();
 
   // 最大下载数
   final maxDownloadCount = ValueChangeNotifier<int>(3);
@@ -62,6 +62,10 @@ class DownloadManage extends BaseManage {
   // 添加下载完成回调
   void addDownloadCompleteListener(DownloadCompleteCallback callback) =>
       _downloadCompleteCallbacks.add(callback);
+
+  // 判断是否存在下载任务
+  bool get hasDownloadTask =>
+      downloadQueue.isNotEmpty || prepareQueue.isNotEmpty;
 
   // 获取下载进度流
   Stream<DownloadTask?> get downloadProgress =>
@@ -112,8 +116,8 @@ class DownloadManage extends BaseManage {
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
           : await FileTool.getDirPath(
-              '${FileDirPath.videoCachePath}/${md5(record.downloadUrl)}',
-              root: FileDir.applicationDocuments);
+          '${FileDirPath.videoCachePath}/${md5(record.downloadUrl)}',
+          root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
       return _resumeTask(record..savePath = savePath);
@@ -270,8 +274,7 @@ class DownloadManage extends BaseManage {
   }
 
   // 更新下载记录状态
-  Future<void> _updateDownloadRecord(
-    DownloadRecord record, {
+  Future<void> _updateDownloadRecord(DownloadRecord record, {
     DownloadRecordStatus status = DownloadRecordStatus.download,
     String playFilePath = '',
     String? failText,
@@ -309,6 +312,7 @@ class DownloadManage extends BaseManage {
       _downloadProgressPeriodic?.cancel();
       _downloadProgressPeriodic = null;
       _progressBuffed.clear();
+      pushLatestProgress();
     }
   }
 
@@ -324,7 +328,9 @@ class DownloadManage extends BaseManage {
     _stoppingBuffed.forEach(downloadingMap.remove);
     if (downloadingMap.isEmpty) return null;
     // 计算总速度并返回
-    double totalSpeed = 0, totalRatio = 0, count = 0;
+    double totalSpeed = 0,
+        totalRatio = 0,
+        count = 0;
     for (var downloadUrl in downloadingMap.keys) {
       final item = downloadingMap[downloadUrl];
       _startingBuffed.remove(downloadUrl);

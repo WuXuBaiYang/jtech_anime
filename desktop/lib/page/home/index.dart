@@ -59,45 +59,33 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 
   // 构建侧边导航栏
   Widget _buildSideNavigation(BuildContext context, int index) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: logic.expanded,
-      builder: (_, expanded, __) {
-        return NavigationRail(
-          minWidth: 70,
-          extended: expanded,
-          selectedIndex: index,
-          minExtendedWidth: 120,
-          trailing: _buildExpandedButton(),
-          leading: _buildAnimeSource(context),
-          // backgroundColor: Colors.transparent,
-          onDestinationSelected: logic.selectIndex.setValue,
-          destinations: [
-            NavigationRailDestination(
-              label: const Text('最新'),
-              icon: Image.asset(CustomIcon.homeNavigationNewest,
-                  width: 24, height: 24),
-              selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
-                  width: 24, height: 24),
-            ),
-            const NavigationRailDestination(
-              label: Text('时间表'),
-              icon: Icon(FontAwesomeIcons.solidClock),
-            ),
-            NavigationRailDestination(
-              label: const Text('下载'),
-              icon: _buildDownloadIcon(),
-            ),
-            const NavigationRailDestination(
-              label: Text('浏览'),
-              icon: Icon(FontAwesomeIcons.ghost),
-            ),
-            const NavigationRailDestination(
-              label: Text('喜欢'),
-              icon: Icon(FontAwesomeIcons.solidHeart),
-            ),
-          ],
-        );
-      },
+    return NavigationRail(
+      selectedIndex: index,
+      leading: _buildAnimeSource(context),
+      labelType: NavigationRailLabelType.all,
+      onDestinationSelected: logic.selectIndex.setValue,
+      destinations: [
+        NavigationRailDestination(
+          label: const Text('最新'),
+          icon: Image.asset(CustomIcon.homeNavigationNewest,
+              width: 24, height: 24),
+          selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
+              width: 24, height: 24),
+        ),
+        const NavigationRailDestination(
+          label: Text('时间表'),
+          icon: Icon(FontAwesomeIcons.solidClock),
+        ),
+        _buildDownloadNavigation(),
+        const NavigationRailDestination(
+          label: Text('浏览'),
+          icon: Icon(FontAwesomeIcons.ghost),
+        ),
+        const NavigationRailDestination(
+          label: Text('喜欢'),
+          icon: Icon(FontAwesomeIcons.solidHeart),
+        ),
+      ],
     );
   }
 
@@ -124,29 +112,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     );
   }
 
-  // 构建收缩按钮
-  Widget _buildExpandedButton() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: logic.expanded,
-      builder: (_, expanded, __) {
-        return Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                icon: Icon(expanded
-                    ? FontAwesomeIcons.bars
-                    : FontAwesomeIcons.barsStaggered),
-                onPressed: () => logic.expanded.setValue(!expanded),
-              ),
-              const SizedBox(height: 14),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   // 构建导航页面
   Widget _buildNavigationPage(int index) {
     return IndexedStack(
@@ -161,38 +126,35 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     );
   }
 
-  // 构建下载按钮
-  Widget _buildDownloadIcon() {
-    const icon = FontAwesomeIcons.solidCircleDown;
-    return ValueListenableBuilder(
-      valueListenable: logic.selectIndex,
-      builder: (_, selectIndex, __) {
-        final selected = selectIndex == 2;
-        if (selected) return const Icon(icon);
-        return StreamBuilder(
-          stream: download.downloadProgress,
-          builder: (_, snap) {
-            final task = snap.data;
-            return Stack(
-              children: [
-                if (task != null)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const LottieView(CustomAnime.homeDownloading,
-                          width: 30, height: 30, fit: BoxFit.cover),
-                      Text(
-                        FileTool.formatSize(task.totalSpeed, fixed: 0),
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                if (task == null) const Icon(icon),
-              ],
+  // 构建下载导航
+  NavigationRailDestination _buildDownloadNavigation() {
+    return NavigationRailDestination(
+      padding: EdgeInsets.zero,
+      icon: StreamBuilder<DownloadTask?>(
+        stream: download.downloadProgress,
+        builder: (_, snap) {
+          if (download.hasDownloadTask) {
+            return const LottieView(
+              CustomAnime.homeDownloading,
+              fit: BoxFit.fill,
+              height: 32,
+              width: 32,
             );
-          },
-        );
-      },
+          }
+          return const Icon(FontAwesomeIcons.solidCircleDown);
+        },
+      ),
+      label: StreamBuilder<DownloadTask?>(
+        stream: download.downloadProgress,
+        builder: (_, snap) {
+          if (download.hasDownloadTask) {
+            return Text(FileTool.formatSize(
+              snap.data!.totalSpeed,
+            ));
+          }
+          return const Text('下载');
+        },
+      ),
     );
   }
 }
@@ -205,7 +167,4 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
 class _HomeLogic extends BaseLogic {
   // 当前选中导航下标
   final selectIndex = ValueChangeNotifier<int>(0);
-
-  // 侧栏菜单展开状态
-  final expanded = ValueChangeNotifier<bool>(false);
 }
