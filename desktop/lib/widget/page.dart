@@ -24,7 +24,10 @@ class WindowPage extends StatelessWidget {
   // 侧边栏
   final Widget? sideBar;
 
-  // 全屏状态
+  // 是否全屏
+  final bool isFullScreen;
+
+  // 窗口最大化状态
   final maximized = ValueChangeNotifier<bool>(false);
 
   WindowPage({
@@ -34,10 +37,11 @@ class WindowPage extends StatelessWidget {
     this.leading,
     this.sideBar,
     this.actions = const [],
+    this.isFullScreen = false,
   }) {
-    // 获取当前全屏状态
+    // 获取当前最大化状态
     windowManager.isMaximized().then(maximized.setValue);
-    // 监听全屏状态
+    // 监听最大化状态
     maximized.addListener(() => maximized.value
         ? windowManager.maximize()
         : windowManager.unmaximize());
@@ -48,15 +52,19 @@ class WindowPage extends StatelessWidget {
     return Scaffold(
       body: Row(
         children: [
-          if (sideBar != null) ...[sideBar!, const VerticalDivider()],
+          if (sideBar != null && !isFullScreen) ...[
+            sideBar!,
+            const VerticalDivider()
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                PreferredSize(
-                  preferredSize: const Size.fromHeight(kToolbarHeightCustom),
-                  child: _buildStatusBar(context),
-                ),
+                if (!isFullScreen)
+                  PreferredSize(
+                    preferredSize: const Size.fromHeight(kToolbarHeightCustom),
+                    child: _buildStatusBar(context),
+                  ),
                 Expanded(child: child),
               ],
             ),

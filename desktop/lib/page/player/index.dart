@@ -39,26 +39,32 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
           secondary: kSecondaryColor,
         ),
       ),
-      child: WindowPage(
-        leading: const BackButton(),
-        child: Scaffold(
-          key: pageKey,
-          backgroundColor: Colors.black,
-          endDrawer: _buildResourceDrawer(),
-          endDrawerEnableOpenDragGesture: false,
-          onEndDrawerChanged: (isOpened) {
-            logic.controller.setControlVisible(true, ongoing: isOpened);
-          },
-          body: Stack(
-            children: [
-              Positioned.fill(child: _buildVideoPlayer()),
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: _buildPlayRecordTag(),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: logic.controller.controlFullscreen,
+        builder: (_, isFullscreen, __) {
+          return WindowPage(
+            isFullScreen: isFullscreen,
+            leading: const BackButton(),
+            child: Scaffold(
+              key: pageKey,
+              backgroundColor: Colors.black,
+              endDrawer: _buildResourceDrawer(),
+              endDrawerEnableOpenDragGesture: false,
+              onEndDrawerChanged: (isOpened) {
+                logic.controller.setControlVisible(true, ongoing: isOpened);
+              },
+              body: Stack(
+                children: [
+                  Positioned.fill(child: _buildVideoPlayer()),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: _buildPlayRecordTag(),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

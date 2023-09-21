@@ -72,7 +72,8 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     return CustomVideoPlayer(
-      controller: widget.controller,
+      controller: CustomVideoPlayerController(),
+      // controller: widget.controller,
       controls: (state) {
         return _buildControls(context, state);
       },
@@ -150,7 +151,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   // 处理键盘事件
   void _keyEvent(RawKeyEvent event) {
     final controller = widget.controller;
-    // 监听方向键，上下控制音量，左右控制进度,空格键暂停/恢复播放
+    // 监听方向键，上下控制音量，左右控制进度,空格键暂停/恢复播放,esc取消全屏
     if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
       VolumeTool.raise();
     } else if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
@@ -161,6 +162,8 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
       controller.seekForward();
     } else if (event.isKeyPressed(LogicalKeyboardKey.space)) {
       controller.resumeOrPause();
+    } else if (event.isKeyPressed(LogicalKeyboardKey.escape)) {
+      controller.setFullscreen(false);
     }
   }
 }
