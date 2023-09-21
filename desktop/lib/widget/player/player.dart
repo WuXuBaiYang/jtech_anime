@@ -54,9 +54,6 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   // 播放进度控制
   final playerSeekStream = StreamController<Duration?>.broadcast();
 
-  // 焦点管理
-  final focusNode = FocusNode();
-
   @override
   void initState() {
     super.initState();
@@ -71,21 +68,32 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomVideoPlayer(
-      controller: CustomVideoPlayerController(),
-      // controller: widget.controller,
-      controls: (state) {
-        return _buildControls(context, state);
-      },
+    return Focus(
+      // 处理所有键盘事件，防止焦点抢夺
+      onKey: (_, __) => KeyEventResult.handled,
+      child: RawKeyboardListener(
+        autofocus: true,
+        onKey: _keyEvent,
+        focusNode: FocusNode(),
+        child: CustomVideoPlayer(
+          controller: CustomVideoPlayerController(),
+          // controller: widget.controller,
+          controls: (state) {
+            return _buildControls(context, state);
+          },
+        ),
+      ),
     );
   }
 
   // 构建控制器
   Widget _buildControls(BuildContext context, state) {
     final controller = widget.controller;
-    return RawKeyboardListener(
-      onKey: _keyEvent,
-      focusNode: focusNode,
+    return GestureDetector(
+      onTap: () => widget.controller.resumeOrPause().then((playing) {
+        if (playing) controller.setControlVisible(true);
+      }),
+      onDoubleTap: () => controller.toggleFullscreen(),
       child: MouseRegion(
         onHover: (_) => controller.setControlVisible(true),
         onEnter: (_) => controller.setControlVisible(true),
@@ -95,21 +103,14 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
             ValueListenableBuilder<bool>(
               valueListenable: controller.controlVisible,
               builder: (_, visible, __) {
-                return GestureDetector(
-                  onTap: () =>
-                      widget.controller.resumeOrPause().then((playing) {
-                    if (playing) controller.setControlVisible(true);
-                  }),
-                  onDoubleTap: () => controller.toggleFullscreen(),
-                  child: AnimatedOpacity(
-                    opacity: visible ? 1 : 0,
-                    duration: const Duration(milliseconds: 180),
-                    child: Stack(
-                      children: [
-                        _buildTopActions(),
-                        _buildBottomActions(),
-                      ],
-                    ),
+                return AnimatedOpacity(
+                  opacity: visible ? 1 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Stack(
+                    children: [
+                      _buildTopActions(),
+                      _buildBottomActions(),
+                    ],
                   ),
                 );
               },
@@ -148,22 +149,32 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
     );
   }
 
+  // 键盘与事件对照表
+  Map<LogicalKeyboardKey, void Function()> get keyEventMap => {
+        // 方向键上音量增加
+        LogicalKeyboardKey.arrowUp: VolumeTool.raise,
+        // 方向键下音量减少
+        LogicalKeyboardKey.arrowDown: VolumeTool.lower,
+        // 方向键左控制快退
+        LogicalKeyboardKey.arrowLeft: widget.controller.seekBackward,
+        // 方向键右控制快进
+        LogicalKeyboardKey.arrowRight: widget.controller.seekForward,
+        // 空格键暂停/恢复播放
+        LogicalKeyboardKey.space: widget.controller.resumeOrPause,
+        // esc取消全屏
+        LogicalKeyboardKey.escape: () {
+          widget.controller.setFullscreen(false);
+        },
+      };
+
   // 处理键盘事件
   void _keyEvent(RawKeyEvent event) {
-    final controller = widget.controller;
-    // 监听方向键，上下控制音量，左右控制进度,空格键暂停/恢复播放,esc取消全屏
-    if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
-      VolumeTool.raise();
-    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
-      VolumeTool.lower();
-    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowLeft)) {
-      controller.seekBackward();
-    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowRight)) {
-      controller.seekForward();
-    } else if (event.isKeyPressed(LogicalKeyboardKey.space)) {
-      controller.resumeOrPause();
-    } else if (event.isKeyPressed(LogicalKeyboardKey.escape)) {
-      controller.setFullscreen(false);
+    if (event is RawKeyDownEvent) {
+      final key = event.logicalKey;
+      if (keyEventMap.containsKey(key)) {
+        widget.controller.setControlVisible(true);
+        keyEventMap[key]?.call();
+      }
     }
   }
 }

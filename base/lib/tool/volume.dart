@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 
 /*
@@ -17,15 +17,16 @@ class VolumeTool {
   // 初始化设置
   static void setup() {
     // 不显示系统音量提示
-    FlutterVolumeController.showSystemUI = true;
-    // 获取当前音量
-    FlutterVolumeController.getVolume().then(
-          (v) => _currentVolume = v ?? 0,
-    );
+    FlutterVolumeController.showSystemUI = false;
     // 监听音量变化
     FlutterVolumeController.addListener((v) {
       _streamController.sink.add(v);
       _currentVolume = v;
+    });
+    // 获取当前音量
+    FlutterVolumeController.getVolume().then((v) {
+      if (Platform.isWindows) v = 0.5;
+      _currentVolume = v ?? 0;
     });
   }
 

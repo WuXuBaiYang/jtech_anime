@@ -261,7 +261,7 @@ class _CustomPlayerControlsBottomState
         return StreamBuilder<double>(
           stream: VolumeTool.stream,
           builder: (_, snap) {
-            final volume = snap.data ?? 0.0;
+            final volume = snap.data ?? 0.5;
             // 根据百分比从四个图标中选择, 0%为静音
             final iconData = volume == 0
                 ? volumeIcons[0]
