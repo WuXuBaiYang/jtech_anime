@@ -83,9 +83,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
               label: Text('时间表'),
               icon: Icon(FontAwesomeIcons.solidClock),
             ),
-            const NavigationRailDestination(
-              label: Text('下载'),
-              icon: Icon(FontAwesomeIcons.solidCircleDown),
+            NavigationRailDestination(
+              label: const Text('下载'),
+              icon: _buildDownloadIcon(),
             ),
             const NavigationRailDestination(
               label: Text('浏览'),
@@ -158,6 +158,41 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         HomeRecordPage(),
         HomeCollectPage(),
       ],
+    );
+  }
+
+  // 构建下载按钮
+  Widget _buildDownloadIcon() {
+    const icon = FontAwesomeIcons.solidCircleDown;
+    return ValueListenableBuilder(
+      valueListenable: logic.selectIndex,
+      builder: (_, selectIndex, __) {
+        final selected = selectIndex == 2;
+        if (selected) return const Icon(icon);
+        return StreamBuilder(
+          stream: download.downloadProgress,
+          builder: (_, snap) {
+            final task = snap.data;
+            return Stack(
+              children: [
+                if (task != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const LottieView(CustomAnime.homeDownloading,
+                          width: 30, height: 30, fit: BoxFit.cover),
+                      Text(
+                        FileTool.formatSize(task.totalSpeed, fixed: 0),
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                if (task == null) const Icon(icon),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
