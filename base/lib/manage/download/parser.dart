@@ -24,8 +24,8 @@ class M3U8Parser {
   // 缓存m3u8文件提供本地播放
   Future<File?> cacheFilter(String url, {String? filePath}) async {
     try {
-      filePath ??= join((await getTemporaryDirectory()).path, _cachePath,
-          '${md5(url)}.m3u8');
+      filePath ??= join(
+          (await getTemporaryDirectory()).path, _cachePath, '${md5(url)}.m3u8');
       final indexFile = File(filePath);
       if (indexFile.existsSync()) return indexFile;
       final dir = indexFile.parent;
@@ -52,8 +52,8 @@ class M3U8Parser {
   // 下载m3u8文件（如果有key同样下载key）
   Future<M3U8ParserResult?> download(String url, {String? savePath}) async {
     try {
-      final dir = Directory(savePath ??= join(
-          (await getTemporaryDirectory()).path, _cachePath, md5(url)));
+      final dir = Directory(savePath ??=
+          join((await getTemporaryDirectory()).path, _cachePath, md5(url)));
       if (!dir.existsSync()) dir.createSync(recursive: true);
       // 如果索引文件存在则不重复解析
       final result = await parse(url);
@@ -120,7 +120,7 @@ class M3U8Parser {
       content = content.replaceAll(key, keyFilename);
     }
     // 遍历分片列表并同时生成本地索引文件
-    // var prev = -1;
+    var prev = -1;
     final resources = <String, String>{};
     for (final item in playlist.segments) {
       // 拼接分片下载地址
@@ -128,12 +128,12 @@ class M3U8Parser {
       if (url == null) continue;
       url = _mergeUrl(url, baseUri);
       final filename = basename(url);
-      // final temp = _absoluteIndex(filename);
-      // if (prev != -1 && temp != prev + 1) {
-      //   content = content.replaceAll(filename, '');
-      //   continue;
-      // }
-      // prev = temp;
+      final temp = _absoluteIndex(filename);
+      if (prev != -1 && temp != prev + 1) {
+        content = content.replaceAll(filename, '');
+        continue;
+      }
+      prev = temp;
       resources[filename] = url;
       // 替换m3u8文件中得分片地址为本地或远程地址
       content = content.replaceAll(item.url ?? '', filename);
@@ -159,6 +159,10 @@ class M3U8Parser {
   // 找到连续文件中不连续的部分
   int _absoluteIndex(String s) {
     s = s.replaceAll('.ts', '');
+    final length = s.length;
+    if (length != 17 || int.tryParse(s.substring(11, length)) == null) {
+      return -1;
+    }
     var ret = 0;
     for (int i = s.runes.length - 10; i < s.runes.length; i++) {
       var ascii = s.codeUnitAt(i);
