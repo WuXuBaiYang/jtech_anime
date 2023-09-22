@@ -32,6 +32,8 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
+    ListView(
+    );
     return Theme(
       data: Theme.of(context).copyWith(
         colorScheme: ColorScheme.dark(
@@ -119,7 +121,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
         if (resource == null) return const SizedBox();
         return TextButton(
           onPressed: Throttle.click(
-            () {
+                () {
               logic.controller.setControlVisible(true);
               logic.changeVideo(resource);
             },
@@ -210,7 +212,7 @@ class _PlayerLogic extends BaseLogic {
     controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
-        () => _updateVideoProgress(e),
+            () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
     });
@@ -281,8 +283,9 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 一定时间后关闭播放记录弹窗
-  void time2CloseRecord() => Debounce.c(
-        () => playRecord.setValue(null),
+  void time2CloseRecord() =>
+      Debounce.c(
+            () => playRecord.setValue(null),
         'time2CloseRecord',
         delay: const Duration(milliseconds: 5000),
       );

@@ -58,6 +58,8 @@ class CustomTheme {
           ),
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          sizeConstraints: BoxConstraints.tightFor(width: 45, height: 45),
+          extendedSizeConstraints: BoxConstraints.tightFor(height: 45),
           elevation: 1,
         ),
         listTileTheme: const ListTileThemeData(
