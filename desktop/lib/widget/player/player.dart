@@ -77,6 +77,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
         focusNode: FocusNode(),
         child: CustomVideoPlayer(
           controller: widget.controller,
+          // controller: CustomVideoPlayerController(),
           controls: (state) {
             return _buildControls(context, state);
           },

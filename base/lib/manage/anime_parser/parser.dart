@@ -167,8 +167,9 @@ class AnimeParserManage extends BaseManage {
   // 获取视频播放地址（缓存时间：永久）
   Future<List<VideoCache>> getPlayUrls(List<ResourceItemModel> items, {
     CancelToken? cancelToken,
-    bool useCache = true,
+    bool useCache = false,
   }) async {
+    /// 需要测试视频加载资源异常的问题
     final content = await _readParserFileContent();
     if (content == null) return [];
     final tempList = <VideoCache>[];
