@@ -42,16 +42,23 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
   Widget _buildAnimeListHeader() {
     final supportSearch = animeParser.isSupport(AnimeParserFunction.search);
     final supportFilter = animeParser.isSupport(AnimeParserFunction.filter);
-    return Row(
-      children: [
-        const SizedBox(width: 8),
-        if (supportSearch) _buildSearchBar(),
-        const SizedBox(width: 14),
-        if (supportFilter) Expanded(child: _buildFilterChips(context)),
-        const SizedBox(width: 8),
-        if (supportFilter) _buildFilterButton(),
-        const SizedBox(width: 4),
-      ],
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            const SizedBox(width: 8),
+            if (supportSearch) _buildSearchBar(),
+            const SizedBox(width: 14),
+            if (supportFilter) Expanded(child: _buildFilterChips(context)),
+            const SizedBox(width: 8),
+            if (supportFilter) _buildFilterButton(),
+            const SizedBox(width: 4),
+          ],
+        ),
+      ),
     );
   }
 
