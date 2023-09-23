@@ -62,7 +62,6 @@ class _HomeRecordPageState
               if (playRecords.isEmpty)
                 const Center(
                   child: StatusBox(
-                    animSize: 100,
                     title: Text('还没有浏览记录~'),
                     status: StatusBoxStatus.empty,
                   ),

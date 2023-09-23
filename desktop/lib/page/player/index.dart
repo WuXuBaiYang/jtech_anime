@@ -20,7 +20,6 @@ class PlayerPage extends StatefulWidget {
 
 /*
 * 播放器页面-状态
-* @author wuxubaiyang
 * @Time 2023/9/15 8:33
 */
 class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {

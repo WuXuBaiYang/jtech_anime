@@ -185,7 +185,7 @@ class _CustomPlayerControlsStatusState
         builder: (_, snap) {
           if (!(snap.data ?? false)) return const SizedBox();
           return const StatusBox(
-            animSize: 30,
+            animeSize: 30,
             status: StatusBoxStatus.loading,
           );
         },

@@ -17,6 +17,9 @@ class ImageView extends StatefulWidget {
   // 是否启用无图模式
   static bool noPictureMode = false;
 
+  // 图片默认加载动画尺寸比例
+  static double defaultLoadingAnimeRatio = 0.6;
+
   // 图片源
   final ImageViewSource source;
 
@@ -235,14 +238,16 @@ class _ImageViewState extends State<ImageView> {
 
   // 构建加载中状态
   Widget _buildLoadingState(ExtendedImageState state) {
+    final image = state.completedWidget as ExtendedRawImage;
     final defSize = widget.size ?? 24;
-    final animSize =
-        min(widget.width ?? defSize, widget.height ?? defSize) * 0.6;
+    final animeSize = min(widget.width ?? image.width ?? defSize,
+            widget.height ?? image.height ?? defSize) *
+        ImageView.defaultLoadingAnimeRatio;
     return widget.loadingState?.call() ??
         Center(
           child: StatusBox(
             status: StatusBoxStatus.loading,
-            animSize: animSize,
+            animeSize: animeSize,
           ),
         );
   }

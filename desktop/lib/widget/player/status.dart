@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -48,8 +47,8 @@ class _CustomPlayerControlsStatusState
         builder: (_, snap) {
           if (!(snap.data ?? false)) return const SizedBox();
           return const StatusBox(
-            animSize: 65,
             status: StatusBoxStatus.loading,
+            animeSize: 65,
           );
         },
       ),

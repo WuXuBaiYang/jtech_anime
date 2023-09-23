@@ -9,6 +9,9 @@ import 'future_builder.dart';
 * @Time 2023/3/16 17:35
 */
 class StatusBox extends StatelessWidget {
+  // 默认动画尺寸
+  static double defaultAnimeSize = 45;
+
   // 标题
   final Widget? title;
 
@@ -19,7 +22,7 @@ class StatusBox extends StatelessWidget {
   final StatusBoxStatus status;
 
   // 状态图大小
-  final double animSize;
+  final double? animeSize;
 
   // 标题颜色
   final Color? color;
@@ -32,16 +35,14 @@ class StatusBox extends StatelessWidget {
     required this.status,
     this.title,
     this.subTitle,
+    this.animeSize,
     this.space = 24,
-    this.animSize = 55,
     this.color = Colors.black38,
   });
 
   @override
   Widget build(BuildContext context) {
-    final ratio = MediaQuery
-        .of(context)
-        .devicePixelRatio;
+    final ratio = MediaQuery.of(context).devicePixelRatio;
     return DefaultTextStyle(
       style: TextStyle(color: color, fontSize: 14),
       child: Column(
@@ -49,8 +50,8 @@ class StatusBox extends StatelessWidget {
         children: [
           Lottie.asset(
             status.assetsFile,
-            width: animSize * ratio,
             bundle: DefaultAssetBundle.of(context),
+            width: (animeSize ?? defaultAnimeSize) * ratio,
           ),
           if (title != null) ...[
             SizedBox(height: space),
@@ -84,8 +85,7 @@ enum StatusBoxStatus { loading, empty, error }
 */
 extension StatusBoxStatusExtension on StatusBoxStatus {
   // 获取当前状态的素材
-  String get assetsFile =>
-      {
+  String get assetsFile => {
         StatusBoxStatus.loading: Common.statusLoadingAsset,
         StatusBoxStatus.empty: Common.statusEmptyAsset,
         StatusBoxStatus.error: Common.statusErrorAsset,
@@ -118,7 +118,7 @@ class StatusBoxCacheFuture<T> extends StatelessWidget {
   final Widget? subTitle;
 
   // 状态图大小
-  final double animSize;
+  final double? animeSize;
 
   // 控制器
   final CacheFutureBuilderController<T> controller;
@@ -131,7 +131,7 @@ class StatusBoxCacheFuture<T> extends StatelessWidget {
     CacheFutureBuilderController<T>? controller,
     this.title,
     this.subTitle,
-    this.animSize = 45,
+    this.animeSize,
   }) : controller = controller ?? CacheFutureBuilderController<T>();
 
   @override
@@ -172,7 +172,7 @@ class StatusBoxCacheFuture<T> extends StatelessWidget {
               ),
             }[status],
         subTitle: subTitle,
-        animSize: animSize,
+        animeSize: animeSize,
       ),
     );
   }

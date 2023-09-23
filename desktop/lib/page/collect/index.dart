@@ -49,7 +49,6 @@ class _HomeCollectPageState
                   child: StatusBox(
                     status: StatusBoxStatus.empty,
                     title: Text('还没有喜欢的番剧~'),
-                    animSize: 100,
                   ),
                 ),
               StatefulBuilder(builder: (_, setState) {

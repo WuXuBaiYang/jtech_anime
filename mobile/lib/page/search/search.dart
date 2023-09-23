@@ -117,7 +117,7 @@ class SearchBarView extends StatelessWidget {
             padding: EdgeInsets.only(right: 8),
             child: StatusBox(
               status: StatusBoxStatus.loading,
-              animSize: 14,
+              animeSize: 14,
             ),
           ),
           duration: const Duration(milliseconds: 100),

@@ -34,7 +34,6 @@ class _HomeTimeTablePageState
   // 构建番剧时间表
   Widget _buildTimeTable() {
     return StatusBoxCacheFuture<TimeTableModel?>(
-      animSize: 80,
       controller: logic.controller,
       future: () => animeParser.getTimeTable().whenComplete(
             logic.scrollToWeekday,

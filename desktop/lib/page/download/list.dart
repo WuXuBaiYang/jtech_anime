@@ -308,7 +308,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     return const Center(
       child: StatusBox(
         status: StatusBoxStatus.empty,
-        animSize: 100,
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:media_kit/media_kit.dart';
@@ -81,9 +80,19 @@ export 'package:dio/dio.dart';
 Future<void> ensureInitializedCore({
   Map<Brightness, ThemeData>? themeDataMap,
   bool noPictureMode = false,
+  double defaultStatusAnimeSize = 45,
+  double defaultLoadingAnimeSize = 20,
+  bool defaultLoadingDismissible = false,
+  double defaultImageLoadingAnimeRatio = 0.6,
 }) async {
+  // 设置默认状态图片尺寸
+  StatusBox.defaultAnimeSize = defaultStatusAnimeSize;
+  // 设置默认加载状态图片尺寸/是否可取消
+  Loading.defaultAnimeSize = defaultLoadingAnimeSize;
+  Loading.defaultDismissible = defaultLoadingDismissible;
   // 设置是否为无图模式
   ImageView.noPictureMode = noPictureMode;
+  ImageView.defaultLoadingAnimeRatio = defaultImageLoadingAnimeRatio;
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
   // 设置音量控制

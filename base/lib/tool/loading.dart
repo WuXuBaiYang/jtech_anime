@@ -10,15 +10,21 @@ import 'log.dart';
 * @Time 2023/7/19 16:43
 */
 class Loading {
+  // 默认加载动画尺寸
+  static double defaultAnimeSize = 20;
+
+  // 默认是否弹窗可取消
+  static bool defaultDismissible = false;
+
   // 加载弹窗dialog缓存
   static Future? _loadingDialog;
 
   // 展示加载弹窗
   static Future<T?>? show<T>({
     required Future<T?> loadFuture,
-    ValueChangeNotifier<String>? title,
-    bool dismissible = false,
+    bool? dismissible,
     BuildContext? context,
+    ValueChangeNotifier<String>? title,
   }) async {
     context ??= router.navigator?.context;
     if (context == null) return null;
@@ -28,7 +34,7 @@ class Loading {
       _loadingDialog = showDialog<void>(
         context: context,
         builder: (_) => _buildLoadingView(title),
-        barrierDismissible: dismissible,
+        barrierDismissible: dismissible ?? defaultDismissible,
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
       const duration = Duration(milliseconds: 300);
@@ -56,9 +62,9 @@ class Loading {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const StatusBox(
+              StatusBox(
                 status: StatusBoxStatus.loading,
-                animSize: 20,
+                animeSize: defaultAnimeSize,
               ),
               if (title != null) ...[
                 const SizedBox(height: 4),
