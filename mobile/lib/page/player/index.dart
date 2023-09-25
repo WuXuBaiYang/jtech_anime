@@ -118,20 +118,16 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     return ValueListenableBuilder<ResourceItemModel?>(
       valueListenable: logic.nextResourceInfo,
       builder: (_, resource, __) {
-        return StreamBuilder<bool>(
-          stream: logic.controller.stream.playing,
-          builder: (_, snap) {
-            final canPlayNext = resource != null && snap.data == true;
-            return IconButton(
-              onPressed: canPlayNext
-                  ? Throttle.click(() {
-                      logic.controller.setControlVisible(true);
-                      logic.changeVideo(resource);
-                    }, 'playNextResource')
-                  : null,
-              icon: const Icon(FontAwesomeIcons.forward),
-            );
-          },
+        final canPlayNext = resource != null;
+        return IconButton(
+          onPressed: canPlayNext
+              ? Throttle.click(() {
+                  logic.controller.setControlVisible(true);
+                  logic.changeVideo(resource);
+                }, 'playNextResource')
+              : null,
+          icon: Icon(FontAwesomeIcons.forward,
+              color: canPlayNext ? Colors.white : Colors.white30),
         );
       },
     );
