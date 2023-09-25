@@ -18,11 +18,15 @@ class JTechAnimeConfig with Diagnosticable {
   // 是否无图模式
   final bool noPictureMode;
 
+  // 基础缓存路径
+  final String baseCachePath;
+
   JTechAnimeConfig({
     this.defaultStatusSize = 120,
     this.defaultLoadingSize = 100,
     this.loadingDismissible = false,
     this.noPictureMode = false,
+    this.baseCachePath = '',
   });
 
   copyWith({
@@ -30,12 +34,14 @@ class JTechAnimeConfig with Diagnosticable {
     double? defaultLoadingSize,
     bool? loadingDismissible,
     bool? noPictureMode,
+    String? baseCachePath,
   }) {
     return JTechAnimeConfig(
       defaultStatusSize: defaultStatusSize ?? this.defaultStatusSize,
       defaultLoadingSize: defaultLoadingSize ?? this.defaultLoadingSize,
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
       noPictureMode: noPictureMode ?? this.noPictureMode,
+      baseCachePath: baseCachePath ?? this.baseCachePath,
     );
   }
 }

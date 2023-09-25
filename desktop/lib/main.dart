@@ -14,6 +14,7 @@ void main() async {
       noPictureMode: true,
       defaultLoadingSize: 100,
       loadingDismissible: true,
+      baseCachePath: 'jtech_anime',
     ),
     themeData: JTechAnimeThemeData(),
   );

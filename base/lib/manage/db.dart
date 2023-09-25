@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime_base/common/manage.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/model/database/collect.dart';
 import 'package:jtech_anime_base/model/database/download_record.dart';
 import 'package:jtech_anime_base/model/database/filter_select.dart';
@@ -7,7 +8,7 @@ import 'package:jtech_anime_base/model/database/play_record.dart';
 import 'package:jtech_anime_base/model/database/search_record.dart';
 import 'package:jtech_anime_base/model/database/source.dart';
 import 'package:jtech_anime_base/model/database/video_cache.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:jtech_anime_base/tool/file.dart';
 
 /*
 * 数据库管理
@@ -26,7 +27,8 @@ class DBManage extends BaseManage {
 
   @override
   Future<void> init() async {
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await FileTool.getDirPath(globalConfig.baseCachePath,
+        root: FileDir.applicationDocuments);
     isar = await Isar.open(
       [
         VideoCacheSchema,
@@ -37,7 +39,7 @@ class DBManage extends BaseManage {
         DownloadRecordSchema,
         AnimeSourceSchema,
       ],
-      directory: dir.path,
+      directory: dir ?? '',
     );
   }
 

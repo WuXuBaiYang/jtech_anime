@@ -4,12 +4,14 @@ import 'package:dio/dio.dart';
 import 'package:jtech_anime_base/common/common.dart';
 import 'package:jtech_anime_base/common/manage.dart';
 import 'package:jtech_anime_base/common/notifier.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/model/database/download_record.dart';
 import 'package:jtech_anime_base/model/download.dart';
 import 'package:jtech_anime_base/tool/file.dart';
 import 'package:jtech_anime_base/tool/log.dart';
 import 'package:jtech_anime_base/tool/tool.dart';
+import 'package:path/path.dart';
 import 'base.dart';
 import 'm3u8.dart';
 import 'video.dart';
@@ -42,7 +44,7 @@ class DownloadManage extends BaseManage {
 
   // 下载任务流
   final _downloadProgressController =
-  StreamController<DownloadTask?>.broadcast();
+      StreamController<DownloadTask?>.broadcast();
 
   // 最大下载数
   final maxDownloadCount = ValueChangeNotifier<int>(3);
@@ -116,8 +118,12 @@ class DownloadManage extends BaseManage {
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
           : await FileTool.getDirPath(
-          '${FileDirPath.videoCachePath}/${md5(record.downloadUrl)}',
-          root: FileDir.applicationDocuments);
+              join(
+                globalConfig.baseCachePath,
+                FileDirPath.videoCachePath,
+                md5(record.downloadUrl),
+              ),
+              root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
       return _resumeTask(record..savePath = savePath);
@@ -274,7 +280,8 @@ class DownloadManage extends BaseManage {
   }
 
   // 更新下载记录状态
-  Future<void> _updateDownloadRecord(DownloadRecord record, {
+  Future<void> _updateDownloadRecord(
+    DownloadRecord record, {
     DownloadRecordStatus status = DownloadRecordStatus.download,
     String playFilePath = '',
     String? failText,
@@ -328,9 +335,7 @@ class DownloadManage extends BaseManage {
     _stoppingBuffed.forEach(downloadingMap.remove);
     if (downloadingMap.isEmpty) return null;
     // 计算总速度并返回
-    double totalSpeed = 0,
-        totalRatio = 0,
-        count = 0;
+    double totalSpeed = 0, totalRatio = 0, count = 0;
     for (var downloadUrl in downloadingMap.keys) {
       final item = downloadingMap[downloadUrl];
       _startingBuffed.remove(downloadUrl);

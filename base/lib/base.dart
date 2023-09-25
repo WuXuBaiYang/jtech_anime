@@ -84,6 +84,8 @@ Future<void> ensureInitializedCore({
   JTechAnimeThemeData? themeData,
   Map<Brightness, ThemeData>? themeDataMap,
 }) async {
+  // 设置全局配置与样式
+  globalConfig.setup(config: config, theme: themeData);
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
   // 设置音量控制
@@ -93,15 +95,13 @@ Future<void> ensureInitializedCore({
   // 初始化ffmpeg
   await FFMpegHelper.instance.initialize();
   // 初始化各种manage
+  await globalConfig.init(); // 全局配置
   await router.init(); // 路由服务
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务
   await db.init(); // 数据库
   await download.init(); // 下载管理
   await animeParser.init(); // 番剧解析器
-  await globalConfig.init(); // 全局配置
-  // 设置全局配置与样式
-  globalConfig.setup(config: config, theme: themeData);
   // 监听解析源切换
   event.on<SourceChangeEvent>().listen((event) {
     // 暂停当前所有的下载任务

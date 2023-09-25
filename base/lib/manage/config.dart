@@ -51,6 +51,9 @@ class GlobalConfigManage extends BaseManage {
 
   // 获取加载弹窗是否可取消
   bool get loadingDismissible => config.loadingDismissible;
+
+  // 获取基础缓存路径
+  String get baseCachePath => config.baseCachePath;
 }
 
 // 单例调用
