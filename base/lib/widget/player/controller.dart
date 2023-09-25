@@ -103,6 +103,10 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   Future<void> play(String uri, [bool autoPlay = true]) =>
       _player.open(Media(uri), play: autoPlay);
 
+  // 增加视频到视频队列
+  Future<void> playlist(List<String> uris, [bool autoPlay = true]) => _player
+      .open(Playlist(uris.map((e) => Media(e)).toList()), play: autoPlay);
+
   // 切换播放暂停状态
   Future<bool> resumeOrPause() async {
     await _player.playOrPause();
@@ -117,6 +121,15 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
 
   // 停止播放
   Future<void> stop() => _player.stop();
+
+  // 播放队列中的下一条视频
+  Future<void> next() => _player.next();
+
+  // 播放队列中的上一条视频
+  Future<void> previous() => _player.previous();
+
+  // 跳转到播放列表的指定位置
+  Future<void> jumpTo(int index) => _player.jump(index);
 
   @override
   void dispose() {
