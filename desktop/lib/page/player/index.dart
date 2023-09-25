@@ -94,6 +94,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       title: Text(logic.animeInfo.value.name),
       bottomActions: [
         _buildBottomActionsNext(),
+        const Spacer(),
         _buildBottomActionsChoice(),
       ],
     );
@@ -120,14 +121,14 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
           stream: logic.controller.stream.playing,
           builder: (_, snap) {
             final canPlayNext = resource != null && snap.data == true;
-            return TextButton(
+            return IconButton(
               onPressed: canPlayNext
                   ? Throttle.click(() {
                       logic.controller.setControlVisible(true);
                       logic.changeVideo(resource);
                     }, 'playNextResource')
                   : null,
-              child: const Text('下一集'),
+              icon: const Icon(FontAwesomeIcons.forward),
             );
           },
         );

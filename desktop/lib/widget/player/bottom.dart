@@ -95,8 +95,12 @@ class _CustomPlayerControlsBottomState
                   Row(
                     children: [
                       _buildPlayAction(),
-                      const Spacer(),
-                      ...widget.actions,
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: widget.actions,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       _buildSpeedButton(),
                       const SizedBox(width: 8),
