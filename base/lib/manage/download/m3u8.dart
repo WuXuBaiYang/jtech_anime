@@ -56,12 +56,12 @@ class M3U8Downloader extends Downloader {
     if (isCanceled(cancelToken) || playFile == null) return null;
     // 对视频进行合并,先检查文件完整性，有缺失则抛出异常
     if (!_checkFileCompleted(fileList)) throw Exception('文件缺失或下载失败');
-    final outputFile = File(join(savePath, _m3u8MargeFilename));
-    if (outputFile.existsSync()) outputFile.deleteSync();
-    playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
-    if (playFile == null) throw Exception('视频合并失败');
+    // final outputFile = File(join(savePath, _m3u8MargeFilename));
+    // if (outputFile.existsSync()) outputFile.deleteSync();
+    // playFile = await _margeM3U8File2MP4(playFile.path, outputFile.path);
+    // if (playFile == null) throw Exception('视频合并失败');
     // 清空缓存目录
-    FileTool.clearDir(cachePath);
+    // FileTool.clearDir(cachePath);
     return playFile;
   }
 

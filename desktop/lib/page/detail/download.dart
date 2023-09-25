@@ -53,6 +53,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
   final cacheController =
       CacheFutureBuilderController<Map<String, DownloadRecord>>();
 
+  // 排序方向
+  final sortUp = ValueChangeNotifier<bool>(true);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,10 +108,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
       builder: (_, snap) {
         if (!snap.hasData) return const SizedBox();
         final downloadMap = snap.data!;
-        final resources = widget.animeInfo.resources;
-        return ValueListenableBuilder<List<ResourceItemModel>>(
-          valueListenable: selectResources,
-          builder: (_, selectList, __) {
+        return ValueListenableBuilder2<List<ResourceItemModel>, bool>(
+          first: selectResources,
+          second: sortUp,
+          builder: (_, selectList, sortUp, __) {
+            final resources = widget.animeInfo.resources;
             return TabBarView(
               controller: widget.tabController,
               children: List.generate(resources.length, (i) {
@@ -228,5 +232,19 @@ class _DownloadSheetState extends State<DownloadSheet> {
     )?.catchError((_) {
       SnackTool.showMessage(message: '资源解析异常,请更换资源重试');
     });
+  }
+
+  // 切换排序方向
+  void toggleSort() {
+    final sort = !sortUp.value;
+    sortUp.setValue(sort);
+    final detail = widget.animeInfo;
+    if (detail.resources.isEmpty) return;
+    widget.animeInfo.resources.clear();
+    widget.animeInfo.resources.addAll(
+      detail.resources.map((e) {
+        return e.reversed.toList();
+      }).toList(),
+    );
   }
 }

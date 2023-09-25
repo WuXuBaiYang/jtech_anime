@@ -21,12 +21,16 @@ class JTechAnimeConfig with Diagnosticable {
   // 基础缓存路径
   final String baseCachePath;
 
+  // m3u8文件下载时的并发数
+  final int m3u8DownloadBatchSize;
+
   JTechAnimeConfig({
     this.defaultStatusSize = 120,
     this.defaultLoadingSize = 100,
     this.loadingDismissible = false,
     this.noPictureMode = false,
     this.baseCachePath = '',
+    this.m3u8DownloadBatchSize = 30,
   });
 
   copyWith({
@@ -35,6 +39,7 @@ class JTechAnimeConfig with Diagnosticable {
     bool? loadingDismissible,
     bool? noPictureMode,
     String? baseCachePath,
+    int? m3u8DownloadBatchSize,
   }) {
     return JTechAnimeConfig(
       defaultStatusSize: defaultStatusSize ?? this.defaultStatusSize,
@@ -42,6 +47,8 @@ class JTechAnimeConfig with Diagnosticable {
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
       noPictureMode: noPictureMode ?? this.noPictureMode,
       baseCachePath: baseCachePath ?? this.baseCachePath,
+      m3u8DownloadBatchSize:
+          m3u8DownloadBatchSize ?? this.m3u8DownloadBatchSize,
     );
   }
 }

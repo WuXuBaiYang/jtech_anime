@@ -54,6 +54,9 @@ class GlobalConfigManage extends BaseManage {
 
   // 获取基础缓存路径
   String get baseCachePath => config.baseCachePath;
+
+  // 获取m3u8文件下载时的并发数
+  int get m3u8DownloadBatchSize => config.m3u8DownloadBatchSize;
 }
 
 // 单例调用
