@@ -1,6 +1,7 @@
 import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:media_kit/media_kit.dart';
 import 'base.dart';
 
@@ -31,6 +32,7 @@ export 'model/database/play_record.dart';
 export 'model/database/search_record.dart';
 export 'model/database/source.dart';
 export 'model/database/video_cache.dart';
+export 'model/config.dart';
 
 /// 数据对象
 export 'model/anime.dart';
@@ -50,6 +52,7 @@ export 'tool/throttle.dart';
 export 'tool/tool.dart';
 export 'tool/volume.dart';
 export 'tool/js_runtime.dart';
+export 'tool/qrcode.dart';
 
 ///自定义组件
 export 'widget/player/controller.dart';
@@ -68,7 +71,6 @@ export 'widget/tab.dart';
 export 'widget/text_scroll.dart';
 export 'widget/lottie.dart';
 export 'widget/blur.dart';
-export 'tool/qrcode.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -78,21 +80,10 @@ export 'package:dio/dio.dart';
 
 // 初始化核心方法
 Future<void> ensureInitializedCore({
+  JTechAnimeConfig? config,
+  JTechAnimeThemeData? themeData,
   Map<Brightness, ThemeData>? themeDataMap,
-  bool noPictureMode = false,
-  double defaultStatusAnimeSize = 45,
-  double defaultLoadingAnimeSize = 20,
-  bool defaultLoadingDismissible = false,
-  double defaultImageLoadingAnimeRatio = 0.6,
 }) async {
-  // 设置默认状态图片尺寸
-  StatusBox.defaultAnimeSize = defaultStatusAnimeSize;
-  // 设置默认加载状态图片尺寸/是否可取消
-  Loading.defaultAnimeSize = defaultLoadingAnimeSize;
-  Loading.defaultDismissible = defaultLoadingDismissible;
-  // 设置是否为无图模式
-  ImageView.noPictureMode = noPictureMode;
-  ImageView.defaultLoadingAnimeRatio = defaultImageLoadingAnimeRatio;
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
   // 设置音量控制
@@ -108,6 +99,9 @@ Future<void> ensureInitializedCore({
   await db.init(); // 数据库
   await download.init(); // 下载管理
   await animeParser.init(); // 番剧解析器
+  await globalConfig.init(); // 全局配置
+  // 设置全局配置与样式
+  globalConfig.setup(config: config, theme: themeData);
   // 监听解析源切换
   event.on<SourceChangeEvent>().listen((event) {
     // 暂停当前所有的下载任务

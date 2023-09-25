@@ -48,7 +48,7 @@ class _CustomPlayerControlsStatusState
           if (!(snap.data ?? false)) return const SizedBox();
           return const StatusBox(
             status: StatusBoxStatus.loading,
-            animeSize: 65,
+            statusSize: 65,
           );
         },
       ),

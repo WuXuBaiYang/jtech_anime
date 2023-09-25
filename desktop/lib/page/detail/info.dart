@@ -42,7 +42,7 @@ class AnimeDetailInfo extends StatelessWidget {
           child: child ?? const SizedBox(),
         );
       },
-      child: Image.network(
+      child: ImageView.net(
         animeInfo.cover,
         fit: BoxFit.cover,
         width: double.maxFinite,

@@ -9,12 +9,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 初始化核心内容
   await ensureInitializedCore(
-    noPictureMode: false,
-    defaultStatusAnimeSize: 100,
-    defaultLoadingAnimeSize: 60,
-    defaultLoadingDismissible: true,
     themeDataMap: CustomTheme.dataMap,
-    defaultImageLoadingAnimeRatio: 0.8,
+    config: JTechAnimeConfig(
+      noPictureMode: true,
+      defaultStatusSize: 100,
+      defaultLoadingSize: 60,
+      loadingDismissible: true,
+    ),
+    themeData: JTechAnimeThemeData(),
   );
   // 初始化窗口管理
   await windowManager.ensureInitialized();

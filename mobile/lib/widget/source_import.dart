@@ -162,7 +162,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
           return const Center(
             child: StatusBox(
               status: StatusBoxStatus.loading,
-              animeSize: 30,
+              statusSize: 30,
             ),
           );
         }

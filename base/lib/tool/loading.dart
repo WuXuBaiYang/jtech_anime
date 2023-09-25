@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/common/notifier.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/router.dart';
 import 'package:jtech_anime_base/widget/status_box.dart';
 import 'log.dart';
@@ -10,12 +11,6 @@ import 'log.dart';
 * @Time 2023/7/19 16:43
 */
 class Loading {
-  // 默认加载动画尺寸
-  static double defaultAnimeSize = 20;
-
-  // 默认是否弹窗可取消
-  static bool defaultDismissible = false;
-
   // 加载弹窗dialog缓存
   static Future? _loadingDialog;
 
@@ -27,14 +22,15 @@ class Loading {
     ValueChangeNotifier<String>? title,
   }) async {
     context ??= router.navigator?.context;
+    dismissible ??= globalConfig.loadingDismissible;
     if (context == null) return null;
     final navigator = Navigator.of(context);
     try {
       if (_loadingDialog != null) navigator.maybePop();
       _loadingDialog = showDialog<void>(
         context: context,
+        barrierDismissible: dismissible,
         builder: (_) => _buildLoadingView(title),
-        barrierDismissible: dismissible ?? defaultDismissible,
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
       const duration = Duration(milliseconds: 300);
@@ -53,9 +49,10 @@ class Loading {
 
   // 构建加载视图
   static Widget _buildLoadingView(ValueChangeNotifier<String>? title) {
+    final loadingSize = globalConfig.defaultLoadingSize;
     return Center(
       child: SizedBox.square(
-        dimension: 100,
+        dimension: loadingSize,
         child: Card(
           color: Colors.white,
           child: Column(
@@ -64,7 +61,7 @@ class Loading {
             children: [
               StatusBox(
                 status: StatusBoxStatus.loading,
-                animeSize: defaultAnimeSize,
+                statusSize: loadingSize * 0.8,
               ),
               if (title != null) ...[
                 const SizedBox(height: 4),

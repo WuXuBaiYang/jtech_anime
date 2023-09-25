@@ -15,7 +15,10 @@ void main() async {
   // 初始化核心内容
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
-    noPictureMode: false,
+    config: JTechAnimeConfig(
+      noPictureMode: false,
+    ),
+    themeData: JTechAnimeThemeData(),
   );
   // 强制竖屏
   setScreenOrientation(true);
