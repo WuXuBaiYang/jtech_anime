@@ -61,7 +61,7 @@ class Loading {
             children: [
               StatusBox(
                 status: StatusBoxStatus.loading,
-                statusSize: loadingSize * 0.8,
+                statusSize: loadingSize * 0.6,
               ),
               if (title != null) ...[
                 const SizedBox(height: 4),

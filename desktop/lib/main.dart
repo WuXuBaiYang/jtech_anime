@@ -12,8 +12,7 @@ void main() async {
     themeDataMap: CustomTheme.dataMap,
     config: JTechAnimeConfig(
       noPictureMode: true,
-      defaultStatusSize: 100,
-      defaultLoadingSize: 60,
+      defaultLoadingSize: 100,
       loadingDismissible: true,
     ),
     themeData: JTechAnimeThemeData(),
