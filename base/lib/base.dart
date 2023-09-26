@@ -1,4 +1,3 @@
-import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:jtech_anime_base/manage/config.dart';
@@ -92,8 +91,6 @@ Future<void> ensureInitializedCore({
   VolumeTool.setup();
   // 初始化视频播放器
   MediaKit.ensureInitialized();
-  // 初始化ffmpeg
-  await FFMpegHelper.instance.initialize();
   // 初始化各种manage
   await globalConfig.init(); // 全局配置
   await router.init(); // 路由服务
