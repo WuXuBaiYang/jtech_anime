@@ -68,9 +68,6 @@ dependencies:
   # hls文件解析(ALL)
   flutter_hls_parser: ^2.0.1
 
-  # ffmpeg(NO WEB)
-  ffmpeg_helper: ^1.0.1
-
   # 后台下载器(NO WEB)
   background_downloader: ^7.9.4
 

@@ -345,9 +345,12 @@ class _AnimeDetailLogic extends BaseLogic {
       // 初始化加载番剧详情
       Loading.show(loadFuture: loadAnimeDetail())?.whenComplete(() {
         // 加载完番剧详情后播放记录
-        if (play) playTheRecord();
-        // 如果存在下载记录则代表需要直接播放已下载视频
-        if (downloadRecord != null) playTheDownload(downloadRecord);
+        if (play) {
+          playTheRecord();
+        } else if (downloadRecord != null) {
+          // 如果存在下载记录则代表需要直接播放已下载视频
+          playTheDownload(downloadRecord);
+        }
       });
     });
   }

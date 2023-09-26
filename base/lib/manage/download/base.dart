@@ -18,18 +18,20 @@ typedef DownloaderProgressCallback = void Function(
 */
 abstract class Downloader {
   // 开始下载，成功则返回播放文件的地址
-  Future<File?> start(String url,
-      String savePath, {
-        CancelToken? cancelToken,
-        DownloaderProgressCallback? receiveProgress,
-      });
+  Future<File?> start(
+    String url,
+    String savePath, {
+    CancelToken? cancelToken,
+    DownloaderProgressCallback? receiveProgress,
+  });
 
   // 文件下载
-  Future<File?> download(String downloadUrl,
-      String savePath, {
-        DownloaderProgressCallback? receiveProgress,
-        CancelToken? cancelToken,
-      }) async {
+  Future<File?> download(
+    String downloadUrl,
+    String savePath, {
+    DownloaderProgressCallback? receiveProgress,
+    CancelToken? cancelToken,
+  }) async {
     int beginIndex = 0;
     final file = File(savePath);
     // 如果存在已下载文件则获取文件长度
@@ -79,7 +81,8 @@ abstract class Downloader {
   }
 
   // 文件批量下载,传入<文件名,下载地址>{}
-  Future<void> downloadBatch(Map<String, String> downloadMap, {
+  Future<void> downloadBatch(
+    Map<String, String> downloadMap, {
     DownloaderProgressCallback? receiveProgress,
     FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
@@ -87,6 +90,7 @@ abstract class Downloader {
     String fileDir = '',
     int retries = 3,
   }) async {
+    if (downloadMap.isEmpty) return;
     final downloader = FileDownloader();
     int count = 0, total = downloadMap.length;
     singleBatchSize ??= globalConfig.m3u8DownloadBatchSize;
@@ -117,17 +121,17 @@ abstract class Downloader {
       batchFutures.add(
         _doDownloadBatch(downloader, batchTasks,
             singleBatchSize: singleBatchSize, statusCallback: (status, task) {
-              // 如果返回状态，已结束则移除任务，如果任务已结束则计数+1
-              if (status.isNotFinalState) return;
-              taskIds.remove(task.taskId);
-              if (status != TaskStatus.complete) return;
-              count += 1;
-            }, speedCallback: (speed) {
-              receiveProgress?.call(count, total, speed);
-            }, whenCompleted: () {
-              if (completer.isCompleted) return;
-              completer.complete();
-            }),
+          // 如果返回状态，已结束则移除任务，如果任务已结束则计数+1
+          if (status.isNotFinalState) return;
+          taskIds.remove(task.taskId);
+          if (status != TaskStatus.complete) return;
+          count += 1;
+        }, speedCallback: (speed) {
+          receiveProgress?.call(count, total, speed);
+        }, whenCompleted: () {
+          if (completer.isCompleted) return;
+          completer.complete();
+        }),
       );
       await completer.future;
       // 判断是否已取消，已取消的话则终止循环
@@ -137,14 +141,15 @@ abstract class Downloader {
   }
 
   // 执行批量下载
-  Future<Batch> _doDownloadBatch(FileDownloader downloader,
-      List<DownloadTask> downloadTasks, {
-        void Function(TaskStatus status, Task task)? statusCallback,
-        void Function(int speed)? speedCallback,
-        VoidCallback? whenCompleted,
-        int singleBatchSize = 0,
-        double ratio = 0.5,
-      }) async {
+  Future<Batch> _doDownloadBatch(
+    FileDownloader downloader,
+    List<DownloadTask> downloadTasks, {
+    void Function(TaskStatus status, Task task)? statusCallback,
+    void Function(int speed)? speedCallback,
+    VoidCallback? whenCompleted,
+    int singleBatchSize = 0,
+    double ratio = 0.5,
+  }) async {
     final lastProgressMap = {};
     final waitFileRename = <Future>[];
     final batchResult = await downloader.downloadBatch(
@@ -181,7 +186,8 @@ abstract class Downloader {
   }
 
   // 生成下载任务
-  List<DownloadTask> _genDownloadBatchTasks(Map<String, String> downloadMap, {
+  List<DownloadTask> _genDownloadBatchTasks(
+    Map<String, String> downloadMap, {
     BaseDirectory baseDirectory = BaseDirectory.applicationDocuments,
     bool requiresWiFi = false,
     String tmpSuffix = '.tmp',
