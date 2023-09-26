@@ -259,7 +259,7 @@ class _PlayerLogic extends BaseLogic {
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
-        // 如果视频已下载则使用本地路径；
+        // 如果视频已下载则使用本地路径;
         // 如果播放地址为m3u8则使用本地过滤缓存机制;
         if (downloadRecord != null) {
           playUrl = downloadRecord.playFilePath;
