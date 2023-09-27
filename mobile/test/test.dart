@@ -22,6 +22,5 @@ void main() {
 
   test('test', () async {
     const name = 'adqweadsfqwas000032.ts';
-    print(absoluteIndex(name));
   });
 }

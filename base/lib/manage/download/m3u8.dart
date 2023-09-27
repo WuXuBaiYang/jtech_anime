@@ -13,9 +13,6 @@ import 'parser.dart';
 * @Time 2023/8/1 11:15
 */
 class M3U8Downloader extends Downloader {
-  // m3u8合并之后的文件名
-  static const _m3u8MargeFilename = 'index.mp4';
-
   // m3u8缓存路径名
   static const _m3u8CachePath = 'cache';
 

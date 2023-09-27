@@ -462,15 +462,15 @@ async function getPlayUrls(resourceUrls) {
         'Accept-Encoding': 'gzip, deflate, br',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
     }
-    let resp = await request(resourceUrls[0], {method: 'HEAD', headers: headers})
-    if (!resp.ok) throw new Error('获取播放地址失败，请重试')
-    headers['Cookie'] = resp.headers['set-cookie']
     let tempList = []
     for (const i in resourceUrls) {
         try {
             const url = resourceUrls[i]
+            let resp = await request(url, {method: 'HEAD', headers: headers})
+            if (!resp.ok) throw new Error('获取播放地址失败，请重试')
+            headers['Cookie'] = resp.headers['set-cookie']
             let keys = url.split('/').pop().replaceAll('.html', '').split('-')
-            let resp = await request(getUri('/playurl', {
+            resp = await request(getUri('/playurl', {
                 aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()
             }), {
                 method: 'GET', headers: {'Referer': url, ...headers}
