@@ -73,9 +73,8 @@ class _CustomPlayerControlsVolumeButtonState
                   ? volumeIcons[0]
                   : volumeIcons[
                       (volume * (volumeIcons.length - 2) + 1).toInt()];
-              return Stack(
+              return Row(
                 children: [
-                  _buildVolumeSlider(visible, volume),
                   IconButton(
                     icon: Icon(iconData),
                     onPressed: () {
@@ -89,6 +88,7 @@ class _CustomPlayerControlsVolumeButtonState
                       controller.setVolume(temp * 100);
                     },
                   ),
+                  _buildVolumeSlider(visible, volume),
                 ],
               );
             },
@@ -106,23 +106,15 @@ class _CustomPlayerControlsVolumeButtonState
       duration: const Duration(milliseconds: 180),
       constraints: BoxConstraints(
           maxWidth: visible ? size.width : 0, maxHeight: size.height),
-      alignment: Alignment.centerRight,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SizedBox.fromSize(
           size: Size(size.width - 30, size.height),
-          child: SliderTheme(
-            data: const SliderThemeData(
-              trackHeight: 2,
-              overlayShape: RoundSliderOverlayShape(overlayRadius: 18),
-              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
-            ),
-            child: Slider(
-              value: volume,
-              divisions: 100,
-              label: '${(volume * 100).toInt()}%',
-              onChanged: (v) => controller.setVolume(v * 100),
-            ),
+          child: Slider(
+            value: volume,
+            divisions: 100,
+            label: '${(volume * 100).toInt()}%',
+            onChanged: (v) => controller.setVolume(v * 100),
           ),
         ),
       ),

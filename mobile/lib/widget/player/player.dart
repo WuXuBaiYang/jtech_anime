@@ -88,7 +88,8 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
         ),
       ),
       child: CustomVideoPlayer(
-        controller: widget.controller,
+        // controller: widget.controller,
+        controller: CustomVideoPlayerController(),
         controls: (state) {
           return _buildControls(context, state);
         },

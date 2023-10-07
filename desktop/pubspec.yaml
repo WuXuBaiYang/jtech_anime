@@ -38,6 +38,9 @@ dependencies:
   # 窗口管理
   window_manager: ^0.3.6
 
+  # 动作滑动条
+  action_slider: ^0.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

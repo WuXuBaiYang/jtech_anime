@@ -94,20 +94,13 @@ class _CustomPlayerControlsSpeedButtonState
         scrollDirection: Axis.horizontal,
         child: SizedBox.fromSize(
           size: Size(size.width - 30, size.height),
-          child: SliderTheme(
-            data: const SliderThemeData(
-              trackHeight: 2,
-              overlayShape: RoundSliderOverlayShape(overlayRadius: 18),
-              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
-            ),
-            child: Slider(
-              min: 1,
-              max: 4,
-              value: rate,
-              divisions: 3,
-              label: '${rate}x',
-              onChanged: controller.setRate,
-            ),
+          child: Slider(
+            min: 1,
+            max: 4,
+            value: rate,
+            divisions: 3,
+            label: '${rate}x',
+            onChanged: controller.setRate,
           ),
         ),
       ),
