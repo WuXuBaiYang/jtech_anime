@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -68,19 +69,31 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
     return Focus(
       // 处理所有键盘事件，防止焦点抢夺
       onKey: (_, __) => KeyEventResult.handled,
-      child: RawKeyboardListener(
-        autofocus: true,
-        onKey: _keyEvent,
-        focusNode: FocusNode(),
-        child: CustomVideoPlayer(
-          controller: widget.controller,
-          // controller: CustomVideoPlayerController(),
-          controls: (state) {
-            return _buildControls(context, state);
-          },
+      child: Listener(
+        onPointerSignal: (signal) {
+          if (signal is PointerScrollEvent) {
+            if (signal.scrollDelta.dy > 0) {
+              controller.volumeLower();
+            } else {
+              controller.volumeRaise();
+            }
+          }
+        },
+        child: RawKeyboardListener(
+          autofocus: true,
+          onKey: _keyEvent,
+          focusNode: FocusNode(),
+          child: CustomVideoPlayer(
+            controller: widget.controller,
+            // controller: CustomVideoPlayerController(),
+            controls: (state) {
+              return _buildControls(context, state);
+            },
+          ),
         ),
       ),
     );
@@ -152,9 +165,9 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   // 键盘与事件对照表
   Map<LogicalKeyboardKey, void Function()> get keyEventMap => {
         // 方向键上音量增加
-        LogicalKeyboardKey.arrowUp: VolumeTool.raise,
+        LogicalKeyboardKey.arrowUp: widget.controller.volumeRaise,
         // 方向键下音量减少
-        LogicalKeyboardKey.arrowDown: VolumeTool.lower,
+        LogicalKeyboardKey.arrowDown: widget.controller.volumeLower,
         // 方向键左控制快退
         LogicalKeyboardKey.arrowLeft: widget.controller.seekBackward,
         // 方向键右控制快进

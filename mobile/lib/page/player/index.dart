@@ -38,18 +38,22 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  // 播放器页面样式
-  ThemeData get _themeData => ThemeData.dark(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSecondaryColor,
-        ),
-      );
-
   @override
   Widget buildWidget(BuildContext context) {
     return Theme(
-      data: _themeData,
+      data: Theme.of(context).copyWith(
+        colorScheme: ColorScheme.dark(
+          primary: kPrimaryColor,
+          secondary: kSecondaryColor,
+          onPrimary: Colors.white,
+        ),
+        sliderTheme: const SliderThemeData(
+          trackHeight: 2,
+          thumbShape: RoundSliderThumbShape(
+            enabledThumbRadius: 6,
+          ),
+        ),
+      ),
       child: Scaffold(
         key: pageKey,
         backgroundColor: Colors.black,

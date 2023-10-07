@@ -148,9 +148,9 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
         stream: download.downloadProgress,
         builder: (_, snap) {
           if (download.hasDownloadTask) {
-            return Text(FileTool.formatSize(
+            return Text('${FileTool.formatSize(
               snap.data!.totalSpeed,
-            ));
+            )}/s');
           }
           return const Text('下载');
         },

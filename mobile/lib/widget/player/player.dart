@@ -103,8 +103,8 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
                 // 区分左右屏
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
-                  final current = await VolumeTool.current();
-                  VolumeTool.set(current - dragPercentage);
+                  final current = controller.state.volume / 100;
+                  controller.setVolume((current - dragPercentage) * 100);
                   controlVolume.setValue(true);
                 } else {
                   final current = await BrightnessTool.current();

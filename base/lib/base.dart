@@ -49,7 +49,6 @@ export 'tool/log.dart';
 export 'tool/snack.dart';
 export 'tool/throttle.dart';
 export 'tool/tool.dart';
-export 'tool/volume.dart';
 export 'tool/js_runtime.dart';
 export 'tool/qrcode.dart';
 
@@ -87,8 +86,6 @@ Future<void> ensureInitializedCore({
   globalConfig.setup(config: config, theme: themeData);
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
-  // 设置音量控制
-  VolumeTool.setup();
   // 初始化视频播放器
   MediaKit.ensureInitialized();
   // 初始化各种manage

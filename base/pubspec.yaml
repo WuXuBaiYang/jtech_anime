@@ -84,7 +84,7 @@ dependencies:
   image_picker: ^1.0.4
 
   # 音量控制(NO WEB)
-  flutter_volume_controller: ^1.2.7
+#  flutter_volume_controller: ^1.2.7
 
   # 集合操作(ALL)
   collection: ^1.17.2

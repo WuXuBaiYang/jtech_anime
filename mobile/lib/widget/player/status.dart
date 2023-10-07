@@ -110,9 +110,9 @@ class _CustomPlayerControlsStatusState
         valueListenable: widget.controlVolume!,
         builder: (_, showVolume, __) {
           return StreamBuilder<double>(
-              stream: VolumeTool.stream,
+              stream: widget.controller.stream.volume,
               builder: (_, snap) {
-                final value = snap.data ?? 0;
+                final value = (snap.data ?? 100) / 100;
                 return _buildVerticalProgress(showVolume, value,
                     icon: const Icon(FontAwesomeIcons.volumeLow));
               });

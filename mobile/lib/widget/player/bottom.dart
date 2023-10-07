@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'buttons/speed.dart';
+import 'buttons/volume.dart';
 
 /*
 * 自定义播放器控制层-底部
@@ -38,9 +40,6 @@ class _CustomPlayerControlsBottomState
   // 临时进度条拖动监听
   final tempProgress = ValueChangeNotifier<Duration?>(null);
 
-  // 静音状态
-  final controlMute = ValueChangeNotifier<bool>(false);
-
   @override
   void initState() {
     super.initState();
@@ -52,8 +51,6 @@ class _CustomPlayerControlsBottomState
         tempProgress.setValue(e);
       }
     });
-    // 监听静音状态变化
-    controlMute.addListener(VolumeTool.mute);
   }
 
   @override
@@ -73,9 +70,13 @@ class _CustomPlayerControlsBottomState
                 const Spacer(),
                 ...widget.actions,
                 const SizedBox(width: 8),
-                _buildRateAction(),
+                CustomPlayerControlsSpeedButton(
+                  controller: widget.controller,
+                ),
                 const SizedBox(width: 8),
-                _buildMuteAction(),
+                CustomPlayerControlsVolumeButton(
+                  controller: widget.controller,
+                ),
               ],
             ),
           ],
@@ -106,123 +107,39 @@ class _CustomPlayerControlsBottomState
   Widget _buildProgressAction() {
     final controller = widget.controller;
     const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
-    return SliderTheme(
-      data: const SliderThemeData(
-        trackHeight: 2,
-        thumbShape: RoundSliderThumbShape(
-          enabledThumbRadius: 6,
-        ),
-      ),
-      child: ValueListenableBuilder<Duration?>(
-        valueListenable: tempProgress,
-        builder: (_, temp, __) {
-          return StreamBuilder<Duration>(
-            stream: controller.stream.position,
-            builder: (_, snap) {
-              final buffer = controller.state.buffer;
-              final total = controller.state.duration;
-              final progress = temp ?? controller.state.position;
-              return Row(
-                children: [
-                  Text(progress.format(DurationPattern.fullTime),
-                      style: textStyle),
-                  Expanded(
-                    child: Slider(
-                      inactiveColor: Colors.black26,
-                      max: max(total.inMilliseconds.toDouble(), 0),
-                      value: max(progress.inMilliseconds.toDouble(), 0),
-                      secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
-                      secondaryTrackValue:
-                          max(buffer.inMilliseconds.toDouble(), 0),
-                      onChangeStart: (_) =>
-                          controller.setControlVisible(true, ongoing: true),
-                      onChanged: (v) => tempProgress
-                          .setValue(Duration(milliseconds: v.toInt())),
-                      onChangeEnd: (v) =>
-                          _delaySeekVideo(Duration(milliseconds: v.toInt())),
-                    ),
+    return ValueListenableBuilder<Duration?>(
+      valueListenable: tempProgress,
+      builder: (_, temp, __) {
+        return StreamBuilder<Duration>(
+          stream: controller.stream.position,
+          builder: (_, snap) {
+            final buffer = controller.state.buffer;
+            final total = controller.state.duration;
+            final progress = temp ?? controller.state.position;
+            return Row(
+              children: [
+                Text(progress.format(DurationPattern.fullTime),
+                    style: textStyle),
+                Expanded(
+                  child: Slider(
+                    inactiveColor: Colors.black26,
+                    max: max(total.inMilliseconds.toDouble(), 0),
+                    value: max(progress.inMilliseconds.toDouble(), 0),
+                    secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
+                    secondaryTrackValue:
+                        max(buffer.inMilliseconds.toDouble(), 0),
+                    onChangeStart: (_) =>
+                        controller.setControlVisible(true, ongoing: true),
+                    onChanged: (v) => tempProgress
+                        .setValue(Duration(milliseconds: v.toInt())),
+                    onChangeEnd: (v) =>
+                        _delaySeekVideo(Duration(milliseconds: v.toInt())),
                   ),
-                  Text(total.format(DurationPattern.fullTime),
-                      style: textStyle),
-                ],
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  // 构建底部倍速按钮
-  Widget _buildRateAction() {
-    const itemHeight = 35.0;
-    final controller = widget.controller;
-    final ratios = [3.0, 2.0, 1.0, 0.5];
-    final offsetDY = ratios.length * itemHeight + 20;
-    return StreamBuilder(
-      stream: controller.stream.rate,
-      builder: (_, snap) {
-        bool showPopup = false;
-        return StatefulBuilder(
-          builder: (_, state) {
-            return PopupMenuButton<double>(
-              elevation: 0,
-              color: Colors.black54,
-              offset: Offset(0, -offsetDY),
-              constraints: const BoxConstraints(maxWidth: 65),
-              onCanceled: () => state(() {
-                controller.setControlVisible(true);
-                showPopup = false;
-              }),
-              onOpened: () => state(() {
-                controller.setControlVisible(true, ongoing: true);
-                showPopup = true;
-              }),
-              itemBuilder: (_) {
-                return ratios.map<PopupMenuEntry<double>>((e) {
-                  return PopupMenuItem(
-                    value: e,
-                    height: itemHeight,
-                    child: Text('x$e'),
-                  );
-                }).toList();
-              },
-              onSelected: (v) {
-                controller.setControlVisible(true);
-                controller.setRate(v);
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('x${snap.data ?? 1.0}'),
-                  AnimatedRotation(
-                    turns: showPopup ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.arrow_drop_down),
-                  ),
-                ],
-              ),
+                ),
+                Text(total.format(DurationPattern.fullTime), style: textStyle),
+              ],
             );
           },
-        );
-      },
-    );
-  }
-
-  // 构建底部静音按钮
-  Widget _buildMuteAction() {
-    final controller = widget.controller;
-    return ValueListenableBuilder<bool>(
-      valueListenable: controlMute,
-      builder: (_, isMute, __) {
-        return IconButton(
-          onPressed: () {
-            controlMute.setValue(!controlMute.value);
-            controller.setControlVisible(true);
-          },
-          icon: Icon(isMute
-              ? FontAwesomeIcons.volumeXmark
-              : FontAwesomeIcons.volumeLow),
         );
       },
     );

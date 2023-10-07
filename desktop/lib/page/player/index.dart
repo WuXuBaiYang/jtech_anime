@@ -36,6 +36,19 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
         colorScheme: ColorScheme.dark(
           primary: kPrimaryColor,
           secondary: kSecondaryColor,
+          onPrimary: Colors.white,
+        ),
+        iconButtonTheme: const IconButtonThemeData(
+          style: ButtonStyle(
+            iconSize: MaterialStatePropertyAll(20),
+            iconColor: MaterialStatePropertyAll(Colors.white),
+          ),
+        ),
+        sliderTheme: const SliderThemeData(
+          trackHeight: 2,
+          thumbShape: RoundSliderThumbShape(
+            enabledThumbRadius: 6,
+          ),
         ),
       ),
       child: ValueListenableBuilder<bool>(

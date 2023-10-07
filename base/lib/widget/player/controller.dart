@@ -97,7 +97,30 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   }
 
   // 设置播放倍速
-  Future<void> setRate(double rate) => _player.setRate(rate);
+  Future<void> setRate(double rate) async {
+    if (rate < 0 || rate > 5) return;
+    return _player.setRate(rate);
+  }
+
+  // 增加倍速
+  Future<void> rateRaise([double step = 1]) => setRate(state.rate + step);
+
+  // 降低倍速
+  Future<void> rateLower([double step = 1]) => setRate(state.rate - step);
+
+  // 设置音量
+  Future<void> setVolume(double volume) async {
+    if (volume > 100 || volume < 0) return;
+    return _player.setVolume(volume);
+  }
+
+  // 增加音量
+  Future<void> volumeRaise([double step = 0.1]) =>
+      setVolume(state.volume + step * 100);
+
+  // 降低音量
+  Future<void> volumeLower([double step = 0.1]) =>
+      setVolume(state.volume - step * 100);
 
   // 加载视频并播放
   Future<void> play(String uri, [bool autoPlay = true]) =>
