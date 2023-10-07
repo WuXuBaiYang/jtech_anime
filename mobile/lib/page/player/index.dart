@@ -40,37 +40,22 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   @override
   Widget buildWidget(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSecondaryColor,
-          onPrimary: Colors.white,
-        ),
-        sliderTheme: const SliderThemeData(
-          trackHeight: 2,
-          thumbShape: RoundSliderThumbShape(
-            enabledThumbRadius: 6,
+    return Scaffold(
+      key: pageKey,
+      backgroundColor: Colors.black,
+      endDrawer: _buildResourceDrawer(),
+      endDrawerEnableOpenDragGesture: false,
+      onEndDrawerChanged: (isOpened) {
+        logic.controller.setControlVisible(true, ongoing: isOpened);
+      },
+      body: Stack(
+        children: [
+          Positioned.fill(child: _buildVideoPlayer()),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: _buildPlayRecordTag(),
           ),
-        ),
-      ),
-      child: Scaffold(
-        key: pageKey,
-        backgroundColor: Colors.black,
-        endDrawer: _buildResourceDrawer(),
-        endDrawerEnableOpenDragGesture: false,
-        onEndDrawerChanged: (isOpened) {
-          logic.controller.setControlVisible(true, ongoing: isOpened);
-        },
-        body: Stack(
-          children: [
-            Positioned.fill(child: _buildVideoPlayer()),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: _buildPlayRecordTag(),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -100,6 +85,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       title: Text(logic.animeInfo.value.name),
       bottomActions: [
         _buildBottomActionsNext(),
+        const Spacer(),
         _buildBottomActionsChoice(),
       ],
     );

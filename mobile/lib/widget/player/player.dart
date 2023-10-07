@@ -67,11 +67,32 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomVideoPlayer(
-      controller: widget.controller,
-      controls: (state) {
-        return _buildControls(context, state);
-      },
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: ColorScheme.dark(
+          primary: kPrimaryColor,
+          secondary: kSecondaryColor,
+          onPrimary: Colors.white,
+        ),
+        iconButtonTheme: const IconButtonThemeData(
+          style: ButtonStyle(
+            iconSize: MaterialStatePropertyAll(20),
+            iconColor: MaterialStatePropertyAll(Colors.white),
+          ),
+        ),
+        sliderTheme: const SliderThemeData(
+          trackHeight: 2,
+          thumbShape: RoundSliderThumbShape(
+            enabledThumbRadius: 6,
+          ),
+        ),
+      ),
+      child: CustomVideoPlayer(
+        controller: widget.controller,
+        controls: (state) {
+          return _buildControls(context, state);
+        },
+      ),
     );
   }
 

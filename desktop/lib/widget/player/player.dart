@@ -70,29 +70,50 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
-    return Focus(
-      // 处理所有键盘事件，防止焦点抢夺
-      onKey: (_, __) => KeyEventResult.handled,
-      child: Listener(
-        onPointerSignal: (signal) {
-          if (signal is PointerScrollEvent) {
-            if (signal.scrollDelta.dy > 0) {
-              controller.volumeLower();
-            } else {
-              controller.volumeRaise();
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: ColorScheme.dark(
+          primary: kPrimaryColor,
+          secondary: kSecondaryColor,
+          onPrimary: Colors.white,
+        ),
+        iconButtonTheme: const IconButtonThemeData(
+          style: ButtonStyle(
+            iconSize: MaterialStatePropertyAll(20),
+            iconColor: MaterialStatePropertyAll(Colors.white),
+          ),
+        ),
+        sliderTheme: const SliderThemeData(
+          trackHeight: 2,
+          thumbShape: RoundSliderThumbShape(
+            enabledThumbRadius: 6,
+          ),
+        ),
+      ),
+      child: Focus(
+        // 处理所有键盘事件，防止焦点抢夺
+        onKey: (_, __) => KeyEventResult.handled,
+        child: Listener(
+          onPointerSignal: (signal) {
+            if (signal is PointerScrollEvent) {
+              if (signal.scrollDelta.dy > 0) {
+                controller.volumeLower();
+              } else {
+                controller.volumeRaise();
+              }
             }
-          }
-        },
-        child: RawKeyboardListener(
-          autofocus: true,
-          onKey: _keyEvent,
-          focusNode: FocusNode(),
-          child: CustomVideoPlayer(
-            controller: widget.controller,
-            // controller: CustomVideoPlayerController(),
-            controls: (state) {
-              return _buildControls(context, state);
-            },
+          },
+          child: RawKeyboardListener(
+            autofocus: true,
+            onKey: _keyEvent,
+            focusNode: FocusNode(),
+            child: CustomVideoPlayer(
+              controller: widget.controller,
+              // controller: CustomVideoPlayerController(),
+              controls: (state) {
+                return _buildControls(context, state);
+              },
+            ),
           ),
         ),
       ),

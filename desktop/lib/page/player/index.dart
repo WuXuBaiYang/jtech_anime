@@ -31,53 +31,32 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSecondaryColor,
-          onPrimary: Colors.white,
-        ),
-        iconButtonTheme: const IconButtonThemeData(
-          style: ButtonStyle(
-            iconSize: MaterialStatePropertyAll(20),
-            iconColor: MaterialStatePropertyAll(Colors.white),
-          ),
-        ),
-        sliderTheme: const SliderThemeData(
-          trackHeight: 2,
-          thumbShape: RoundSliderThumbShape(
-            enabledThumbRadius: 6,
-          ),
-        ),
-      ),
-      child: ValueListenableBuilder<bool>(
-        valueListenable: logic.controller.controlFullscreen,
-        builder: (_, isFullscreen, __) {
-          return WindowPage(
-            isFullScreen: isFullscreen,
-            leading: const BackButton(),
-            child: Scaffold(
-              key: pageKey,
-              backgroundColor: Colors.black,
-              endDrawer: _buildResourceDrawer(),
-              endDrawerEnableOpenDragGesture: false,
-              onEndDrawerChanged: (isOpened) {
-                logic.controller.setControlVisible(true, ongoing: isOpened);
-              },
-              body: Stack(
-                children: [
-                  Positioned.fill(child: _buildVideoPlayer()),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: _buildPlayRecordTag(),
-                  ),
-                ],
-              ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.controller.controlFullscreen,
+      builder: (_, isFullscreen, __) {
+        return WindowPage(
+          isFullScreen: isFullscreen,
+          leading: const BackButton(),
+          child: Scaffold(
+            key: pageKey,
+            backgroundColor: Colors.black,
+            endDrawer: _buildResourceDrawer(),
+            endDrawerEnableOpenDragGesture: false,
+            onEndDrawerChanged: (isOpened) {
+              logic.controller.setControlVisible(true, ongoing: isOpened);
+            },
+            body: Stack(
+              children: [
+                Positioned.fill(child: _buildVideoPlayer()),
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: _buildPlayRecordTag(),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
