@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:mobile/tool/brightness.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*
@@ -126,17 +125,12 @@ class _CustomPlayerControlsStatusState
     if (widget.controlBrightness == null) return const SizedBox();
     return Align(
       alignment: Alignment.centerRight,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: widget.controlBrightness!,
-        builder: (_, showBrightness, __) {
-          return StreamBuilder<double>(
-            stream: BrightnessTool.stream,
-            builder: (_, snap) {
-              final value = snap.data ?? 0;
-              return _buildVerticalProgress(showBrightness, value,
-                  icon: const Icon(FontAwesomeIcons.sun));
-            },
-          );
+      child: ValueListenableBuilder2<bool, double>(
+        first: widget.controlBrightness!,
+        second: widget.controller.screenBrightness,
+        builder: (_, showBrightness, brightness, __) {
+          return _buildVerticalProgress(showBrightness, brightness,
+              icon: const Icon(FontAwesomeIcons.sun));
         },
       ),
     );

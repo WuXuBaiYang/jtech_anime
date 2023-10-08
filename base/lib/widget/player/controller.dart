@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'package:jtech_anime_base/common/notifier.dart';
-import 'package:jtech_anime_base/model/database/video_cache.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -21,6 +20,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
 
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);
+
+  // 屏幕亮度控制（0-1）
+  final screenBrightness = ValueChangeNotifier<double>(1);
 
   // 控制器
   late final VideoController controller = VideoController(_player);
@@ -60,11 +62,17 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     });
   }
 
+  // 获取当前锁屏状态
+  bool get isScreenLocked => screenLocked.value;
+
   // 切换锁定状态
   void toggleScreenLocked() => setScreenLocked(!screenLocked.value);
 
   // 设置锁定状态
   void setScreenLocked(bool locked) => screenLocked.setValue(locked);
+
+  // 获取当前全屏状态
+  bool get isFullscreen => controlFullscreen.value;
 
   // 切换全屏状态
   void toggleFullscreen() => setFullscreen(!controlFullscreen.value);
@@ -72,63 +80,82 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 设置全屏状态
   void setFullscreen(bool fullscreen) => controlFullscreen.setValue(fullscreen);
 
+  // 获取当前播放进度
+  Duration get currentPosition => state.position;
+
+  // 获取当前视频总时长
+  Duration get currentDuration => state.duration;
+
   // 跳转到播放进度
-  Future<void> seekTo(Duration duration) async {
-    if (duration > state.duration || duration < Duration.zero) return;
-    return _player.seek(duration);
+  Future<Duration> seekTo(Duration duration) async {
+    final value = duration.inMilliseconds;
+    final max = state.duration.inMilliseconds;
+    duration = Duration(milliseconds: range(value, 0, max));
+    await _player.seek(duration);
+    return state.position;
   }
 
   // 快进播放进度
-  Future<void> seekForward(
-      {Duration duration = const Duration(seconds: 3)}) async {
-    final current = state.position;
-    final target = current + duration;
-    if (target > state.duration) return;
-    return _player.seek(target);
-  }
+  Future<Duration> seekForward(
+      [Duration duration = const Duration(seconds: 3)]) =>
+      seekTo(state.position + duration);
 
   // 快进播放进度
-  Future<void> seekBackward(
-      {Duration duration = const Duration(seconds: 3)}) async {
-    final current = state.position;
-    final target = current - duration;
-    if (target < Duration.zero) return;
-    return _player.seek(target);
+  Future<Duration> seekBackward(
+      [Duration duration = const Duration(seconds: 3)]) =>
+      seekTo(state.position - duration);
+
+  // 获取当前播放倍速
+  double get currentRate => state.rate;
+
+  // 设置播放倍速(0.5-3)
+  Future<double> setRate(double rate) async {
+    await _player.setRate(range(rate, 0.5, 3));
+    return state.rate;
   }
 
-  // 设置播放倍速
-  Future<void> setRate(double rate) async {
-    if (rate < 0 || rate > 5) return;
-    return _player.setRate(rate);
+  // 获取当前屏幕亮度
+  double get currentBrightness => screenBrightness.value;
+
+  // 设置屏幕亮度(0-1,最暗到最亮)
+  Future<double> setBrightness(double brightness) async {
+    screenBrightness.setValue(range(brightness, 0, 1));
+    return screenBrightness.value;
   }
 
-  // 增加倍速
-  Future<void> rateRaise([double step = 1]) => setRate(state.rate + step);
+  // 增加屏幕亮度
+  Future<double> brightnessRaise([double step = 0.1]) =>
+      setBrightness(screenBrightness.value + step);
 
-  // 降低倍速
-  Future<void> rateLower([double step = 1]) => setRate(state.rate - step);
+  // 降低屏幕亮度
+  Future<double> brightnessLower([double step = 0.1]) =>
+      setBrightness(screenBrightness.value - step);
 
-  // 设置音量
-  Future<void> setVolume(double volume) async {
-    if (volume > 100 || volume < 0) return;
-    return _player.setVolume(volume);
+  // 获取当前音量
+  double get currentVolume => state.volume;
+
+  // 设置音量(0-100)
+  Future<double> setVolume(double volume) async {
+    await _player.setVolume(range(volume, 0, 100));
+    return state.volume;
   }
 
   // 增加音量
-  Future<void> volumeRaise([double step = 0.1]) =>
-      setVolume(state.volume + step * 100);
+  Future<double> volumeRaise([double step = 5]) =>
+      setVolume(state.volume + step);
 
   // 降低音量
-  Future<void> volumeLower([double step = 0.1]) =>
-      setVolume(state.volume - step * 100);
+  Future<double> volumeLower([double step = 5]) =>
+      setVolume(state.volume - step);
 
   // 加载视频并播放
   Future<void> play(String uri, [bool autoPlay = true]) =>
       _player.open(Media(uri), play: autoPlay);
 
   // 增加视频到视频队列
-  Future<void> playlist(List<String> uris, [bool autoPlay = true]) => _player
-      .open(Playlist(uris.map((e) => Media(e)).toList()), play: autoPlay);
+  Future<void> playlist(List<String> uris, [bool autoPlay = true]) =>
+      _player
+          .open(Playlist(uris.map((e) => Media(e)).toList()), play: autoPlay);
 
   // 切换播放暂停状态
   Future<bool> resumeOrPause() async {

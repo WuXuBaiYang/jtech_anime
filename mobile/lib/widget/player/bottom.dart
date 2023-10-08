@@ -1,8 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'buttons/speed.dart';
-import 'buttons/volume.dart';
 
 /*
 * 自定义播放器控制层-底部
@@ -67,6 +65,7 @@ class _CustomPlayerControlsBottomState
             Row(
               children: [
                 _buildPlayAction(),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -74,13 +73,8 @@ class _CustomPlayerControlsBottomState
                   ),
                 ),
                 const SizedBox(width: 8),
-                CustomPlayerControlsSpeedButton(
-                  controller: widget.controller,
-                ),
-                const SizedBox(width: 8),
-                CustomPlayerControlsVolumeButton(
-                  controller: widget.controller,
-                ),
+                _buildPlayVolumeAction(),
+                _buildPlaySpeedAction(),
               ],
             ),
           ],
@@ -89,25 +83,7 @@ class _CustomPlayerControlsBottomState
     );
   }
 
-  // 构建底部状态播放按钮
-  Widget _buildPlayAction() {
-    final controller = widget.controller;
-    return StreamBuilder<bool>(
-      stream: controller.stream.playing,
-      builder: (_, snap) {
-        final playing = controller.state.playing;
-        return IconButton(
-          onPressed: () {
-            controller.setControlVisible(true);
-            controller.resumeOrPause();
-          },
-          icon: Icon(playing ? FontAwesomeIcons.pause : FontAwesomeIcons.play),
-        );
-      },
-    );
-  }
-
-  // 构建底部
+  // 构建播放进度条
   Widget _buildProgressAction() {
     final controller = widget.controller;
     const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
@@ -144,6 +120,114 @@ class _CustomPlayerControlsBottomState
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  // 构建底部状态播放按钮
+  Widget _buildPlayAction() {
+    final controller = widget.controller;
+    return StreamBuilder<bool>(
+      stream: controller.stream.playing,
+      builder: (_, snap) {
+        final playing = controller.state.playing;
+        return IconButton(
+          onPressed: () {
+            controller.setControlVisible(true);
+            controller.resumeOrPause();
+          },
+          icon: Icon(playing ? FontAwesomeIcons.pause : FontAwesomeIcons.play),
+        );
+      },
+    );
+  }
+
+  // 音量等级图标
+  final volumeLevel = [
+    FontAwesomeIcons.volumeXmark,
+    FontAwesomeIcons.volumeOff,
+    FontAwesomeIcons.volumeLow,
+    FontAwesomeIcons.volumeHigh,
+  ];
+
+  // 记录静音前的音量
+  double _lastVolume = 0;
+
+  // 构建播放音量按钮
+  Widget _buildPlayVolumeAction() {
+    final controller = widget.controller;
+    return StreamBuilder<double>(
+      stream: controller.stream.volume,
+      builder: (_, snap) {
+        final volume = snap.data ?? 100;
+        final length = volumeLevel.length - 1;
+        final index = ((volume / 100) * length).ceil();
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(volumeLevel[min(index, length)]),
+              onPressed: () {
+                if (volume == 0) {
+                  controller.setVolume(_lastVolume);
+                } else {
+                  _lastVolume = volume;
+                  controller.setVolume(0);
+                }
+              },
+            ),
+            SizedBox.fromSize(
+              size: const Size(140, 10),
+              child: Slider(
+                max: 100,
+                value: volume,
+                onChanged: (v) {
+                  controller.setVolume(v);
+                  controller.setControlVisible(true);
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 播放器倍速表
+  final playSpeedMap = {
+    0.5: FontAwesomeIcons.gaugeSimple,
+    1.0: FontAwesomeIcons.gauge,
+    2.0: FontAwesomeIcons.gaugeHigh,
+    3.0: FontAwesomeIcons.gaugeHigh,
+  };
+
+  // 构建播放速度按钮
+  Widget _buildPlaySpeedAction() {
+    final controller = widget.controller;
+    return StreamBuilder<double>(
+      stream: controller.stream.rate,
+      builder: (_, snap) {
+        final rate = snap.data ?? 1.0;
+        return PopupMenuButton<double>(
+          elevation: 0,
+          icon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(playSpeedMap[rate]),
+              const SizedBox(width: 8),
+              Text('${rate}x'),
+            ],
+          ),
+          itemBuilder: (_) => playSpeedMap.entries
+              .map<PopupMenuItem<double>>((e) => CheckedPopupMenuItem(
+                    value: e.key,
+                    checked: rate == e.key,
+                    padding: EdgeInsets.zero,
+                    child: Text('${e.key}x'),
+                  ))
+              .toList(),
+          onSelected: controller.setRate,
         );
       },
     );

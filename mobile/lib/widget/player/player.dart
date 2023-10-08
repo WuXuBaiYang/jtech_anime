@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile/tool/brightness.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'bottom.dart';
 import 'progress.dart';
@@ -85,6 +84,19 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
           thumbShape: RoundSliderThumbShape(
             enabledThumbRadius: 6,
           ),
+          overlayShape: RoundSliderOverlayShape(
+            overlayRadius: 14,
+          ),
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+          size: 20,
         ),
       ),
       child: CustomVideoPlayer(
@@ -105,6 +117,7 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
     Duration? tempPosition;
     return Stack(
       children: [
+        _buildScreenBrightness(),
         ValueListenableBuilder2(
           second: controller.screenLocked,
           first: controller.controlVisible,
@@ -125,12 +138,18 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
                 // 区分左右屏
                 final dragPercentage = details.delta.dy / screenHeight;
                 if (details.globalPosition.dx > screenWidth / 2) {
-                  final current = controller.state.volume / 100;
-                  controller.setVolume((current - dragPercentage) * 100);
+                  if (dragPercentage > 0) {
+                    controller.volumeLower();
+                  } else {
+                    controller.volumeRaise();
+                  }
                   controlVolume.setValue(true);
                 } else {
-                  final current = await BrightnessTool.current();
-                  BrightnessTool.set(current - dragPercentage);
+                  if (dragPercentage > 0) {
+                    controller.brightnessLower();
+                  } else {
+                    controller.brightnessRaise();
+                  }
                   controlBrightness.setValue(true);
                 }
               },
@@ -186,6 +205,20 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
         ),
         _buildControlsStatus(),
       ],
+    );
+  }
+
+  // 构建屏幕亮度控制
+  Widget _buildScreenBrightness() {
+    final controller = widget.controller;
+    return ValueListenableBuilder<double>(
+      valueListenable: controller.screenBrightness,
+      builder: (_, brightness, __) {
+        return Opacity(
+          opacity: 1 - brightness,
+          child: Container(color: Colors.black87),
+        );
+      },
     );
   }
 

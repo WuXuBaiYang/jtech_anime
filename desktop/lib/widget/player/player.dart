@@ -88,6 +88,19 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
           thumbShape: RoundSliderThumbShape(
             enabledThumbRadius: 6,
           ),
+          overlayShape: RoundSliderOverlayShape(
+            overlayRadius: 14,
+          ),
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+          size: 20,
         ),
       ),
       child: Focus(
@@ -134,6 +147,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
         onExit: (_) => controller.setControlVisible(false),
         child: Stack(
           children: [
+            _buildScreenBrightness(),
             ValueListenableBuilder<bool>(
               valueListenable: controller.controlVisible,
               builder: (_, visible, __) {
@@ -153,6 +167,20 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
           ],
         ),
       ),
+    );
+  }
+
+  // 构建屏幕亮度控制
+  Widget _buildScreenBrightness() {
+    final controller = widget.controller;
+    return ValueListenableBuilder<double>(
+      valueListenable: controller.screenBrightness,
+      builder: (_, brightness, __) {
+        return Opacity(
+          opacity: 1 - brightness,
+          child: Container(color: Colors.black87),
+        );
+      },
     );
   }
 
