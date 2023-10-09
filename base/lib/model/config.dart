@@ -18,6 +18,9 @@ class JTechAnimeConfig with Diagnosticable {
   // 是否无图模式
   final bool noPictureMode;
 
+  // 是否展示播放器内容
+  final bool noPlayerContent;
+
   // 基础缓存路径
   final String baseCachePath;
 
@@ -29,6 +32,7 @@ class JTechAnimeConfig with Diagnosticable {
     this.defaultLoadingSize = 100,
     this.loadingDismissible = false,
     this.noPictureMode = false,
+    this.noPlayerContent = true,
     this.baseCachePath = '',
     this.m3u8DownloadBatchSize = 30,
   });
@@ -38,6 +42,7 @@ class JTechAnimeConfig with Diagnosticable {
     double? defaultLoadingSize,
     bool? loadingDismissible,
     bool? noPictureMode,
+    bool? noPlayerContent,
     String? baseCachePath,
     int? m3u8DownloadBatchSize,
   }) {
@@ -46,6 +51,7 @@ class JTechAnimeConfig with Diagnosticable {
       defaultLoadingSize: defaultLoadingSize ?? this.defaultLoadingSize,
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
       noPictureMode: noPictureMode ?? this.noPictureMode,
+      noPlayerContent: noPlayerContent ?? this.noPlayerContent,
       baseCachePath: baseCachePath ?? this.baseCachePath,
       m3u8DownloadBatchSize:
           m3u8DownloadBatchSize ?? this.m3u8DownloadBatchSize,

@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'controller.dart';
 
@@ -32,11 +34,14 @@ class CustomVideoPlayer extends StatefulWidget {
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   @override
   Widget build(BuildContext context) {
+    final controller = globalConfig.isNoPlayerContent && kDebugMode
+        ? CustomVideoPlayerController()
+        : widget.controller;
     return Video(
       controls: widget.controls,
+      controller: controller.controller,
       pauseUponEnteringBackgroundMode: true,
       resumeUponEnteringForegroundMode: true,
-      controller: widget.controller.controller,
     );
   }
 }

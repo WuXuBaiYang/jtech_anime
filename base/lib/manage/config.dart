@@ -43,6 +43,9 @@ class GlobalConfigManage extends BaseManage {
   // 判断是否为无图模式
   bool get isNoPictureMode => config.noPictureMode;
 
+  // 判断是否为无播放模式
+  bool get isNoPlayerContent => config.noPlayerContent;
+
   // 获取状态组件默认尺寸
   double get defaultStatusSize => config.defaultStatusSize;
 

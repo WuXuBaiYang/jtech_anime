@@ -12,6 +12,7 @@ void main() async {
     themeDataMap: CustomTheme.dataMap,
     config: JTechAnimeConfig(
       noPictureMode: true,
+      noPlayerContent: true,
       defaultLoadingSize: 100,
       loadingDismissible: true,
       baseCachePath: 'jtech_anime',
