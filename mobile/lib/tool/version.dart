@@ -36,21 +36,15 @@ class AppVersionTool {
         await rootBundle.loadString('assets/source/update_config.json');
     if (configJson.isEmpty) return false;
     final config = jsonDecode(configJson);
-    final url = 'https://api.appmeta.cn/apps/latest/${config['id']}';
-    final resp =
-        await Dio().get(url, queryParameters: {'api_token': config['token']});
+    final url = '${config['base_url']}/${config['version_table']}';
+    final resp = await Dio()
+        .get(url, options: Options(headers: {'apikey': config['api_key']}));
     if (resp.statusCode == 200) {
-      final data = resp.data;
-      final appVersion = AppVersion.from({
-        'nameCN': data['name'],
-        'version': data['versionShort'],
-        'versionCode': int.tryParse(data['build']) ?? -1,
-        'changelog': data['changelog'] ?? '',
-        'fileLength': data['binary']['fsize'],
-        'installUrl': data['install_url'],
-      });
+      final appVersion = AppVersion.from(resp.data[0]);
       return appVersion.checkUpdate().then((isUpdate) {
-        if (isUpdate) _showAndroidUpdateDialog(context, appVersion);
+        final installUrl = '${config['install_base_url']}/'
+            '${Platform.operatingSystem}/${appVersion.fileId}';
+        if (isUpdate) _showAndroidUpdateDialog(context, appVersion, installUrl);
         return isUpdate;
       });
     }
@@ -59,7 +53,7 @@ class AppVersionTool {
 
   // 展示版本更新提示
   static Future<bool?> _showAndroidUpdateDialog(
-      BuildContext context, AppVersion info) {
+      BuildContext context, AppVersion info, String installUrl) {
     return MessageDialog.show(
       context,
       title: const Text('应用更新'),
@@ -96,7 +90,7 @@ class AppVersionTool {
           ]).then((v) {
             if (!v) return SnackTool.showMessage(message: '未能获取到权限');
             router.pop(true);
-            _installAndroidApk(context, info);
+            _installAndroidApk(context, info, installUrl);
             SnackTool.showMessage(message: '正在下载安装包...');
           });
         },
@@ -107,7 +101,7 @@ class AppVersionTool {
 
   // 下载并安装apk
   static Future<void> _installAndroidApk(
-      BuildContext context, AppVersion info) async {
+      BuildContext context, AppVersion info, String installUrl) async {
     final progress = ValueChangeNotifier<int?>(null);
     const noticeTag = 9527;
     progress.addListener(() async {
@@ -123,7 +117,7 @@ class AppVersionTool {
     progress.setValue(-1);
     try {
       OtaUpdate()
-          .execute(info.installUrl,
+          .execute(installUrl,
               destinationFilename: '${info.name}_${info.versionCode}.apk',
               sha256checksum: info.sha256checksum)
           .listen((e) {

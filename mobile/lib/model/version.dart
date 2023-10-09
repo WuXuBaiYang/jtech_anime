@@ -27,18 +27,18 @@ class AppVersion extends BaseModel {
   // 文件大小
   final int fileLength;
 
-  // 安装地址
-  final String installUrl;
+  // 文件id
+  final String fileId;
 
   AppVersion.from(obj)
       : name = obj['name'] ?? '',
-        nameCN = obj['nameCn'] ?? '',
+        nameCN = obj['name_cn'] ?? '',
         version = obj['version'] ?? '',
-        versionCode = obj['versionCode'] ?? 0,
+        versionCode = obj['version_code'] ?? 0,
         changelog = obj['changelog'] ?? '',
         sha256checksum = obj['sha256checksum'],
-        fileLength = obj['fileLength'] ?? 0,
-        installUrl = obj['installUrl'] ?? '';
+        fileLength = obj['file_length'] ?? 0,
+        fileId = obj['file_id'] ?? '';
 
   // 获取文件大小
   String get fileSize => FileTool.formatSize(fileLength, lowerCase: true);
