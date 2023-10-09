@@ -75,6 +75,7 @@ export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:url_launcher/url_launcher.dart';
 export 'package:collection/collection.dart';
 export 'package:dio/dio.dart';
+export 'package:path/path.dart' show join, basename;
 
 // 初始化核心方法
 Future<void> ensureInitializedCore({

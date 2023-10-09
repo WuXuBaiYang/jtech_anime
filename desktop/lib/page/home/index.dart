@@ -5,6 +5,7 @@ import 'package:desktop/page/collect/index.dart';
 import 'package:desktop/page/download/index.dart';
 import 'package:desktop/page/record/index.dart';
 import 'package:desktop/page/timetable/index.dart';
+import 'package:desktop/tool/version.dart';
 import 'package:desktop/widget/page.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -35,6 +36,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   @override
   void initState() {
     super.initState();
+    // 初始化加载
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 检查版本更新
+      AppVersionTool.check(context);
+    });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {
       // 如果解析源为空则弹出不可取消的强制选择弹窗

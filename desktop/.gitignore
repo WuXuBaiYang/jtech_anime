@@ -45,3 +45,5 @@ app.*.map.json
 
 generated*
 Generated*
+
+assets/source/update_config.json

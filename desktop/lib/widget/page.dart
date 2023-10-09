@@ -1,4 +1,5 @@
 import 'package:desktop/common/theme.dart';
+import 'package:desktop/tool/version.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
@@ -49,6 +50,22 @@ class WindowPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(child: _buildWindowPage(context)),
+        StreamBuilder<double>(
+          stream: AppVersionTool.downloadProgressStream,
+          builder: (_, snap) {
+            final value = snap.data ?? 0;
+            return LinearProgressIndicator(value: value);
+          },
+        ),
+      ],
+    );
+  }
+
+  // 构建窗口页面
+  Widget _buildWindowPage(BuildContext context) {
     return Scaffold(
       body: Row(
         children: [
