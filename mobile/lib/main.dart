@@ -21,6 +21,8 @@ void main() async {
     ),
     themeData: JTechAnimeThemeData(),
   );
+  // 初始化消息通知
+  await notice.init();
   // 强制竖屏
   setScreenOrientation(true);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,

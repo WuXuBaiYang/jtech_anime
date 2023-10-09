@@ -71,38 +71,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   Widget build(BuildContext context) {
     final controller = widget.controller;
     return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSecondaryColor,
-          onPrimary: Colors.white,
-        ),
-        iconButtonTheme: const IconButtonThemeData(
-          style: ButtonStyle(
-            iconSize: MaterialStatePropertyAll(20),
-            iconColor: MaterialStatePropertyAll(Colors.white),
-          ),
-        ),
-        sliderTheme: const SliderThemeData(
-          trackHeight: 2,
-          thumbShape: RoundSliderThumbShape(
-            enabledThumbRadius: 6,
-          ),
-          overlayShape: RoundSliderOverlayShape(
-            overlayRadius: 14,
-          ),
-        ),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-          ),
-        ),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-          size: 20,
-        ),
-      ),
+      data: _getPlayerTheme(context),
       child: Focus(
         // 处理所有键盘事件，防止焦点抢夺
         onKey: (_, __) => KeyEventResult.handled,
@@ -132,6 +101,42 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
     );
   }
 
+  // 播放器样式
+  ThemeData _getPlayerTheme(BuildContext context) {
+    return Theme.of(context).copyWith(
+      colorScheme: ColorScheme.dark(
+        primary: kPrimaryColor,
+        secondary: kSecondaryColor,
+        onPrimary: Colors.white,
+      ),
+      iconButtonTheme: const IconButtonThemeData(
+        style: ButtonStyle(
+          iconSize: MaterialStatePropertyAll(20),
+          iconColor: MaterialStatePropertyAll(Colors.white),
+        ),
+      ),
+      sliderTheme: const SliderThemeData(
+        trackHeight: 2,
+        thumbShape: RoundSliderThumbShape(
+          enabledThumbRadius: 6,
+        ),
+        overlayShape: RoundSliderOverlayShape(
+          overlayRadius: 14,
+        ),
+      ),
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+        ),
+      ),
+      iconTheme: const IconThemeData(
+        color: Colors.white,
+        size: 20,
+      ),
+    );
+  }
+
   // 构建控制器
   Widget _buildControls(BuildContext context, state) {
     final controller = widget.controller;
@@ -147,21 +152,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
         child: Stack(
           children: [
             _buildScreenBrightness(),
-            ValueListenableBuilder<bool>(
-              valueListenable: controller.controlVisible,
-              builder: (_, visible, __) {
-                return AnimatedOpacity(
-                  opacity: visible ? 1 : 0,
-                  duration: const Duration(milliseconds: 180),
-                  child: Stack(
-                    children: [
-                      _buildTopActions(),
-                      _buildBottomActions(),
-                    ],
-                  ),
-                );
-              },
-            ),
+            _buildVisibleControls(),
             _buildControlsStatus(),
           ],
         ),
@@ -177,7 +168,27 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
       builder: (_, brightness, __) {
         return Opacity(
           opacity: 1 - brightness,
-          child: Container(color: Colors.black87),
+          child: Container(color: Colors.black.withOpacity(0.75)),
+        );
+      },
+    );
+  }
+
+  // 构建显示控制层
+  Widget _buildVisibleControls() {
+    final controller = widget.controller;
+    return ValueListenableBuilder<bool>(
+      valueListenable: controller.controlVisible,
+      builder: (_, visible, __) {
+        return AnimatedOpacity(
+          opacity: visible ? 1 : 0,
+          duration: const Duration(milliseconds: 180),
+          child: Stack(
+            children: [
+              _buildTopActions(),
+              _buildBottomActions(),
+            ],
+          ),
         );
       },
     );

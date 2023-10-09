@@ -57,27 +57,40 @@ class _CustomPlayerControlsBottomState
       alignment: Alignment.bottomCenter,
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildProgressAction(),
-            Row(
-              children: [
-                _buildPlayAction(),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: widget.actions,
+        child: GestureDetector(
+          onTap: () {},
+          onDoubleTap: () {},
+          onLongPressEnd: (_) {},
+          onLongPressStart: (_) {},
+          onVerticalDragEnd: (_) {},
+          onHorizontalDragEnd: (_) {},
+          onVerticalDragStart: (_) {},
+          onVerticalDragUpdate: (_) {},
+          onHorizontalDragStart: (_) {},
+          onHorizontalDragUpdate: (_) {},
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildProgressAction(),
+              Row(
+                children: [
+                  _buildPlayAction(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: widget.actions,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                _buildPlayVolumeAction(),
-                _buildPlaySpeedAction(),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  _buildPlayVolumeAction(),
+                  _buildPlaySpeedAction(),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

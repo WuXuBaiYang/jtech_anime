@@ -124,11 +124,11 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   }
 
   // 增加屏幕亮度
-  Future<double> brightnessRaise([double step = 0.1]) =>
+  Future<double> brightnessRaise([double step = 0.05]) =>
       setBrightness(screenBrightness.value + step);
 
   // 降低屏幕亮度
-  Future<double> brightnessLower([double step = 0.1]) =>
+  Future<double> brightnessLower([double step = 0.05]) =>
       setBrightness(screenBrightness.value - step);
 
   // 获取当前音量
