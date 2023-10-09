@@ -6,6 +6,9 @@ import 'package:jtech_anime_base/base.dart';
 * @Time 2023/3/9 17:53
 */
 class AppVersion extends BaseModel {
+  // 平台信息
+  final String platform;
+
   // 名称
   final String name;
 
@@ -27,18 +30,19 @@ class AppVersion extends BaseModel {
   // 文件大小
   final int fileLength;
 
-  // 文件id
-  final String fileId;
+  // 安装路径
+  final String installUrl;
 
   AppVersion.from(obj)
-      : name = obj['name'] ?? '',
+      : platform = obj['platform'] ?? '',
+        name = obj['name'] ?? '',
         nameCN = obj['name_cn'] ?? '',
         version = obj['version'] ?? '',
         versionCode = obj['version_code'] ?? 0,
         changelog = obj['changelog'] ?? '',
         sha256checksum = obj['sha256checksum'],
         fileLength = obj['file_length'] ?? 0,
-        fileId = obj['file_id'] ?? '';
+        installUrl = obj['install_url'] ?? '';
 
   // 获取文件大小
   String get fileSize => FileTool.formatSize(fileLength, lowerCase: true);
