@@ -120,7 +120,7 @@ extension _CustomRefreshViewHeaderExtension on CustomRefreshViewHeader {
           processedText: '刷新完成',
           noMoreText: '没有更多了',
           failedText: '刷新失败',
-          messageText: '上次刷新时间',
+          messageText: '上次更新：%T',
         );
       case CustomRefreshViewHeader.bezier:
         return BezierCircleHeader(
@@ -148,7 +148,7 @@ extension _CustomRefreshViewFooterExtension on CustomRefreshViewFooter {
           processedText: '加载完成',
           noMoreText: '没有更多了',
           failedText: '加载失败',
-          messageText: '上次加载时间',
+          messageText: '上次更新：%T',
         );
       case CustomRefreshViewFooter.bezier:
         return BezierFooter(

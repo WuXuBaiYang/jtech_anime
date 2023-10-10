@@ -79,7 +79,9 @@ class AppVersionTool {
             'platform': 'eq.$platform',
           },
         );
-        if (resp.statusCode == 200) return AppVersion.from(resp.data[0]);
+        if (resp.statusCode == 200 && resp.data.isNotEmpty) {
+          return AppVersion.from(resp.data.first);
+        }
       }
     } catch (e) {
       LogTool.e('版本更新检查失败', error: e);

@@ -45,8 +45,8 @@ class AppVersionTool {
         'platform': 'eq.${Platform.operatingSystem}',
       },
     );
-    if (resp.statusCode == 200) {
-      final appVersion = AppVersion.from(resp.data[0]);
+    if (resp.statusCode == 200 && resp.data.isNotEmpty) {
+      final appVersion = AppVersion.from(resp.data.first);
       return appVersion.checkUpdate().then((isUpdate) {
         if (isUpdate) _showAndroidUpdateDialog(context, appVersion);
         return isUpdate;
