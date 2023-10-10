@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "¿´·¬ßã"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "JTech, Inc."
 #define MyAppURL "https://github.com/WuXuBaiYang/jtech_anime"
 #define MyAppExeName "desktop.exe"
