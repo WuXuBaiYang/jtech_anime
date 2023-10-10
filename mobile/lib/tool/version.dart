@@ -36,25 +36,20 @@ class AppVersionTool {
         await rootBundle.loadString('assets/source/update_config.json');
     if (configJson.isEmpty) return false;
     final config = jsonDecode(configJson);
-    final url = 'https://api.appmeta.cn/apps/latest/${config['id']}';
-    final resp =
-        await Dio().get(url, queryParameters: {'api_token': config['token']});
-    if (resp.statusCode == 200) {
-      final data = resp.data;
-      final appVersion = AppVersion.from({
-        'nameCN': data['name'],
-        'version': data['versionShort'],
-        'versionCode': int.tryParse(data['build']) ?? -1,
-        'changelog': data['changelog'] ?? '',
-        'fileLength': data['binary']['fsize'],
-        'installUrl': data['install_url'],
-      });
+    final resp = await Dio().get(
+      config['version_check_url'],
+      options: Options(headers: {'apikey': config['api_key']}),
+      queryParameters: {
+        'limit': 1,
+        'order': 'created_at.desc',
+        'platform': 'eq.${Platform.operatingSystem}',
+      },
+    );
+    if (resp.statusCode == 200 && resp.data.isNotEmpty) {
+      final appVersion = AppVersion.from(resp.data.first);
       return appVersion.checkUpdate().then((isUpdate) {
-        if (isUpdate) {
-          return _showAndroidUpdateDialog(context, appVersion)
-              .then((value) => value ?? false);
-        }
-        return Future.value(false);
+        if (isUpdate) _showAndroidUpdateDialog(context, appVersion);
+        return isUpdate;
       });
     }
     return false;

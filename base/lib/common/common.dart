@@ -11,11 +11,11 @@ class Common {
 
   // 动画-加载动画
   static String get statusLoadingAsset => [
-        'packages/jtech_anime_base/assets/anime/status_loading1.json',
-        'packages/jtech_anime_base/assets/anime/status_loading2.json',
+        // 'packages/jtech_anime_base/assets/anime/status_loading1.json',
+        // 'packages/jtech_anime_base/assets/anime/status_loading2.json',
         'packages/jtech_anime_base/assets/anime/status_loading3.json',
-        'packages/jtech_anime_base/assets/anime/status_loading4.json',
-      ][Random().nextInt(4)];
+        // 'packages/jtech_anime_base/assets/anime/status_loading4.json',
+      ][Random().nextInt(1)];
 
   // 动画-空内容
   static const String statusEmptyAsset =

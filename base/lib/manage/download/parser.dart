@@ -22,10 +22,14 @@ class M3U8Parser {
   static const _cachePath = 'm3u8';
 
   // 缓存m3u8文件提供本地播放
-  Future<File?> cacheFilter(String url, {String? filePath}) async {
+  Future<File?> cacheFilter(String url,
+      {String? filePath, CancelToken? cancelToken}) async {
     try {
-      filePath ??= join((await getTemporaryDirectory()).path, _cachePath,
-          '${md5(url)}.m3u8');
+      cancelToken?.whenCancel.then((_) {
+        throw Exception('取消缓存m3u8文件');
+      });
+      filePath ??= join(
+          (await getTemporaryDirectory()).path, _cachePath, '${md5(url)}.m3u8');
       final indexFile = File(filePath);
       if (indexFile.existsSync()) return indexFile;
       final dir = indexFile.parent;
@@ -52,8 +56,8 @@ class M3U8Parser {
   // 下载m3u8文件（如果有key同样下载key）
   Future<M3U8ParserResult?> download(String url, {String? savePath}) async {
     try {
-      final dir = Directory(savePath ??= join(
-          (await getTemporaryDirectory()).path, _cachePath, md5(url)));
+      final dir = Directory(savePath ??=
+          join((await getTemporaryDirectory()).path, _cachePath, md5(url)));
       if (!dir.existsSync()) dir.createSync(recursive: true);
       // 如果索引文件存在则不重复解析
       final result = await parse(url);
@@ -157,16 +161,21 @@ class M3U8Parser {
 
   // 找到连续文件中不连续的部分
   int _absoluteIndex(String s) {
+    const index = 10;
+    final length = s.length;
     s = s.replaceAll('.ts', '');
+    if (length != 17 || int.tryParse(s.substring(index + 1, length)) == null) {
+      return -1;
+    }
     var ret = 0;
-    for (int i = s.runes.length - 10; i < s.runes.length; i++) {
+    for (int i = s.runes.length - index; i < s.runes.length; i++) {
       var ascii = s.codeUnitAt(i);
       if (ascii >= 97) {
         ascii -= 87;
       } else {
         ascii -= 48;
       }
-      ret = ret * 10 + ascii;
+      ret = ret * index + ascii;
     }
     return ret;
   }

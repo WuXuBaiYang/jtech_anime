@@ -1,6 +1,6 @@
-import 'package:ffmpeg_helper/ffmpeg_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:media_kit/media_kit.dart';
 import 'base.dart';
 
@@ -31,6 +31,7 @@ export 'model/database/play_record.dart';
 export 'model/database/search_record.dart';
 export 'model/database/source.dart';
 export 'model/database/video_cache.dart';
+export 'model/config.dart';
 
 /// 数据对象
 export 'model/anime.dart';
@@ -48,8 +49,8 @@ export 'tool/log.dart';
 export 'tool/snack.dart';
 export 'tool/throttle.dart';
 export 'tool/tool.dart';
-export 'tool/volume.dart';
 export 'tool/js_runtime.dart';
+export 'tool/qrcode.dart';
 
 ///自定义组件
 export 'widget/player/controller.dart';
@@ -71,27 +72,25 @@ export 'widget/blur.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
-export 'package:image_picker/image_picker.dart';
 export 'package:url_launcher/url_launcher.dart';
 export 'package:collection/collection.dart';
 export 'package:dio/dio.dart';
+export 'package:path/path.dart' show join, basename;
 
 // 初始化核心方法
 Future<void> ensureInitializedCore({
+  JTechAnimeConfig? config,
+  JTechAnimeThemeData? themeData,
   Map<Brightness, ThemeData>? themeDataMap,
-  bool noPictureMode = false,
 }) async {
-  // 设置是否为无图模式
-  ImageView.noPictureMode = noPictureMode;
+  // 设置全局配置与样式
+  globalConfig.setup(config: config, theme: themeData);
   // 设置初始化样式
   if (themeDataMap != null) theme.setup(themeDataMap);
-  // 设置音量控制
-  VolumeTool.setup();
   // 初始化视频播放器
   MediaKit.ensureInitialized();
-  // 初始化ffmpeg
-  await FFMpegHelper.instance.initialize();
   // 初始化各种manage
+  await globalConfig.init(); // 全局配置
   await router.init(); // 路由服务
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务

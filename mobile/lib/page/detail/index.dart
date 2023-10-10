@@ -160,7 +160,7 @@ class _AnimeDetailPageState
               icon: Icon(sortUp
                   ? FontAwesomeIcons.arrowUpShortWide
                   : FontAwesomeIcons.arrowDownWideShort),
-              onPressed: logic.toggleSort,
+              onPressed: () => logic.sortUp.setValue(!sortUp),
             );
           },
         ),
@@ -169,9 +169,10 @@ class _AnimeDetailPageState
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => DownloadSheet.show(
             context,
+            sortUp: logic.sortUp,
+            animeInfo: logic.animeDetail,
             tabController: tabController,
             checkNetwork: logic.checkNetwork,
-            animeInfo: logic.animeDetail.value,
           ).whenComplete(logic.cacheController.refreshValue),
         ),
       ],
@@ -319,6 +320,16 @@ class _AnimeDetailLogic extends BaseLogic {
         scrollController.offset > expandedHeight - kToolbarHeight * 2,
       );
     });
+    // 监听排序方向变化
+    sortUp.addListener(() {
+      final detail = animeDetail.value;
+      if (detail.resources.isEmpty) return;
+      animeDetail.setValue(detail.copyWith(
+        resources: detail.resources.map((e) {
+          return e.reversed.toList();
+        }).toList(),
+      ));
+    });
   }
 
   @override
@@ -334,9 +345,12 @@ class _AnimeDetailLogic extends BaseLogic {
       // 初始化加载番剧详情
       Loading.show(loadFuture: loadAnimeDetail())?.whenComplete(() {
         // 加载完番剧详情后播放记录
-        if (play) playTheRecord();
-        // 如果存在下载记录则代表需要直接播放已下载视频
-        if (downloadRecord != null) playTheDownload(downloadRecord);
+        if (play) {
+          playTheRecord();
+        } else if (downloadRecord != null) {
+          // 如果存在下载记录则代表需要直接播放已下载视频
+          playTheDownload(downloadRecord);
+        }
       });
     });
   }
@@ -432,18 +446,5 @@ class _AnimeDetailLogic extends BaseLogic {
     final result = await db
         .getDownloadRecordList(source, animeList: [animeDetail.value.url]);
     return result.asMap().map((_, v) => MapEntry(v.resUrl, v));
-  }
-
-  // 切换排序方向
-  void toggleSort() {
-    final sort = !sortUp.value;
-    sortUp.setValue(sort);
-    final detail = animeDetail.value;
-    if (detail.resources.isEmpty) return;
-    animeDetail.setValue(detail.copyWith(
-      resources: detail.resources.map((e) {
-        return e.reversed.toList();
-      }).toList(),
-    ));
   }
 }

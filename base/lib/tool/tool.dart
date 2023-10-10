@@ -90,3 +90,6 @@ class Tool {
 
 // 计算md5
 String md5(String value) => crypto.md5.convert(utf8.encode(value)).toString();
+
+// 区间计算
+T range<T extends num>(T value, T begin, T end) => max(begin, min(end, value));

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/common/notifier.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/router.dart';
 import 'package:jtech_anime_base/widget/status_box.dart';
 import 'log.dart';
@@ -16,19 +17,20 @@ class Loading {
   // 展示加载弹窗
   static Future<T?>? show<T>({
     required Future<T?> loadFuture,
-    ValueChangeNotifier<String>? title,
-    bool dismissible = false,
+    bool? dismissible,
     BuildContext? context,
+    ValueChangeNotifier<String>? title,
   }) async {
     context ??= router.navigator?.context;
+    dismissible ??= globalConfig.loadingDismissible;
     if (context == null) return null;
     final navigator = Navigator.of(context);
     try {
       if (_loadingDialog != null) navigator.maybePop();
       _loadingDialog = showDialog<void>(
         context: context,
-        builder: (_) => _buildLoadingView(title),
         barrierDismissible: dismissible,
+        builder: (_) => _buildLoadingView(title),
       )..whenComplete(() => _loadingDialog = null);
       final start = DateTime.now();
       const duration = Duration(milliseconds: 300);
@@ -47,18 +49,19 @@ class Loading {
 
   // 构建加载视图
   static Widget _buildLoadingView(ValueChangeNotifier<String>? title) {
+    final loadingSize = globalConfig.defaultLoadingSize;
     return Center(
       child: SizedBox.square(
-        dimension: 100,
+        dimension: loadingSize,
         child: Card(
           color: Colors.white,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const StatusBox(
+              StatusBox(
                 status: StatusBoxStatus.loading,
-                animSize: 20,
+                statusSize: loadingSize * 0.6,
               ),
               if (title != null) ...[
                 const SizedBox(height: 4),

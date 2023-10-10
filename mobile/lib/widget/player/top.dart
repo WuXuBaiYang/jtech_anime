@@ -50,19 +50,32 @@ class _CustomPlayerControlsTopState extends State<CustomPlayerControlsTop> {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.topCenter,
-      child: ListTile(
-        title: widget.title,
-        subtitle: widget.subTitle,
-        leading: widget.leading ?? const BackButton(),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ...widget.actions,
-            const SizedBox(width: 8),
-            _buildTimeAction(),
-            const SizedBox(width: 8),
-            _buildBatteryAction(),
-          ],
+      child: GestureDetector(
+        onTap: () {},
+        onDoubleTap: () {},
+        onLongPressEnd: (_) {},
+        onLongPressStart: (_) {},
+        onVerticalDragEnd: (_) {},
+        onHorizontalDragEnd: (_) {},
+        onVerticalDragStart: (_) {},
+        onVerticalDragUpdate: (_) {},
+        onHorizontalDragStart: (_) {},
+        onHorizontalDragUpdate: (_) {},
+        behavior: HitTestBehavior.opaque,
+        child: ListTile(
+          title: widget.title,
+          subtitle: widget.subTitle,
+          leading: widget.leading ?? const BackButton(),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ...widget.actions,
+              const SizedBox(width: 8),
+              _buildTimeAction(),
+              const SizedBox(width: 8),
+              _buildBatteryAction(),
+            ],
+          ),
         ),
       ),
     );

@@ -30,13 +30,13 @@ dependencies:
   crypto: ^3.0.3
 
   # 日志(ALL)
-  logger: ^2.0.2
+  logger: ^2.0.2+1
 
   # 网络请求(ALL)
-  dio: ^5.3.2
+  dio: ^5.3.3
 
   # 图片(ALL)
-  extended_image: ^8.1.0
+  extended_image: ^8.1.1
 
   # 图标(ALL)
   font_awesome_flutter: ^10.5.0
@@ -61,18 +61,15 @@ dependencies:
   easy_refresh: ^3.3.2+1
 
   # 视频播放器(ALL)
-  media_kit: ^1.1.7
-  media_kit_video: ^1.1.8
-  media_kit_libs_video: ^1.0.1
+  media_kit: ^1.1.8+2
+  media_kit_video: ^1.2.1
+  media_kit_libs_video: ^1.0.3
 
   # hls文件解析(ALL)
   flutter_hls_parser: ^2.0.1
 
-  # ffmpeg(NO WEB)
-  ffmpeg_helper: ^1.0.1
-
   # 后台下载器(NO WEB)
-  background_downloader: ^7.9.4
+  background_downloader: ^7.10.0
 
   # js运行时(NO WEB)
   flutter_js: ^0.8.0
@@ -86,14 +83,17 @@ dependencies:
   # 图片选择器(ALL)
   image_picker: ^1.0.4
 
-  # 音量控制(NO WEB)
-  flutter_volume_controller: ^1.2.7
-
   # 集合操作(ALL)
   collection: ^1.17.2
 
   # url跳转(ALL)
   url_launcher: ^6.1.14
+
+  # zxing基础库
+  zxing_lib: ^1.1.1
+
+  # zxing扫码组件
+  zxing_widget: ^1.1.0
 
 dev_dependencies:
   flutter_test:

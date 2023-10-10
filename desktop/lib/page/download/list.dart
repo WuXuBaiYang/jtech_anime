@@ -158,7 +158,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     }
     if (count > 0) ratio = ratio / count;
     final content = count > 0
-        ? '正在下载 $count 条任务  ·  ${FileTool.formatSize(speed.toInt())}'
+        ? '正在下载 $count 条任务  ·  ${FileTool.formatSize(speed.toInt())}/s'
         : '共有 ${records.length} 条下载任务';
     return Stack(
       alignment: Alignment.centerLeft,
@@ -209,7 +209,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
         final record = records[i];
         final task = downloadTask?.getDownloadTaskItem(record);
         final speedText =
-            task != null ? '  ·  ${FileTool.formatSize(task.speed)}' : '';
+            task != null ? '  ·  ${FileTool.formatSize(task.speed)}/s' : '';
         return InkWell(
           child: SizedBox.fromSize(
             size: const Size.fromHeight(40),
@@ -291,10 +291,12 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.white.withOpacity(0.8)),
             ),
-            child: hasPlayRecord
-                ? CustomScrollText.slow('上次看到 ${item.name}',
-                    style: TextStyle(color: kPrimaryColor))
-                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: hasPlayRecord ? kPrimaryColor : null),
+            ),
           ),
         );
       },
@@ -304,7 +306,9 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   // 标题文本样式
   Widget _buildEmptyView() {
     return const Center(
-      child: StatusBox(status: StatusBoxStatus.empty),
+      child: StatusBox(
+        status: StatusBoxStatus.empty,
+      ),
     );
   }
 

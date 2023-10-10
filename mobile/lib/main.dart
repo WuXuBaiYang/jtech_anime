@@ -15,8 +15,14 @@ void main() async {
   // 初始化核心内容
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
-    noPictureMode: false,
+    config: JTechAnimeConfig(
+      noPictureMode: true,
+      noPlayerContent: true,
+    ),
+    themeData: JTechAnimeThemeData(),
   );
+  // 初始化消息通知
+  await notice.init();
   // 强制竖屏
   setScreenOrientation(true);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,

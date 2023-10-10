@@ -1,10 +1,8 @@
 import 'dart:io';
-import 'dart:math';
-import 'dart:typed_data';
 import 'package:extended_image/extended_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'status_box.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 
 // 图片状态加载
 typedef ImageViewStateLoad = Widget? Function();
@@ -15,9 +13,6 @@ typedef ImageViewStateLoad = Widget? Function();
 * @Time 2022/10/24 9:54
 */
 class ImageView extends StatefulWidget {
-  // 是否启用无图模式
-  static bool noPictureMode = false;
-
   // 图片源
   final ImageViewSource source;
 
@@ -202,7 +197,7 @@ class ImageView extends StatefulWidget {
 class _ImageViewState extends State<ImageView> {
   @override
   Widget build(BuildContext context) {
-    if (ImageView.noPictureMode) return const SizedBox();
+    if (globalConfig.isNoPictureMode && kDebugMode) return const SizedBox();
     return GestureDetector(
       onTap: widget.onTap,
       child: ExtendedImage(
@@ -234,28 +229,14 @@ class _ImageViewState extends State<ImageView> {
 
   // 构建加载中状态
   Widget _buildLoadingState(ExtendedImageState state) {
-    final defSize = widget.size ?? 24;
-    final animSize =
-        min(widget.width ?? defSize, widget.height ?? defSize) * 0.6;
-    return widget.loadingState?.call() ??
-        Center(
-          child: StatusBox(
-            status: StatusBoxStatus.loading,
-            animSize: animSize,
-          ),
-        );
+    return widget.loadingState?.call() ?? const SizedBox();
   }
 
   // 构建加载失败状态
   Widget _buildLoadFailState(ExtendedImageState state) {
     return widget.failState?.call() ??
         GestureDetector(
-          child: Center(
-            child: Icon(
-              Icons.refresh_rounded,
-              color: Colors.grey[400],
-            ),
-          ),
+          child: state.completedWidget,
           onTap: () => state.reLoadImage(),
         );
   }

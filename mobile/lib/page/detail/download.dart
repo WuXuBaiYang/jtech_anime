@@ -16,20 +16,25 @@ class DownloadSheet extends StatefulWidget {
   // tab控制器
   final TabController? tabController;
 
+  // 排序方向变化
+  final ValueChangeNotifier<bool> sortUp;
+
   // 番剧信息
-  final AnimeModel animeInfo;
+  final ValueChangeNotifier<AnimeModel> animeInfo;
 
   const DownloadSheet({
     super.key,
     required this.animeInfo,
+    required this.sortUp,
     required this.checkNetwork,
     this.tabController,
   });
 
   static Future<void> show(
     BuildContext context, {
-    required AnimeModel animeInfo,
+    required ValueChangeNotifier<AnimeModel> animeInfo,
     required ValueChangeNotifier<bool> checkNetwork,
+    required ValueChangeNotifier<bool> sortUp,
     TabController? tabController,
   }) {
     PermissionTool.checkNotification(context);
@@ -37,6 +42,7 @@ class DownloadSheet extends StatefulWidget {
       context: context,
       builder: (_) {
         return DownloadSheet(
+          sortUp: sortUp,
           animeInfo: animeInfo,
           checkNetwork: checkNetwork,
           tabController: tabController,
@@ -87,6 +93,18 @@ class _DownloadSheetState extends State<DownloadSheet> {
           child: _buildResourceTab(),
         ),
         const Spacer(),
+        ValueListenableBuilder<bool>(
+          valueListenable: widget.sortUp,
+          builder: (_, sortUp, __) {
+            return IconButton(
+              iconSize: 24,
+              icon: Icon(sortUp
+                  ? FontAwesomeIcons.arrowUpShortWide
+                  : FontAwesomeIcons.arrowDownWideShort),
+              onPressed: () => widget.sortUp.setValue(!sortUp),
+            );
+          },
+        ),
         TextButton(
           onPressed: () => router
               .pushNamed(RoutePath.download)
@@ -100,15 +118,19 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   // 构建资源分类tab
   Widget _buildResourceTab() {
-    final resources = widget.animeInfo.resources;
     return Align(
       alignment: Alignment.centerLeft,
-      child: CustomTabBar(
-        isScrollable: true,
-        controller: widget.tabController,
-        tabs: List.generate(resources.length, (i) {
-          return Tab(text: '资源${i + 1}', height: 35);
-        }),
+      child: ValueListenableBuilder<AnimeModel>(
+        valueListenable: widget.animeInfo,
+        builder: (_, animeInfo, __) {
+          return CustomTabBar(
+            isScrollable: true,
+            controller: widget.tabController,
+            tabs: List.generate(animeInfo.resources.length, (i) {
+              return Tab(text: '资源${i + 1}', height: 35);
+            }),
+          );
+        },
       ),
     );
   }
@@ -121,10 +143,11 @@ class _DownloadSheetState extends State<DownloadSheet> {
       builder: (_, snap) {
         if (!snap.hasData) return const SizedBox();
         final downloadMap = snap.data!;
-        final resources = widget.animeInfo.resources;
-        return ValueListenableBuilder<List<ResourceItemModel>>(
-          valueListenable: selectResources,
-          builder: (_, selectList, __) {
+        return ValueListenableBuilder2<AnimeModel, List<ResourceItemModel>>(
+          first: widget.animeInfo,
+          second: selectResources,
+          builder: (_, animeInfo, selectList, __) {
+            final resources = animeInfo.resources;
             return TabBarView(
               controller: widget.tabController,
               children: List.generate(resources.length, (i) {
@@ -178,9 +201,10 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Future<Map<String, DownloadRecord>> _loadDownloadRecordMap() async {
     final source = animeParser.currentSource;
     if (source == null) return {};
+    final animeInfo = widget.animeInfo.value;
     return db.getDownloadRecordList(
       source,
-      animeList: [widget.animeInfo.url],
+      animeList: [animeInfo.url],
     ).then((v) => v.asMap().map((_, v) => MapEntry(v.resUrl, v)));
   }
 
@@ -207,6 +231,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Future<void> _addDownloadTask(BuildContext context) async {
     // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
     if (!await Network.checkNetwork(context, widget.checkNetwork)) return;
+    final animeInfo = widget.animeInfo.value;
     return Loading.show<void>(
       loadFuture: Future(() async {
         final source = animeParser.currentSource;
@@ -224,9 +249,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
               ..downloadUrl = e.playUrl
               ..name = e.item?.name ?? ''
               ..order = e.item?.order ?? 0
-              ..url = widget.animeInfo.url
-              ..title = widget.animeInfo.name
-              ..cover = widget.animeInfo.cover)
+              ..url = animeInfo.url
+              ..title = animeInfo.name
+              ..cover = animeInfo.cover)
             .toList();
         // 使用下载记录启动下载
         final results = await download.startTasks(downloadRecords);

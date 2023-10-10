@@ -38,9 +38,6 @@ class _CustomPlayerControlsBottomState
   // 临时进度条拖动监听
   final tempProgress = ValueChangeNotifier<Duration?>(null);
 
-  // 静音状态
-  final controlMute = ValueChangeNotifier<bool>(false);
-
   @override
   void initState() {
     super.initState();
@@ -52,8 +49,6 @@ class _CustomPlayerControlsBottomState
         tempProgress.setValue(e);
       }
     });
-    // 监听静音状态变化
-    controlMute.addListener(VolumeTool.mute);
   }
 
   @override
@@ -62,25 +57,84 @@ class _CustomPlayerControlsBottomState
       alignment: Alignment.bottomCenter,
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildProgressAction(),
-            Row(
-              children: [
-                _buildPlayAction(),
-                const Spacer(),
-                ...widget.actions,
-                const SizedBox(width: 8),
-                _buildRateAction(),
-                const SizedBox(width: 8),
-                _buildMuteAction(),
-              ],
-            ),
-          ],
+        child: GestureDetector(
+          onTap: () {},
+          onDoubleTap: () {},
+          onLongPressEnd: (_) {},
+          onLongPressStart: (_) {},
+          onVerticalDragEnd: (_) {},
+          onHorizontalDragEnd: (_) {},
+          onVerticalDragStart: (_) {},
+          onVerticalDragUpdate: (_) {},
+          onHorizontalDragStart: (_) {},
+          onHorizontalDragUpdate: (_) {},
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildProgressAction(),
+              Row(
+                children: [
+                  _buildPlayAction(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: widget.actions,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildPlayVolumeAction(),
+                  _buildPlaySpeedAction(),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  // 构建播放进度条
+  Widget _buildProgressAction() {
+    final controller = widget.controller;
+    const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
+    return ValueListenableBuilder<Duration?>(
+      valueListenable: tempProgress,
+      builder: (_, temp, __) {
+        return StreamBuilder<Duration>(
+          stream: controller.stream.position,
+          builder: (_, snap) {
+            final buffer = controller.state.buffer;
+            final total = controller.state.duration;
+            final progress = temp ?? controller.state.position;
+            return Row(
+              children: [
+                Text(progress.format(DurationPattern.fullTime),
+                    style: textStyle),
+                Expanded(
+                  child: Slider(
+                    inactiveColor: Colors.black26,
+                    max: max(total.inMilliseconds.toDouble(), 0),
+                    value: max(progress.inMilliseconds.toDouble(), 0),
+                    secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
+                    secondaryTrackValue:
+                        max(buffer.inMilliseconds.toDouble(), 0),
+                    onChangeStart: (_) =>
+                        controller.setControlVisible(true, ongoing: true),
+                    onChanged: (v) => tempProgress
+                        .setValue(Duration(milliseconds: v.toInt())),
+                    onChangeEnd: (v) =>
+                        _delaySeekVideo(Duration(milliseconds: v.toInt())),
+                  ),
+                ),
+                Text(total.format(DurationPattern.fullTime), style: textStyle),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -102,127 +156,91 @@ class _CustomPlayerControlsBottomState
     );
   }
 
-  // 构建底部
-  Widget _buildProgressAction() {
-    final controller = widget.controller;
-    const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
-    return SliderTheme(
-      data: const SliderThemeData(
-        trackHeight: 2,
-        thumbShape: RoundSliderThumbShape(
-          enabledThumbRadius: 6,
-        ),
-      ),
-      child: ValueListenableBuilder<Duration?>(
-        valueListenable: tempProgress,
-        builder: (_, temp, __) {
-          return StreamBuilder<Duration>(
-            stream: controller.stream.position,
-            builder: (_, snap) {
-              final buffer = controller.state.buffer;
-              final total = controller.state.duration;
-              final progress = temp ?? controller.state.position;
-              return Row(
-                children: [
-                  Text(progress.format(DurationPattern.fullTime),
-                      style: textStyle),
-                  Expanded(
-                    child: Slider(
-                      inactiveColor: Colors.black26,
-                      max: max(total.inMilliseconds.toDouble(), 0),
-                      value: max(progress.inMilliseconds.toDouble(), 0),
-                      secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
-                      secondaryTrackValue:
-                          max(buffer.inMilliseconds.toDouble(), 0),
-                      onChangeStart: (_) =>
-                          controller.setControlVisible(true, ongoing: true),
-                      onChanged: (v) => tempProgress
-                          .setValue(Duration(milliseconds: v.toInt())),
-                      onChangeEnd: (v) =>
-                          _delaySeekVideo(Duration(milliseconds: v.toInt())),
-                    ),
-                  ),
-                  Text(total.format(DurationPattern.fullTime),
-                      style: textStyle),
-                ],
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
+  // 音量等级图标
+  final volumeLevel = [
+    FontAwesomeIcons.volumeXmark,
+    FontAwesomeIcons.volumeOff,
+    FontAwesomeIcons.volumeLow,
+    FontAwesomeIcons.volumeHigh,
+  ];
 
-  // 构建底部倍速按钮
-  Widget _buildRateAction() {
-    const itemHeight = 35.0;
+  // 记录静音前的音量
+  double _lastVolume = 0;
+
+  // 构建播放音量按钮
+  Widget _buildPlayVolumeAction() {
     final controller = widget.controller;
-    final ratios = [3.0, 2.0, 1.0, 0.5];
-    final offsetDY = ratios.length * itemHeight + 20;
-    return StreamBuilder(
-      stream: controller.stream.rate,
+    return StreamBuilder<double>(
+      stream: controller.stream.volume,
       builder: (_, snap) {
-        bool showPopup = false;
-        return StatefulBuilder(
-          builder: (_, state) {
-            return PopupMenuButton<double>(
-              elevation: 0,
-              color: Colors.black54,
-              offset: Offset(0, -offsetDY),
-              constraints: const BoxConstraints(maxWidth: 65),
-              onCanceled: () => state(() {
-                controller.setControlVisible(true);
-                showPopup = false;
-              }),
-              onOpened: () => state(() {
-                controller.setControlVisible(true, ongoing: true);
-                showPopup = true;
-              }),
-              itemBuilder: (_) {
-                return ratios.map<PopupMenuEntry<double>>((e) {
-                  return PopupMenuItem(
-                    value: e,
-                    height: itemHeight,
-                    child: Text('x$e'),
-                  );
-                }).toList();
+        final volume = snap.data ?? 100;
+        final length = volumeLevel.length - 1;
+        final index = ((volume / 100) * length).ceil();
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(volumeLevel[min(index, length)]),
+              onPressed: () {
+                if (volume == 0) {
+                  controller.setVolume(_lastVolume);
+                } else {
+                  _lastVolume = volume;
+                  controller.setVolume(0);
+                }
               },
-              onSelected: (v) {
-                controller.setControlVisible(true);
-                controller.setRate(v);
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('x${snap.data ?? 1.0}'),
-                  AnimatedRotation(
-                    turns: showPopup ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.arrow_drop_down),
-                  ),
-                ],
+            ),
+            SizedBox.fromSize(
+              size: const Size(140, 10),
+              child: Slider(
+                max: 100,
+                value: volume,
+                onChanged: (v) {
+                  controller.setVolume(v);
+                  controller.setControlVisible(true);
+                },
               ),
-            );
-          },
+            ),
+          ],
         );
       },
     );
   }
 
-  // 构建底部静音按钮
-  Widget _buildMuteAction() {
+  // 播放器倍速表
+  final playSpeedMap = {
+    0.5: FontAwesomeIcons.gaugeSimple,
+    1.0: FontAwesomeIcons.gauge,
+    2.0: FontAwesomeIcons.gaugeHigh,
+    3.0: FontAwesomeIcons.gaugeHigh,
+  };
+
+  // 构建播放速度按钮
+  Widget _buildPlaySpeedAction() {
     final controller = widget.controller;
-    return ValueListenableBuilder<bool>(
-      valueListenable: controlMute,
-      builder: (_, isMute, __) {
-        return IconButton(
-          onPressed: () {
-            controlMute.setValue(!controlMute.value);
-            controller.setControlVisible(true);
-          },
-          icon: Icon(isMute
-              ? FontAwesomeIcons.volumeXmark
-              : FontAwesomeIcons.volumeLow),
+    return StreamBuilder<double>(
+      stream: controller.stream.rate,
+      builder: (_, snap) {
+        final rate = snap.data ?? 1.0;
+        return PopupMenuButton<double>(
+          elevation: 0,
+          icon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(playSpeedMap[rate]),
+              const SizedBox(width: 8),
+              Text('${rate}x'),
+            ],
+          ),
+          itemBuilder: (_) => playSpeedMap.entries
+              .map<PopupMenuItem<double>>((e) => CheckedPopupMenuItem(
+                    value: e.key,
+                    checked: rate == e.key,
+                    padding: EdgeInsets.zero,
+                    child: Text('${e.key}x'),
+                  ))
+              .toList(),
+          onSelected: controller.setRate,
         );
       },
     );

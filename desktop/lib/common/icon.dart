@@ -12,3 +12,13 @@ class CustomIcon {
   static const String homeNavigationNewestSelected =
       'assets/icon/home_navigation_newest_selected.png';
 }
+
+/*
+* 自定义动画
+* @author wuxubaiyang
+* @Time 2023/9/21 14:06
+*/
+class CustomAnime {
+  // 首页下载动画
+  static const String homeDownloading = 'assets/anime/home_downloading.json';
+}

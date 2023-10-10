@@ -4,12 +4,14 @@ import 'package:dio/dio.dart';
 import 'package:jtech_anime_base/common/common.dart';
 import 'package:jtech_anime_base/common/manage.dart';
 import 'package:jtech_anime_base/common/notifier.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/model/database/download_record.dart';
 import 'package:jtech_anime_base/model/download.dart';
 import 'package:jtech_anime_base/tool/file.dart';
 import 'package:jtech_anime_base/tool/log.dart';
 import 'package:jtech_anime_base/tool/tool.dart';
+import 'package:path/path.dart';
 import 'base.dart';
 import 'm3u8.dart';
 import 'video.dart';
@@ -63,6 +65,10 @@ class DownloadManage extends BaseManage {
   void addDownloadCompleteListener(DownloadCompleteCallback callback) =>
       _downloadCompleteCallbacks.add(callback);
 
+  // 判断是否存在下载任务
+  bool get hasDownloadTask =>
+      downloadQueue.isNotEmpty || prepareQueue.isNotEmpty;
+
   // 获取下载进度流
   Stream<DownloadTask?> get downloadProgress =>
       _downloadProgressController.stream;
@@ -112,7 +118,11 @@ class DownloadManage extends BaseManage {
       final savePath = record.savePath.isNotEmpty
           ? record.savePath
           : await FileTool.getDirPath(
-              '${FileDirPath.videoCachePath}/${md5(record.downloadUrl)}',
+              join(
+                globalConfig.baseCachePath,
+                FileDirPath.videoCachePath,
+                md5(record.downloadUrl),
+              ),
               root: FileDir.applicationDocuments);
       if (savePath == null || savePath.isEmpty) return false;
       // 创建一个任务task并决定添加到准备还是下载队列
@@ -309,6 +319,7 @@ class DownloadManage extends BaseManage {
       _downloadProgressPeriodic?.cancel();
       _downloadProgressPeriodic = null;
       _progressBuffed.clear();
+      pushLatestProgress();
     }
   }
 

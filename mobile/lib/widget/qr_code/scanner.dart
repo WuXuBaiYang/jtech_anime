@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/widget/mask_view.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 import 'package:camera/camera.dart';
+import 'package:mobile/widget/qr_code/scan/view.dart';
+
+import 'scan/controller.dart';
 
 /*
 * 二维码扫描组件
@@ -43,13 +45,8 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   // 闪光灯模式
   final flashMode = ValueChangeNotifier<FlashMode>(FlashMode.off);
 
-  // 控制器
-  final controller = QRCodeDartScanController();
-
-  // 扫码类型限制
-  final formats = const [
-    BarcodeFormat.QR_CODE,
-  ];
+  // 扫码控制器
+  final controller = CustomScanController();
 
   @override
   void initState() {
@@ -103,15 +100,14 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
 
   // 构建扫描器
   Widget _buildScanner(Size previewSize) {
-    return QRCodeDartScanView(
-      formats: formats,
-      controller: controller,
-      typeScan: TypeScan.live,
-      scanInvertedQRCode: true,
-      widthPreview: previewSize.width,
-      heightPreview: previewSize.height,
-      resolutionPreset: QRCodeDartScanResolutionPreset.veryHigh,
-      onCapture: (result) => Navigator.pop(context, result.text),
+    return Positioned.fill(
+      child: CustomScanView(
+        autoStart: true,
+        controller: controller,
+        onResult: (result) {
+          Navigator.pop(context, result);
+        },
+      ),
     );
   }
 

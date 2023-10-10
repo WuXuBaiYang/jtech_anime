@@ -25,24 +25,18 @@ class CustomTheme {
         useMaterial3: true,
         colorScheme: colorScheme,
         appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 0,
           toolbarHeight: kToolbarHeightCustom,
           titleTextStyle: TextStyle(
             color: Colors.black,
-            fontSize: 16,
+            fontSize: 14,
           ),
         ),
-        cardTheme: CardTheme(
-          color: colorScheme.primary.withOpacity(0.12),
-          elevation: 0,
-        ),
-        chipTheme: const ChipThemeData(
+        chipTheme: ChipThemeData(
           pressElevation: 0,
-        ),
-        dialogTheme: const DialogTheme(
-          actionsPadding: EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
-          ),
+          labelPadding: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          labelStyle: TextStyle(fontSize: 12, color: colorScheme.onSurface),
         ),
         iconTheme: const IconThemeData(size: 20),
         bottomSheetTheme: const BottomSheetThemeData(
@@ -64,6 +58,8 @@ class CustomTheme {
           ),
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          sizeConstraints: BoxConstraints.tightFor(width: 45, height: 45),
+          extendedSizeConstraints: BoxConstraints.tightFor(height: 45),
           elevation: 1,
         ),
         listTileTheme: const ListTileThemeData(
@@ -74,4 +70,4 @@ class CustomTheme {
       );
 }
 
-const kToolbarHeightCustom = 40.0;
+const kToolbarHeightCustom = 35.0;

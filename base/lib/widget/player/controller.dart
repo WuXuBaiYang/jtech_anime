@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'package:jtech_anime_base/common/notifier.dart';
-import 'package:jtech_anime_base/model/database/video_cache.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -16,8 +15,14 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 是否展示控制
   final controlVisible = ValueChangeNotifier<bool>(false);
 
+  // 全屏按钮控制
+  final controlFullscreen = ValueChangeNotifier<bool>(false);
+
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);
+
+  // 屏幕亮度控制（0-1）
+  final screenBrightness = ValueChangeNotifier<double>(1);
 
   // 控制器
   late final VideoController controller = VideoController(_player);
@@ -57,18 +62,100 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     });
   }
 
+  // 获取当前锁屏状态
+  bool get isScreenLocked => screenLocked.value;
+
   // 切换锁定状态
+  void toggleScreenLocked() => setScreenLocked(!screenLocked.value);
+
+  // 设置锁定状态
   void setScreenLocked(bool locked) => screenLocked.setValue(locked);
 
-  // 跳转到播放进度
-  Future<void> seekTo(Duration duration) => _player.seek(duration);
+  // 获取当前全屏状态
+  bool get isFullscreen => controlFullscreen.value;
 
-  // 设置播放倍速
-  Future<void> setRate(double rate) => _player.setRate(rate);
+  // 切换全屏状态
+  void toggleFullscreen() => setFullscreen(!controlFullscreen.value);
+
+  // 设置全屏状态
+  void setFullscreen(bool fullscreen) => controlFullscreen.setValue(fullscreen);
+
+  // 获取当前播放进度
+  Duration get currentPosition => state.position;
+
+  // 获取当前视频总时长
+  Duration get currentDuration => state.duration;
+
+  // 跳转到播放进度
+  Future<Duration> seekTo(Duration duration) async {
+    final value = duration.inMilliseconds;
+    final max = state.duration.inMilliseconds;
+    duration = Duration(milliseconds: range(value, 0, max));
+    await _player.seek(duration);
+    return state.position;
+  }
+
+  // 快进播放进度
+  Future<Duration> seekForward(
+      [Duration duration = const Duration(seconds: 3)]) =>
+      seekTo(state.position + duration);
+
+  // 快进播放进度
+  Future<Duration> seekBackward(
+      [Duration duration = const Duration(seconds: 3)]) =>
+      seekTo(state.position - duration);
+
+  // 获取当前播放倍速
+  double get currentRate => state.rate;
+
+  // 设置播放倍速(0.5-3)
+  Future<double> setRate(double rate) async {
+    await _player.setRate(range(rate, 0.5, 3));
+    return state.rate;
+  }
+
+  // 获取当前屏幕亮度
+  double get currentBrightness => screenBrightness.value;
+
+  // 设置屏幕亮度(0-1,最暗到最亮)
+  Future<double> setBrightness(double brightness) async {
+    screenBrightness.setValue(range(brightness, 0, 1));
+    return screenBrightness.value;
+  }
+
+  // 增加屏幕亮度
+  Future<double> brightnessRaise([double step = 0.05]) =>
+      setBrightness(screenBrightness.value + step);
+
+  // 降低屏幕亮度
+  Future<double> brightnessLower([double step = 0.05]) =>
+      setBrightness(screenBrightness.value - step);
+
+  // 获取当前音量
+  double get currentVolume => state.volume;
+
+  // 设置音量(0-100)
+  Future<double> setVolume(double volume) async {
+    await _player.setVolume(range(volume, 0, 100));
+    return state.volume;
+  }
+
+  // 增加音量
+  Future<double> volumeRaise([double step = 5]) =>
+      setVolume(state.volume + step);
+
+  // 降低音量
+  Future<double> volumeLower([double step = 5]) =>
+      setVolume(state.volume - step);
 
   // 加载视频并播放
   Future<void> play(String uri, [bool autoPlay = true]) =>
       _player.open(Media(uri), play: autoPlay);
+
+  // 增加视频到视频队列
+  Future<void> playlist(List<String> uris, [bool autoPlay = true]) =>
+      _player
+          .open(Playlist(uris.map((e) => Media(e)).toList()), play: autoPlay);
 
   // 切换播放暂停状态
   Future<bool> resumeOrPause() async {
@@ -84,6 +171,15 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
 
   // 停止播放
   Future<void> stop() => _player.stop();
+
+  // 播放队列中的下一条视频
+  Future<void> next() => _player.next();
+
+  // 播放队列中的上一条视频
+  Future<void> previous() => _player.previous();
+
+  // 跳转到播放列表的指定位置
+  Future<void> jumpTo(int index) => _player.jump(index);
 
   @override
   void dispose() {

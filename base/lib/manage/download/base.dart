@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:background_downloader/background_downloader.dart';
+import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/tool/file.dart';
 
 // 下载进度回调
@@ -85,12 +86,14 @@ abstract class Downloader {
     DownloaderProgressCallback? receiveProgress,
     FileDir root = FileDir.applicationDocuments,
     CancelToken? cancelToken,
-    int singleBatchSize = 30,
+    int? singleBatchSize,
     String fileDir = '',
     int retries = 3,
   }) async {
+    if (downloadMap.isEmpty) return;
     final downloader = FileDownloader();
     int count = 0, total = downloadMap.length;
+    singleBatchSize ??= globalConfig.m3u8DownloadBatchSize;
     // 封装下载任务
     final downloadTasks = _genDownloadBatchTasks(
       baseDirectory: BaseDirectory.values[root.index],

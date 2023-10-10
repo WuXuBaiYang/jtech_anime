@@ -48,10 +48,8 @@ class CustomTabBar extends StatelessWidget {
         splashBorderRadius: borderRadius,
         unselectedLabelColor: kPrimaryColor,
         indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          borderRadius: borderRadius,
-          color: kPrimaryColor,
-        ),
+        indicator:
+            BoxDecoration(borderRadius: borderRadius, color: kPrimaryColor),
       ),
     );
   }

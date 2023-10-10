@@ -38,35 +38,24 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  // 播放器页面样式
-  ThemeData get _themeData => ThemeData.dark(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSecondaryColor,
-        ),
-      );
-
   @override
   Widget buildWidget(BuildContext context) {
-    return Theme(
-      data: _themeData,
-      child: Scaffold(
-        key: pageKey,
-        backgroundColor: Colors.black,
-        endDrawer: _buildResourceDrawer(),
-        endDrawerEnableOpenDragGesture: false,
-        onEndDrawerChanged: (isOpened) {
-          logic.controller.setControlVisible(true, ongoing: isOpened);
-        },
-        body: Stack(
-          children: [
-            Positioned.fill(child: _buildVideoPlayer()),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: _buildPlayRecordTag(),
-            ),
-          ],
-        ),
+    return Scaffold(
+      key: pageKey,
+      backgroundColor: Colors.black,
+      endDrawer: _buildResourceDrawer(),
+      endDrawerEnableOpenDragGesture: false,
+      onEndDrawerChanged: (isOpened) {
+        logic.controller.setControlVisible(true, ongoing: isOpened);
+      },
+      body: Stack(
+        children: [
+          Positioned.fill(child: _buildVideoPlayer()),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: _buildPlayRecordTag(),
+          ),
+        ],
       ),
     );
   }
@@ -96,6 +85,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       title: Text(logic.animeInfo.value.name),
       bottomActions: [
         _buildBottomActionsNext(),
+        const Spacer(),
         _buildBottomActionsChoice(),
       ],
     );
@@ -118,16 +108,16 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     return ValueListenableBuilder<ResourceItemModel?>(
       valueListenable: logic.nextResourceInfo,
       builder: (_, resource, __) {
-        if (resource == null) return const SizedBox();
-        return TextButton(
-          onPressed: Throttle.click(
-            () {
-              logic.controller.setControlVisible(true);
-              logic.changeVideo(resource);
-            },
-            'playNextResource',
-          ),
-          child: const Text('下一集'),
+        final canPlayNext = resource != null;
+        return IconButton(
+          onPressed: canPlayNext
+              ? Throttle.click(() {
+                  logic.controller.setControlVisible(true);
+                  logic.changeVideo(resource);
+                }, 'playNextResource')
+              : null,
+          icon: Icon(FontAwesomeIcons.forward,
+              color: canPlayNext ? Colors.white : Colors.white30),
         );
       },
     );
@@ -257,25 +247,31 @@ class _PlayerLogic extends BaseLogic {
     });
   }
 
+  // 资源访问token
+  CancelToken? _cancelToken;
+
   // 选择资源/视频
   Future<void> changeVideo(ResourceItemModel item,
       [bool playTheRecord = false]) async {
-    if (isLoading) return;
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
     return Loading.show(loadFuture: Future(() async {
       try {
-        loading.setValue(true);
         playRecord.setValue(null);
         resourceInfo.setValue(item);
         nextResourceInfo.setValue(_findNextResourceItem(item));
-        // 暂停现有播放器
-        await controller.pause();
+        // 停止现有播放内容
+        await cancelVideoPlay();
+        _cancelToken = CancelToken();
+        _cancelToken?.whenCancel.then((_) {
+          throw Exception('取消视频播放');
+        });
         // 根据当前资源获取播放记录
         PlayRecord? record = await db.getPlayRecord(animeInfo.value.url);
         if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
-        final result = await animeParser.getPlayUrls([item]);
+        final result =
+            await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
@@ -285,7 +281,8 @@ class _PlayerLogic extends BaseLogic {
         if (downloadRecord != null) {
           playUrl = downloadRecord.playFilePath;
         } else if (playUrl.endsWith('.m3u8')) {
-          final result = await M3U8Parser().cacheFilter(playUrl);
+          final result = await M3U8Parser()
+              .cacheFilter(playUrl, cancelToken: _cancelToken);
           if (result != null) playUrl = result.path;
         }
         // 播放已下载视频或者在线视频并跳转到指定位置
@@ -301,10 +298,15 @@ class _PlayerLogic extends BaseLogic {
       } catch (e) {
         SnackTool.showMessage(message: '获取播放地址失败，请重试~');
         rethrow;
-      } finally {
-        loading.setValue(false);
       }
     }));
+  }
+
+  // 终止视频播放与资源获取
+  Future<void> cancelVideoPlay() async {
+    _cancelToken?.cancel();
+    _cancelToken = null;
+    await controller.stop();
   }
 
   // 根据标记恢复播放
@@ -384,6 +386,8 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
+    // 种植视频播放并销毁资源获取
+    cancelVideoPlay();
     // 销毁控制器
     controller.dispose();
     // 退出播放器状态
