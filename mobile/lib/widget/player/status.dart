@@ -180,7 +180,7 @@ class _CustomPlayerControlsStatusState
           if (!(snap.data ?? false)) return const SizedBox();
           return const StatusBox(
             status: StatusBoxStatus.loading,
-            statusSize: 30,
+            statusSize: 65,
           );
         },
       ),
