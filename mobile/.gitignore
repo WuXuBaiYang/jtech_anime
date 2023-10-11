@@ -30,7 +30,7 @@ doc/api/
 *.g.dart
 
 assets/source/update_config.json
-publish
-publish/keystore
+keystore
+outputs
 assets/source/update_config.json
 /local.properties
