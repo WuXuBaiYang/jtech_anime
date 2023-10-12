@@ -23,6 +23,10 @@ function getUri(path, params) {
     return `https://www.yhdmz.org${path || ''}${queryParams}`
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * 获取番剧时间表
  * @returns {Map} {
@@ -468,7 +472,12 @@ async function getPlayUrls(resourceUrls) {
             const url = resourceUrls[i]
             let resp = await request(url, {method: 'HEAD', headers: headers})
             if (!resp.ok) throw new Error('获取播放地址失败，请重试')
-            headers['Cookie'] = resp.headers['set-cookie']
+            let cookies = resp.headers['set-cookie']
+            cookies = cookies.replaceAll(';', '').split(' Path=/')
+            let t1 = cookies[0].split('=')[1]
+            let k2 = (t1 / 0x3e8) >> 0x5;
+            k2 = ((k2 * (k2 % 0x100 + 0x1) + 0x89a4) * (k2 % 0x80 + 0x1)) * (k2 % 0x10 + 0x1) + k2;
+            headers['Cookie'] = cookies.join(';') + 't2=' + new Date().getTime() + ';k2=' + k2
             let keys = url.split('/').pop().replaceAll('.html', '').split('-')
             resp = await request(getUri('/playurl', {
                 aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()
@@ -480,6 +489,7 @@ async function getPlayUrls(resourceUrls) {
             tempList.push({
                 url: url, playUrl: decodeURIComponent(playUrl('', url, 0, resp.text))
             })
+            await sleep(2000)
         } catch (e) {
             throw e
         }
