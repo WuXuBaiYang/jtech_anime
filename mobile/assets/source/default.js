@@ -475,9 +475,11 @@ async function getPlayUrls(resourceUrls) {
             let cookies = resp.headers['set-cookie']
             cookies = cookies.replaceAll(';', '').split(' Path=/')
             let t1 = cookies[0].split('=')[1]
-            let k2 = (t1 / 0x3e8) >> 0x5;
-            k2 = ((k2 * (k2 % 0x100 + 0x1) + 0x89a4) * (k2 % 0x80 + 0x1)) * (k2 % 0x10 + 0x1) + k2;
-            headers['Cookie'] = cookies.join(';') + 't2=' + new Date().getTime() + ';k2=' + k2
+            let k2 = (t1 / 1000) >> 5;
+            k2 = (k2 * (k2 % 256 + 1) + 35236) * (k2 % 128 + 1) * (k2 % 16 + 1) + k2;
+            let m2t = parseInt(`${new Date().getTime() / 1000}`) >> 19;
+            m2t = (m2t * 21 + 154) * (m2t % 64 + 13) * (m2t % 32 + 34) * (m2t % 16 + 87) * (m2t % 8 + 65) + 751;
+            headers['Cookie'] = `${cookies.join(';')}t2=${new Date().getTime()};k2${k2};m2t=${m2t}`
             let keys = url.split('/').pop().replaceAll('.html', '').split('-')
             resp = await request(getUri('/playurl', {
                 aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()
