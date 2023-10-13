@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:desktop/model/version.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -143,8 +144,8 @@ class AppVersionTool {
       final resp = await Dio().download(
         info.installUrl,
         installFile.path,
-        onReceiveProgress: (count, total) =>
-            _downloadProgressController.add(count / total),
+        onReceiveProgress: (count, _) =>
+            _downloadProgressController.add(count / info.fileLength),
       );
       _downloadProgressController.add(0);
       if (resp.statusCode == 200 && installFile.existsSync()) {
