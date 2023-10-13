@@ -171,6 +171,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
                 final item = functions[i];
                 return RawChip(
                   side: BorderSide.none,
+                  clipBehavior: Clip.antiAlias,
                   label: Text(item.functionNameCN),
                   backgroundColor: kSecondaryColor.withOpacity(0.2),
                 );
@@ -185,6 +186,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
                   return RawChip(
                     side: BorderSide.none,
                     backgroundColor: Colors.red,
+                    clipBehavior: Clip.antiAlias,
                     label: Text(item.functionNameCN),
                     labelStyle: const TextStyle(color: Colors.white),
                     avatar: const Icon(FontAwesomeIcons.triangleExclamation,

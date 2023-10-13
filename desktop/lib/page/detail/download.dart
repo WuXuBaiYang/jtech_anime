@@ -171,6 +171,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
             avatar: avatar,
             selected: selected,
             label: Text(item.name),
+            clipBehavior: Clip.antiAlias,
             onSelected: !downloaded
                 ? (_) => selected
                     ? selectResources.removeValue(item)

@@ -31,7 +31,7 @@ class CustomTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(100);
     return Container(
-      clipBehavior: Clip.hardEdge,
+      clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: borderRadius,

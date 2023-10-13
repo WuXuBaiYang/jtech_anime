@@ -42,7 +42,7 @@ class CustomTheme {
         bottomSheetTheme: const BottomSheetThemeData(
           surfaceTintColor: Colors.white,
           backgroundColor: Colors.white,
-          clipBehavior: Clip.hardEdge,
+          clipBehavior: Clip.antiAlias,
           showDragHandle: true,
         ),
         dividerTheme: const DividerThemeData(
