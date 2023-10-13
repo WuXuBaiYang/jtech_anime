@@ -24,7 +24,7 @@ dependencies:
   path_provider: ^2.1.1
 
   # sp缓存(ALL)
-  shared_preferences: ^2.2.1
+  shared_preferences: ^2.2.2
 
   # 加密(ALL)
   crypto: ^3.0.3
@@ -69,7 +69,7 @@ dependencies:
   flutter_hls_parser: ^2.0.1
 
   # 后台下载器(NO WEB)
-  background_downloader: ^7.10.0
+  background_downloader: ^7.10.1
 
   # js运行时(NO WEB)
   flutter_js: ^0.8.0

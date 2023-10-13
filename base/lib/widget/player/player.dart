@@ -34,14 +34,21 @@ class CustomVideoPlayer extends StatefulWidget {
 class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   @override
   Widget build(BuildContext context) {
-    final controller = globalConfig.isNoPlayerContent && kDebugMode
-        ? CustomVideoPlayerController()
-        : widget.controller;
     return Video(
+      controller: controller,
       controls: widget.controls,
-      controller: controller.controller,
       pauseUponEnteringBackgroundMode: true,
       resumeUponEnteringForegroundMode: true,
     );
   }
+
+  // 缓存自定义控制器
+  VideoController? _controller;
+
+  // 获取控制器
+  VideoController get controller =>
+      _controller ??= (globalConfig.isNoPlayerContent && kDebugMode
+              ? CustomVideoPlayerController()
+              : widget.controller)
+          .controller;
 }
