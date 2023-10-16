@@ -27,6 +27,49 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function unicode(str) {
+    let value = '';
+    for (let i = 0; i < str.length; i++) {
+        let code = parseInt(str.charCodeAt(i))
+        value += '\\u' + left_zero_4(code.toString(16)).toUpperCase();
+    }
+    return value;
+}
+
+function left_zero_4(str) {
+    if (str != null && str !== '' && str !== 'undefined') {
+        if (str.length === 2) return '00' + str;
+    }
+    return str;
+}
+
+function isChineseCharacter(char) {
+    const regExp = /^[\u4e00-\u9fa5]$/;
+    return regExp.test(char);
+}
+
+function genCookie(cookies, url, name) {
+    let t1 = cookies[0].split('=')[1]
+    let t2 = parseInt(t1) - Math.floor(Math.random() * 3000)
+    let k2 = (t1 / 1000) >> 5;
+    k2 = (k2 * (k2 % 256 + 1) + 35236) * (k2 % 128 + 1) * (k2 % 16 + 1) + k2;
+    let m2t = parseInt(`${new Date().getTime() / 1000}`) >> 19;
+    m2t = (m2t * 21 + 154) * (m2t % 64 + 13) * (m2t % 32 + 34) * (m2t % 16 + 87) * (m2t % 8 + 65) + 751;
+    let qike123 = ''
+    for (let i = 0; i < name.length; i++) {
+        const char = name.charAt(i);
+        if (isChineseCharacter(char)) {
+            qike123 += unicode(char);
+        } else {
+            qike123 += char;
+        }
+    }
+    qike123 = qike123.replaceAll('\\', '%')
+        .replaceAll('!', '%21')
+    qike123 = `qike123=${qike123}^${url}_$_|`
+    return `m2t=${m2t};${cookies.join(';')};${qike123};k2=${k2};t2=${t2}`
+}
+
 /**
  * 获取番剧时间表
  * @returns {Map} {
@@ -470,16 +513,13 @@ async function getPlayUrls(resourceUrls) {
     for (const i in resourceUrls) {
         try {
             const url = resourceUrls[i]
-            let resp = await request(url, {method: 'HEAD', headers: headers})
+            let resp = await request(url, {method: 'GET', headers: headers})
             if (!resp.ok) throw new Error('获取播放地址失败，请重试')
+            let name = await resp.doc
+                .querySelector('meta[name="keywords"]', 'content')
             let cookies = resp.headers['set-cookie']
-            cookies = cookies.replaceAll(';', '').split(' Path=/')
-            let t1 = cookies[0].split('=')[1]
-            let k2 = (t1 / 1000) >> 5;
-            k2 = (k2 * (k2 % 256 + 1) + 35236) * (k2 % 128 + 1) * (k2 % 16 + 1) + k2;
-            let m2t = parseInt(`${new Date().getTime() / 1000}`) >> 19;
-            m2t = (m2t * 21 + 154) * (m2t % 64 + 13) * (m2t % 32 + 34) * (m2t % 16 + 87) * (m2t % 8 + 65) + 751;
-            headers['Cookie'] = `${cookies.join(';')}t2=${new Date().getTime()};k2${k2};m2t=${m2t}`
+            cookies = cookies.replaceAll('; Path=/', '').split(';')
+            headers['Cookie'] = genCookie(cookies, url, name)
             let keys = url.split('/').pop().replaceAll('.html', '').split('-')
             resp = await request(getUri('/playurl', {
                 aid: keys[0], playindex: keys[1], epindex: keys[2], r: Math.random()

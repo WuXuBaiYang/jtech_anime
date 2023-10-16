@@ -1,10 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jtech_anime_base/base.dart';
 
 void main() {
-  test('test', () {
-    final a = 1.0;
-    print(min(max(a, 0), 1));
+  test('test', () async {
+
   });
 }

@@ -66,7 +66,8 @@ function genCookie(cookies, url, name) {
     }
     qike123 = qike123.replaceAll('\\', '%')
         .replaceAll('!', '%21')
-    return `m2t=${m2t};${cookies.join(';')}qike123=${qike123}^${url}_$_|;k2=${k2};t2=${t2}`
+    qike123 = `qike123=${qike123}^${url}_$_|`
+    return `m2t=${m2t};${cookies.join(';')};${qike123};k2=${k2};t2=${t2}`
 }
 
 /**
@@ -517,7 +518,7 @@ async function getPlayUrls(resourceUrls) {
             let name = await resp.doc
                 .querySelector('meta[name="keywords"]', 'content')
             let cookies = resp.headers['set-cookie']
-            cookies = cookies.replaceAll(';', '').split(' Path=/')
+            cookies = cookies.replaceAll('; Path=/', '').split(';')
             headers['Cookie'] = genCookie(cookies, url, name)
             let keys = url.split('/').pop().replaceAll('.html', '').split('-')
             resp = await request(getUri('/playurl', {
