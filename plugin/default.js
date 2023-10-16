@@ -27,49 +27,6 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function unicode(str) {
-    let value = '';
-    for (let i = 0; i < str.length; i++) {
-        let code = parseInt(str.charCodeAt(i))
-        value += '\\u' + left_zero_4(code.toString(16)).toUpperCase();
-    }
-    return value;
-}
-
-function left_zero_4(str) {
-    if (str != null && str !== '' && str !== 'undefined') {
-        if (str.length === 2) return '00' + str;
-    }
-    return str;
-}
-
-function isChineseCharacter(char) {
-    const regExp = /^[\u4e00-\u9fa5]$/;
-    return regExp.test(char);
-}
-
-function genCookie(cookies, url, name) {
-    let t1 = cookies[0].split('=')[1]
-    let t2 = parseInt(t1) - Math.floor(Math.random() * 3000)
-    let k2 = (t1 / 1000) >> 5;
-    k2 = (k2 * (k2 % 256 + 1) + 35236) * (k2 % 128 + 1) * (k2 % 16 + 1) + k2;
-    let m2t = parseInt(`${new Date().getTime() / 1000}`) >> 19;
-    m2t = (m2t * 21 + 154) * (m2t % 64 + 13) * (m2t % 32 + 34) * (m2t % 16 + 87) * (m2t % 8 + 65) + 751;
-    let qike123 = ''
-    for (let i = 0; i < name.length; i++) {
-        const char = name.charAt(i);
-        if (isChineseCharacter(char)) {
-            qike123 += unicode(char);
-        } else {
-            qike123 += char;
-        }
-    }
-    qike123 = qike123.replaceAll('\\', '%')
-        .replaceAll('!', '%21')
-    qike123 = `qike123=${qike123}^${url}_$_|`
-    return `m2t=${m2t};${cookies.join(';')};${qike123};k2=${k2};t2=${t2}`
-}
-
 /**
  * 获取番剧时间表
  * @returns {Map} {
@@ -490,6 +447,55 @@ async function getAnimeDetail(animeUrl) {
     }
 }
 
+function unicode(str) {
+    let value = '';
+    for (let i = 0; i < str.length; i++) {
+        let code = parseInt(str.charCodeAt(i))
+        value += '\\u' + left_zero_4(code.toString(16)).toUpperCase();
+    }
+    return value;
+}
+
+function left_zero_4(str) {
+    if (str != null && str !== '' && str !== 'undefined') {
+        if (str.length === 2) return '00' + str;
+    }
+    return str;
+}
+
+function isChineseCharacter(char) {
+    const regExp = /^[\u4e00-\u9fa5]$/;
+    return regExp.test(char);
+}
+
+function genQike123(url, name) {
+    let qike123 = ''
+    for (let i = 0; i < name.length; i++) {
+        const char = name.charAt(i);
+        if (isChineseCharacter(char)) {
+            qike123 += unicode(char);
+        } else {
+            qike123 += char;
+        }
+    }
+    qike123 = qike123.replaceAll('\\', '%')
+        .replaceAll('!', '%21')
+        .replaceAll(' ', '%20')
+    return `qike123=${qike123}^${url}_$_|`
+}
+
+function genCookie(cookies, url, name) {
+    let t1 = cookies[0].split('=')[1]
+    let t2 = parseInt(t1) - Math.floor(Math.random() * 3000)
+    let k2 = (t1 / 1000) >> 5;
+    k2 = (k2 * (k2 % 256 + 1) + 35236) * (k2 % 128 + 1) * (k2 % 16 + 1) + k2;
+    let m2t = parseInt(`${new Date().getTime() / 1000}`) >> 19;
+    m2t = (m2t * 21 + 154) * (m2t % 64 + 13) * (m2t % 32 + 34) * (m2t % 16 + 87) * (m2t % 8 + 65) + 751;
+    let k1t1 = cookies.join(';')
+    let qike123 = genQike123(url, name)
+    return `m2t=${m2t};${k1t1};${qike123};k2=${k2};t2=${t2}`
+}
+
 /**
  * **必填方法**
  * 根据资源地址转换为可播放/下载地址
@@ -515,8 +521,9 @@ async function getPlayUrls(resourceUrls) {
             const url = resourceUrls[i]
             let resp = await request(url, {method: 'GET', headers: headers})
             if (!resp.ok) throw new Error('获取播放地址失败，请重试')
-            let name = await resp.doc
-                .querySelector('meta[name="keywords"]', 'content')
+            let name = (await resp.doc
+                .querySelector('meta[name="description"]', 'content'))
+                .replaceAll(' - 免费在线观看&下载 - 樱花动漫', '')
             let cookies = resp.headers['set-cookie']
             cookies = cookies.replaceAll('; Path=/', '').split(';')
             headers['Cookie'] = genCookie(cookies, url, name)

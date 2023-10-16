@@ -261,7 +261,7 @@ class _PlayerLogic extends BaseLogic {
           if (result != null) playUrl = result.path;
         }
         // 播放已下载视频或者在线视频并跳转到指定位置
-        // await controller.play(playUrl);
+        await controller.play(playUrl);
         if (playTheRecord && record != null) {
           final duration = Duration(
             milliseconds: record.progress,
