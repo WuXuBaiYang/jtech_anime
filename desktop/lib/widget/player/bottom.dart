@@ -56,7 +56,16 @@ class _CustomPlayerControlsBottomState
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        color: Colors.black38,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Color.fromRGBO(0, 0, 0, 0.75),
+              Color.fromRGBO(0, 0, 0, 0),
+            ],
+          ),
+        ),
         child: GestureDetector(
           onTap: () {},
           behavior: HitTestBehavior.opaque,
