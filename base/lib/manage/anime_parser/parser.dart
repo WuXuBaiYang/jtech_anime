@@ -37,7 +37,7 @@ class AnimeParserManage extends BaseManage {
   final String _cacheAnimeDetailKey = 'cache_anime_detail_';
 
   // 默认资源配置文件路径
-  static const String defaultSourceConfigPath =
+  static const String _defaultSourceConfigPath =
       'packages/jtech_anime_base/assets/source/default.json';
 
   static final AnimeParserManage _instance = AnimeParserManage._internal();
@@ -293,7 +293,7 @@ class AnimeParserManage extends BaseManage {
 
   // 加载默认数据源
   Future<AnimeSource?> _getDefaultSource({bool force = false}) async {
-    final sourceConfig = await rootBundle.loadString(defaultSourceConfigPath);
+    final sourceConfig = await rootBundle.loadString(_defaultSourceConfigPath);
     if (sourceConfig.isEmpty) return null;
     AnimeSource? source = AnimeSource.from(
       jsonDecode(sourceConfig),
