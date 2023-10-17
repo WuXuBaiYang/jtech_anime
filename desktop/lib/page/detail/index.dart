@@ -131,7 +131,7 @@ class _AnimeDetailPageState
         return ElevatedButton(
           style: ButtonStyle(
             backgroundColor:
-                MaterialStatePropertyAll(kPrimaryColor.withOpacity(0.8)),
+                MaterialStatePropertyAll(kPrimaryColor),
           ),
           onPressed: () => logic.playTheRecord(),
           child: const Text('继续观看', style: TextStyle(color: Colors.white)),

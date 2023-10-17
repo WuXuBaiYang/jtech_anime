@@ -66,7 +66,16 @@ class AnimeDetailInfo extends StatelessWidget {
           children: [
             Expanded(child: _buildInfoText()),
             const SizedBox(width: 24),
-            _buildInfoCover(),
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                _buildInfoCover(),
+                Transform.translate(
+                  offset: const Offset(0, 14),
+                  child: continueButton ?? const SizedBox(),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -78,7 +87,7 @@ class AnimeDetailInfo extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: ImageView.net(animeInfo.cover,
-          width: 200, height: 260, fit: BoxFit.cover),
+          width: 200, height: 250, fit: BoxFit.cover),
     );
   }
 
@@ -93,36 +102,22 @@ class AnimeDetailInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Text(
-            animeInfo.name,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-            ),
+        Text(
+          animeInfo.name,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 24,
           ),
         ),
+        const SizedBox(height: 14),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: lines
-                        .where((e) => e.isNotEmpty)
-                        .map<Widget>((e) => Text(e))
-                        .expand((e) => [const SizedBox(height: 4), e])
-                        .toList(),
-                  ),
-                ),
-                if (continueButton != null) continueButton!,
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: lines
+                .where((e) => e.isNotEmpty)
+                .map<Widget>((e) => Text(e))
+                .expand((e) => [const SizedBox(height: 4), e])
+                .toList(),
           ),
         ),
         Text('简介：${animeInfo.intro}', maxLines: 5),
