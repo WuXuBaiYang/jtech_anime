@@ -92,6 +92,32 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           icon: Icon(FontAwesomeIcons.solidHeart),
         ),
       ],
+      trailing: Expanded(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: CacheFutureBuilder<String>(
+              future: () => Tool.version,
+              builder: (_, snap) {
+                return TextButton(
+                  style: ButtonStyle(
+                    textStyle: MaterialStateProperty.all(
+                      const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  child: Text('v${snap.data ?? ''}'),
+                  onPressed: () async {
+                    SnackTool.showMessage(message: '正在检查最新版本');
+                    final result = await AppVersionTool().check(context);
+                    if (!result) SnackTool.showMessage(message: '已是最新版本');
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 
