@@ -18,6 +18,10 @@ abstract class AppVersionToolBase {
   // 更新提示忽略缓存key
   static const String _ignoreUpdateKey = 'ignore_update_key';
 
+  // 默认更新配置文件路径
+  static const String _defaultUpdateConfigPath =
+      'packages/jtech_anime_base/assets/update_config.json';
+
   // 检查更新
   Future<bool> check(BuildContext context, {bool immediately = false}) async {
     // 判断是否需要进行版本更新
@@ -43,8 +47,7 @@ abstract class AppVersionToolBase {
   // 默认调用我账号下的更新服务器，这部分信息闭源，如有需要请自行重写以下内容
   Future<AppVersion?> _getLatestVersion(String platform) async {
     try {
-      final configJson =
-          await rootBundle.loadString('assets/update_config.json');
+      final configJson = await rootBundle.loadString(_defaultUpdateConfigPath);
       if (configJson.isNotEmpty) {
         final config = jsonDecode(configJson);
         final resp = await Dio().get(
