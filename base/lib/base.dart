@@ -39,6 +39,7 @@ export 'model/download.dart';
 export 'model/download_group.dart';
 export 'model/filter.dart';
 export 'model/time_table.dart';
+export 'model/version.dart';
 
 /// 工具
 export 'tool/date.dart';
@@ -51,6 +52,7 @@ export 'tool/throttle.dart';
 export 'tool/tool.dart';
 export 'tool/js_runtime.dart';
 export 'tool/qrcode.dart';
+export 'tool/version.dart';
 
 ///自定义组件
 export 'widget/player/controller.dart';

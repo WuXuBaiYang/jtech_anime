@@ -39,7 +39,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
-      AppVersionTool.check(context);
+      AppVersionTool().check(context);
     });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {

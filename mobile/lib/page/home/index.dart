@@ -5,8 +5,8 @@ import 'package:mobile/common/route.dart';
 import 'package:mobile/page/home/list.dart';
 import 'package:mobile/page/home/source.dart';
 import 'package:mobile/page/home/timetable.dart';
-import 'package:mobile/tool/version.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/tool/version.dart';
 
 /*
 * 首页
@@ -39,7 +39,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     // 初始化加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查版本更新
-      AppVersionTool.check(context);
+      AppVersionTool().check(context);
     });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {
