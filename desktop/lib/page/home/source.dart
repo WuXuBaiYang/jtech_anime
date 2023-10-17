@@ -48,7 +48,7 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
     return WillPopScope(
       child: AlertDialog(
         scrollable: true,
-        clipBehavior: Clip.hardEdge,
+        clipBehavior: Clip.antiAlias,
         content: _buildAnimeSourceList(),
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
       ),

@@ -83,7 +83,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   Widget _buildGroupItem(DownloadGroup item, bool expanded) {
     final downloadTask = widget.downloadTask;
     return Card(
-      clipBehavior: Clip.hardEdge,
+      clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
         child: Column(

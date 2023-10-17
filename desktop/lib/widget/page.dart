@@ -53,13 +53,14 @@ class WindowPage extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(child: _buildWindowPage(context)),
-        StreamBuilder<double>(
-          stream: AppVersionTool.downloadProgressStream,
-          builder: (_, snap) {
-            final value = snap.data ?? 0;
-            return LinearProgressIndicator(value: value);
-          },
-        ),
+        if (!isFullScreen)
+          StreamBuilder<double>(
+            stream: AppVersionTool.downloadProgressStream,
+            builder: (_, snap) {
+              final value = snap.data ?? 0;
+              return LinearProgressIndicator(value: value);
+            },
+          ),
       ],
     );
   }

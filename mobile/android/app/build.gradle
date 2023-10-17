@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 // 加载签名文件
 def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file("../publish/keystore/keystore.properties")
+def keystorePropertiesFile = rootProject.file("../keystore/keystore.properties")
 if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.withReader('UTF-8') { reader ->
         keystoreProperties.load(reader)
@@ -79,19 +79,6 @@ android {
         }
         debug {
             signingConfig signingConfigs.config
-        }
-    }
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            if (variant.buildType.name.equals('release')) {
-                output.getPackageApplication().outputDirectory = new File("../../publish/apk")
-                output.outputFileName = "jtech_anime.apk"
-            }
-        }
-    }
-    tasks.whenTaskAdded { task ->
-        if (task.name.contains("ReleaseApkListingFileRedirect")) { // 过滤release
-            task.enabled = false
         }
     }
 }

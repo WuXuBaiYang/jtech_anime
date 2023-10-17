@@ -33,3 +33,4 @@ build/
 .flutter-plugins-dependencies
 
 *.g.dart
+/assets/update_config.json

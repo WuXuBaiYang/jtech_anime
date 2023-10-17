@@ -91,7 +91,10 @@ class _HomeAnimePageState extends LogicState<HomeAnimePage, _HomeAnimeLogic> {
             children: List.generate(tempFilters.length, (i) {
               final item = tempFilters[i];
               final text = '${item.parentName} · ${item.name}';
-              return RawChip(label: Text(text));
+              return RawChip(
+                label: Text(text),
+                clipBehavior: Clip.antiAlias,
+              );
             })
                 .expand((child) => [const SizedBox(width: 8), child])
                 .skip(1)

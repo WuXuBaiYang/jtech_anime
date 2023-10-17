@@ -174,7 +174,6 @@ class AnimeParserManage extends BaseManage {
     CancelToken? cancelToken,
     bool useCache = true,
   }) async {
-    /// 需要测试视频加载资源异常的问题
     final content = await _readParserFileContent();
     if (content == null) return [];
     final tempList = <VideoCache>[];
@@ -239,6 +238,9 @@ class AnimeParserManage extends BaseManage {
     return source.functions.contains(function.name);
   }
 
+  // 更新默认配置
+  Future<void> updateDefaultSource() => _getDefaultSource(force: true);
+
   // 将配置文件信息导入数据库
   Future<AnimeSource?> importAnimeSource(AnimeSource source) async {
     try {
@@ -290,15 +292,17 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 加载默认数据源
-  Future<AnimeSource?> _getDefaultSource() async {
+  Future<AnimeSource?> _getDefaultSource({bool force = false}) async {
     final sourceConfig = await rootBundle.loadString(defaultSourceConfigPath);
     if (sourceConfig.isEmpty) return null;
     AnimeSource? source = AnimeSource.from(
       jsonDecode(sourceConfig),
       AnimeParserFunction.values,
     );
-    final dbSource = await db.getAnimeSource(source.key);
-    if (dbSource != null) return dbSource;
+    if (!force) {
+      final dbSource = await db.getAnimeSource(source.key);
+      if (dbSource != null) return dbSource;
+    }
     return importAnimeSource(source);
   }
 
@@ -363,7 +367,7 @@ class AnimeParserManage extends BaseManage {
       // 如果是br压缩则
       String data = resp.data.isNotEmpty
           ? (contentEncoding == 'br'
-              ? brotli.decodeToString(resp.data)
+              ? brotli.decodeToString(resp.data, encoding: utf8)
               : utf8.decode(resp.data))
           : '';
       dynamic json;

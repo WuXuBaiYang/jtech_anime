@@ -29,8 +29,8 @@ doc/api/
 
 *.g.dart
 
-assets/source/update_config.json
-publish
-publish/keystore
-assets/source/update_config.json
+assets/update_config.json
+keystore
+outputs
 /local.properties
+/assets/update_config.json

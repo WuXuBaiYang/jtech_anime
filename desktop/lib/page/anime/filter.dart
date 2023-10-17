@@ -155,6 +155,7 @@ class _HomeAnimeFilterSheetState extends State<HomeAnimeFilterSheet> {
         return ChoiceChip(
           label: Text(sub.name),
           selected: selectItem != null,
+          clipBehavior: Clip.antiAlias,
           onSelected: (v) => _filterItemSelected(item, sub, selectItem),
         );
       }),

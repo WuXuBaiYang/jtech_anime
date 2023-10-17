@@ -39,6 +39,7 @@ export 'model/download.dart';
 export 'model/download_group.dart';
 export 'model/filter.dart';
 export 'model/time_table.dart';
+export 'model/version.dart';
 
 /// 工具
 export 'tool/date.dart';
@@ -51,6 +52,7 @@ export 'tool/throttle.dart';
 export 'tool/tool.dart';
 export 'tool/js_runtime.dart';
 export 'tool/qrcode.dart';
+export 'tool/version.dart';
 
 ///自定义组件
 export 'widget/player/controller.dart';
@@ -102,6 +104,13 @@ Future<void> ensureInitializedCore({
     // 暂停当前所有的下载任务
     download.stopAllTasks();
   });
+  // 记录版本号，如果版本号发生变化则更新默认配置文件
+  const versionKey = 'version_update_key';
+  final buildNumber = await Tool.buildNumber;
+  if (cache.getString(versionKey) != buildNumber) {
+    cache.setString(versionKey, buildNumber);
+    animeParser.updateDefaultSource();
+  }
 }
 
 // 数据库自动生成id

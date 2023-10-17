@@ -161,23 +161,27 @@ class M3U8Parser {
 
   // 找到连续文件中不连续的部分
   int _absoluteIndex(String s) {
-    const index = 10;
-    final length = s.length;
-    s = s.replaceAll('.ts', '');
-    if (length != 17 || int.tryParse(s.substring(index + 1, length)) == null) {
-      return -1;
-    }
-    var ret = 0;
-    for (int i = s.runes.length - index; i < s.runes.length; i++) {
-      var ascii = s.codeUnitAt(i);
-      if (ascii >= 97) {
-        ascii -= 87;
-      } else {
-        ascii -= 48;
+    try {
+      s = s.replaceAll('.ts', '');
+      final length = s.length;
+      const index = 10;
+      if (length != 17 ||
+          int.tryParse(s.substring(index + 1, length)) == null) {
+        return -1;
       }
-      ret = ret * index + ascii;
-    }
-    return ret;
+      var ret = 0;
+      for (int i = s.runes.length - index; i < s.runes.length; i++) {
+        var ascii = s.codeUnitAt(i);
+        if (ascii >= 97) {
+          ascii -= 87;
+        } else {
+          ascii -= 48;
+        }
+        ret = ret * index + ascii;
+      }
+      return ret;
+    } catch (e) {}
+    return -1;
   }
 }
 
