@@ -13,10 +13,14 @@ class AnimeDetailInfo extends StatelessWidget {
   // 继续播放按钮
   final Widget? continueButton;
 
+  // 名称后的操作按钮
+  final List<Widget> nameActions;
+
   const AnimeDetailInfo({
     super.key,
     required this.animeInfo,
     this.continueButton,
+    this.nameActions = const [],
   });
 
   @override
@@ -102,12 +106,18 @@ class AnimeDetailInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          animeInfo.name,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 24,
-          ),
+        Row(
+          children: [
+            Text(
+              animeInfo.name,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            ...nameActions,
+          ],
         ),
         const SizedBox(height: 14),
         Expanded(
