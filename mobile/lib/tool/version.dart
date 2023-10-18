@@ -35,23 +35,13 @@ class AppVersionTool extends AppVersionToolBase {
       if (baseDir == null) return;
       final saveDir = Directory(join(baseDir.path, 'jtech_anime', 'updates'));
       if (!saveDir.existsSync()) saveDir.createSync(recursive: true);
-      // 下载进度通知
-      final progressNotifier = ValueChangeNotifier<int>(0);
-      progressNotifier.addListener(() async {
-        final value = progressNotifier.value;
-        notice.showProgress(
-          maxProgress: info.fileLength,
-          indeterminate: value <= 0,
-          progress: value,
-          id: noticeTag,
-        );
-      });
       // 启动下载
+      _showProgressNotice(-1, info.fileLength, noticeTag);
       final downloadFilePath = await downloadUpdateFile(
         info,
         saveDir: saveDir.path,
         onReceiveProgress: (count, total) {
-          progressNotifier.setValue(count);
+          _showProgressNotice(count, total, noticeTag);
         },
       );
       if (downloadFilePath == null) return;
@@ -63,6 +53,16 @@ class AppVersionTool extends AppVersionToolBase {
     } finally {
       notice.cancel(noticeTag);
     }
+  }
+
+  // 展示进度通知
+  Future<void> _showProgressNotice(int count, int total, [int noticeTag = -1]) {
+    return notice.showProgress(
+      indeterminate: count <= 0,
+      maxProgress: total,
+      progress: count,
+      id: noticeTag,
+    );
   }
 
   // 更新ios平台
