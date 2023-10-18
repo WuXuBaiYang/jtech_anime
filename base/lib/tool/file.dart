@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'log.dart';
@@ -76,6 +77,14 @@ class FileTool {
     final dir = Directory(join(rootPath, path));
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return dir.path;
+  }
+
+  // 获取文件的sha256
+  static Future<String> getFileSha256(String filePath) async {
+    final file = File(filePath);
+    if (!file.existsSync()) throw Exception('文件不存在');
+    final sha256Hash = sha256.convert(await file.readAsBytes());
+    return sha256Hash.toString();
   }
 }
 

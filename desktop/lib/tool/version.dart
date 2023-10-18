@@ -21,22 +21,20 @@ class AppVersionTool extends AppVersionToolBase {
   @override
   Future<void> upgradePlatform(BuildContext context, AppVersion info) async {
     try {
-      final savePath = await FileTool.getDirPath(
+      final saveDir = await FileTool.getDirPath(
           join(globalConfig.baseCachePath, 'updates'),
           root: FileDir.applicationDocuments);
-      if (savePath == null) return;
-      final installFile = File(join(savePath, basename(info.installUrl)));
-      final resp = await Dio().download(
-        info.installUrl,
-        installFile.path,
-        onReceiveProgress: (count, _) =>
-            _downloadProgressController.add(count / info.fileLength),
-      );
+      if (saveDir == null) return;
       _downloadProgressController.add(0);
-      if (resp.statusCode == 200 && installFile.existsSync()) {
-        // 使用命令启动已下载文件
-        if (Platform.isWindows) Process.run(installFile.path, []);
-      }
+      final downloadFilePath = await downloadUpdateFile(
+        info,
+        saveDir: saveDir,
+        onReceiveProgress: (count, total) =>
+            _downloadProgressController.add(count / total),
+      );
+      if (downloadFilePath == null) return;
+      // 使用命令启动已下载文件
+      if (Platform.isWindows) Process.run(downloadFilePath, []);
     } catch (e) {
       LogTool.e('版本更新检查失败', error: e);
     }
