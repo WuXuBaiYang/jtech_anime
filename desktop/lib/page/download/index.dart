@@ -77,11 +77,13 @@ class _HomeDownloadPageState
       builder: (_, downloadingTab, __) {
         return Scaffold(
           body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomTabBar(
+                isScrollable: true,
                 controller: tabController,
                 tabs: ['下载队列', '已下载'].map((e) {
-                  return Tab(text: e);
+                  return Tab(text: e, height: 35);
                 }).toList(),
               ),
               Expanded(
