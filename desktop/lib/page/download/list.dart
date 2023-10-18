@@ -275,11 +275,11 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     return GridView.builder(
       shrinkWrap: true,
       itemCount: records.length,
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(8),
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 120,
         mainAxisExtent: 40,
-        crossAxisCount: 4,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
       ),
@@ -297,7 +297,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withOpacity(0.8)),
+              border: Border.all(color: Colors.black.withOpacity(0.1)),
             ),
             child: Text(
               item.name,

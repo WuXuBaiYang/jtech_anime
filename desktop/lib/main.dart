@@ -11,7 +11,7 @@ void main() async {
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
     config: JTechAnimeConfig(
-      noPictureMode: false,
+      noPictureMode: true,
       noPlayerContent: true,
       defaultLoadingSize: 100,
       loadingDismissible: true,
