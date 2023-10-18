@@ -79,10 +79,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
               width: 24, height: 24),
         ),
-        const NavigationRailDestination(
-          label: Text('时间表'),
-          icon: Icon(FontAwesomeIcons.solidClock),
-        ),
+        if (animeParser.isSupport(AnimeParserFunction.timeTable))
+          const NavigationRailDestination(
+            label: Text('时间表'),
+            icon: Icon(FontAwesomeIcons.solidClock),
+          ),
         _buildDownloadNavigation(),
         const NavigationRailDestination(
           label: Text('浏览'),
