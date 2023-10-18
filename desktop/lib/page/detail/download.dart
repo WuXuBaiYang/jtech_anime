@@ -111,6 +111,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
           return CustomTabBar(
             isScrollable: true,
             controller: widget.tabController,
+            overlayColor: Colors.transparent,
             tabs: List.generate(animeInfo.resources.length, (i) {
               return Tab(text: '资源${i + 1}', height: 35);
             }),

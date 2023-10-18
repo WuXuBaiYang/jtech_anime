@@ -82,6 +82,7 @@ class _HomeDownloadPageState
               CustomTabBar(
                 isScrollable: true,
                 controller: tabController,
+                overlayColor: Colors.transparent,
                 tabs: ['下载队列', '已下载'].map((e) {
                   return Tab(text: e, height: 35);
                 }).toList(),

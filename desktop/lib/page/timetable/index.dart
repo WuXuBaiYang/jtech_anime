@@ -65,6 +65,7 @@ class _HomeTimeTablePageState
           CustomTabBar(
             isScrollable: true,
             controller: tabController,
+            overlayColor: Colors.transparent,
             tabs: logic.weekdayKeys
                 .map((e) => Tab(text: '${e.value}', height: 35))
                 .toList(),

@@ -153,6 +153,7 @@ class _AnimeDetailPageState
             child: CustomTabBar(
               isScrollable: true,
               controller: tabController,
+              overlayColor: Colors.transparent,
               onTap: logic.resourceIndex.setValue,
               tabs: List.generate(resources.length, (i) {
                 return Tab(text: '资源${i + 1}', height: 35);
