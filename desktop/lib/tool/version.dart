@@ -35,6 +35,7 @@ class AppVersionTool extends AppVersionToolBase {
       if (downloadFilePath == null) return;
       // 使用命令启动已下载文件
       if (Platform.isWindows) Process.run(downloadFilePath, []);
+      SnackTool.showMessage(message: '正在启动安装...');
     } catch (e) {
       LogTool.e('版本更新检查失败', error: e);
     }

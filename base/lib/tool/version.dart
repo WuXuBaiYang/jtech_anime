@@ -47,8 +47,7 @@ abstract class AppVersionToolBase {
   Future<void> upgradePlatform(BuildContext context, AppVersion info);
 
   // 下载更新文件并返回文件路径
-  Future<String?> downloadUpdateFile(
-    AppVersion info, {
+  Future<String?> downloadUpdateFile(AppVersion info, {
     required String saveDir,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
@@ -58,7 +57,7 @@ abstract class AppVersionToolBase {
       if (File(savePath).existsSync()) return savePath;
       final tempFilePath = await _download(
         info.installUrl,
-        '$savePath.temp',
+        '$savePath.tmp',
         cancelToken: cancelToken,
         onReceiveProgress: (count, _) =>
             onReceiveProgress?.call(count, info.fileLength),
@@ -77,12 +76,11 @@ abstract class AppVersionToolBase {
   }
 
   // 断点续传的方式下载附件
-  Future<String?> _download(
-    String url,
-    String savePath, {
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-  }) async {
+  Future<String?> _download(String url,
+      String savePath, {
+        CancelToken? cancelToken,
+        ProgressCallback? onReceiveProgress,
+      }) async {
     int downloadBegin = 0;
     final file = File(savePath);
     if (file.existsSync()) downloadBegin = file.lengthSync();

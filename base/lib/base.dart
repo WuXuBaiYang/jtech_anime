@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:jtech_anime_base/manage/config.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:path_provider/path_provider.dart';
 import 'base.dart';
 
 /// 通用方法
@@ -78,6 +79,7 @@ export 'package:url_launcher/url_launcher.dart';
 export 'package:collection/collection.dart';
 export 'package:dio/dio.dart';
 export 'package:path/path.dart' show join, basename;
+export 'package:path_provider/path_provider.dart';
 
 // 初始化核心方法
 Future<void> ensureInitializedCore({
