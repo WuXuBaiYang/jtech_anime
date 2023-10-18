@@ -32,6 +32,9 @@ class CustomTheme {
             fontSize: 14,
           ),
         ),
+        cardTheme: const CardTheme(
+          clipBehavior: Clip.antiAlias,
+        ),
         chipTheme: ChipThemeData(
           pressElevation: 0,
           labelPadding: EdgeInsets.zero,

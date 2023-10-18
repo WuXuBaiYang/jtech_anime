@@ -69,7 +69,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       selectedIndex: index,
       leading: _buildAnimeSource(context),
       labelType: NavigationRailLabelType.all,
-      backgroundColor: Colors.black.withOpacity(0.02),
+      backgroundColor: Colors.black.withOpacity(0.01),
       onDestinationSelected: logic.selectIndex.setValue,
       destinations: [
         NavigationRailDestination(
