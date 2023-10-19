@@ -50,7 +50,16 @@ class _CustomPlayerControlsTopState extends State<CustomPlayerControlsTop> {
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
-        color: Colors.black38,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromRGBO(0, 0, 0, 0.65),
+              Color.fromRGBO(0, 0, 0, 0),
+            ],
+          ),
+        ),
         child: GestureDetector(
           onTap: () {},
           behavior: HitTestBehavior.opaque,

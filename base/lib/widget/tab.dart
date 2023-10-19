@@ -18,12 +18,16 @@ class CustomTabBar extends StatelessWidget {
 
   // 控制器
   final TabController? controller;
+  
+  // 覆盖颜色
+  final Color? overlayColor;
 
   const CustomTabBar({
     super.key,
     required this.tabs,
     this.onTap,
     this.controller,
+    this.overlayColor,
     this.isScrollable = false,
   });
 
@@ -48,6 +52,7 @@ class CustomTabBar extends StatelessWidget {
         splashBorderRadius: borderRadius,
         unselectedLabelColor: kPrimaryColor,
         indicatorSize: TabBarIndicatorSize.tab,
+        overlayColor: MaterialStatePropertyAll(overlayColor),
         indicator:
             BoxDecoration(borderRadius: borderRadius, color: kPrimaryColor),
       ),

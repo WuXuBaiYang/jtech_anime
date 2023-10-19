@@ -60,7 +60,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
             appBar: AppBar(
               actions: _appBarActions,
               bottom: _buildAppBarBottom(),
-              title: const Text(Common.appName),
+              title: GestureDetector(
+                onTap: Throttle.click(() async {
+                  SnackTool.showMessage(message: '正在检查最新版本');
+                  final result = await AppVersionTool().check(context);
+                  if (!result) SnackTool.showMessage(message: '已是最新版本');
+                }, 'check_update'),
+                child: const Text(Common.appName),
+              ),
               notificationPredicate: (notification) {
                 return notification.depth == 1;
               },

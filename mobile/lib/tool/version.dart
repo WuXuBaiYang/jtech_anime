@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:install_plugin/install_plugin.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/manage/notification.dart';
-import 'package:ota_update/ota_update.dart';
 import 'permission.dart';
 
 class AppVersionTool extends AppVersionToolBase {
@@ -16,6 +16,7 @@ class AppVersionTool extends AppVersionToolBase {
   Future<void> _upgradeAndroidPlatform(
       BuildContext context, AppVersion info) async {
     PermissionTool.checkAllGranted(context, permissions: [
+      const PermissionRequest.notification(),
       const PermissionRequest.androidManageExternalStorage(),
       const PermissionRequest.androidRequestInstallPackages(),
     ]).then((result) {
@@ -25,49 +26,49 @@ class AppVersionTool extends AppVersionToolBase {
     });
   }
 
+  // 下载并安装apk
+  Future<void> _installAndroidApk(BuildContext context, AppVersion info) async {
+    const noticeTag = 9527;
+    try {
+      // 创建缓存路径
+      final baseDir = await getDownloadsDirectory();
+      if (baseDir == null) return;
+      final saveDir = Directory(join(baseDir.path, 'jtech_anime', 'updates'));
+      if (!saveDir.existsSync()) saveDir.createSync(recursive: true);
+      // 启动下载
+      _showProgressNotice(-1, info.fileLength, noticeTag);
+      final downloadFilePath = await downloadUpdateFile(
+        info,
+        saveDir: saveDir.path,
+        onReceiveProgress: (count, total) {
+          _showProgressNotice(count, total, noticeTag);
+        },
+      );
+      if (downloadFilePath == null) return;
+      // 下载成功后启动安装apk
+      InstallPlugin.installApk(downloadFilePath);
+      SnackTool.showMessage(message: '正在启动安装...');
+    } catch (e) {
+      LogTool.e('版本更新检查失败', error: e);
+    } finally {
+      notice.cancel(noticeTag);
+    }
+  }
+
+  // 展示进度通知
+  Future<void> _showProgressNotice(int count, int total, [int noticeTag = -1]) {
+    count = ((count / total) * 100).toInt();
+    return notice.showProgress(
+      indeterminate: count <= 0,
+      maxProgress: 100,
+      progress: count,
+      id: noticeTag,
+    );
+  }
+
   // 更新ios平台
   Future<void> _upgradeIosPlatform(
       BuildContext context, AppVersion info) async {
     /// TODO 跳转苹果商店实现更新
-  }
-
-  // 下载并安装apk
-  static Future<void> _installAndroidApk(
-      BuildContext context, AppVersion info) async {
-    final progress = ValueChangeNotifier<int?>(null);
-    const noticeTag = 9527;
-    progress.addListener(() async {
-      final v = progress.value;
-      if (v == null) return notice.cancel(noticeTag);
-      notice.showProgress(
-        indeterminate: v < 0,
-        maxProgress: 100,
-        progress: v,
-        id: noticeTag,
-      );
-    });
-    progress.setValue(-1);
-    try {
-      OtaUpdate()
-          .execute(info.installUrl,
-              destinationFilename: '${info.name}_${info.versionCode}.apk',
-              sha256checksum: info.sha256checksum)
-          .listen((e) {
-        switch (e.status) {
-          case OtaStatus.DOWNLOADING:
-            return progress.setValue(int.parse(e.value ?? '0'));
-          case OtaStatus.INSTALLING:
-          case OtaStatus.ALREADY_RUNNING_ERROR:
-          case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
-          case OtaStatus.INTERNAL_ERROR:
-          case OtaStatus.DOWNLOAD_ERROR:
-          case OtaStatus.CHECKSUM_ERROR:
-            return progress.setValue(null);
-        }
-      });
-    } catch (e) {
-      LogTool.e('版本更新检查失败', error: e);
-      progress.setValue(null);
-    }
   }
 }

@@ -25,7 +25,7 @@ class AppVersion extends BaseModel {
   final String changelog;
 
   // 文件校验
-  final String? sha256checksum;
+  final String sha256checksum;
 
   // 文件大小
   final int fileLength;
@@ -40,12 +40,18 @@ class AppVersion extends BaseModel {
         version = obj['version'] ?? '',
         versionCode = obj['version_code'] ?? 0,
         changelog = obj['changelog'] ?? '',
-        sha256checksum = obj['sha256checksum'],
+        sha256checksum = obj['sha256checksum'] ?? '',
         fileLength = obj['file_length'] ?? 0,
         installUrl = obj['install_url'] ?? '';
 
   // 获取文件大小
   String get fileSize => FileTool.formatSize(fileLength, lowerCase: true);
+
+  // 校验sha256是否一致
+  bool checkSha256(String sha256) {
+    if (sha256checksum.isEmpty) return true;
+    return sha256checksum == sha256;
+  }
 
   // 检查是否存在版本更新
   Future<bool> checkUpdate() async {

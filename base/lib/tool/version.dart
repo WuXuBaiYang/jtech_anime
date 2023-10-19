@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:jtech_anime_base/manage/cache.dart';
 import 'package:jtech_anime_base/manage/router.dart';
 import 'package:jtech_anime_base/model/version.dart';
+import 'package:jtech_anime_base/tool/file.dart';
 import 'package:jtech_anime_base/tool/log.dart';
 import 'package:jtech_anime_base/widget/message_dialog.dart';
 
@@ -42,6 +45,84 @@ abstract class AppVersionToolBase {
 
   // 平台需要实现该方法
   Future<void> upgradePlatform(BuildContext context, AppVersion info);
+
+  // 下载更新文件并返回文件路径
+  Future<String?> downloadUpdateFile(AppVersion info, {
+    required String saveDir,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      final savePath = join(saveDir, basename(info.installUrl));
+      if (File(savePath).existsSync()) return savePath;
+      final tempFilePath = await _download(
+        info.installUrl,
+        '$savePath.tmp',
+        cancelToken: cancelToken,
+        onReceiveProgress: (count, _) =>
+            onReceiveProgress?.call(count, info.fileLength),
+      );
+      if (tempFilePath?.isEmpty ?? true) return null;
+      // 验证文件sha256是否正确
+      final sha256 = await FileTool.getFileSha256(tempFilePath!);
+      if (!info.checkSha256(sha256)) return null;
+      // 将临时文件改名
+      await File(tempFilePath).rename(savePath);
+      return savePath;
+    } catch (e) {
+      LogTool.e('下载更新文件失败', error: e);
+    }
+    return null;
+  }
+
+  // 断点续传的方式下载附件
+  Future<String?> _download(String url,
+      String savePath, {
+        CancelToken? cancelToken,
+        ProgressCallback? onReceiveProgress,
+      }) async {
+    int downloadBegin = 0;
+    final file = File(savePath);
+    if (file.existsSync()) downloadBegin = file.lengthSync();
+    final resp = await Dio().get<ResponseBody>(url,
+        options: Options(
+          followRedirects: false,
+          responseType: ResponseType.stream,
+          headers: {"range": "bytes=$downloadBegin-"},
+        ));
+    final raf = file.openSync(mode: FileMode.append);
+    int received = downloadBegin;
+    final completer = Completer<String?>();
+    final contentLength = _getContentLength(resp);
+    final subscription = resp.data?.stream.listen((data) {
+      raf.writeFromSync(data);
+      received += data.length;
+      onReceiveProgress?.call(received, contentLength);
+    }, onDone: () async {
+      await raf.close();
+      completer.complete(savePath);
+    }, onError: (e) async {
+      await raf.close();
+      completer.completeError(e);
+    }, cancelOnError: true);
+    if (subscription == null) return null;
+    cancelToken?.whenCancel.then((_) async {
+      await subscription.cancel();
+      await raf.close();
+    });
+    return completer.future;
+  }
+
+  // 获取下载的文件大小
+  int _getContentLength(Response<ResponseBody> resp) {
+    try {
+      final contentLength = resp.headers.value(HttpHeaders.contentLengthHeader);
+      if (contentLength != null) return int.tryParse(contentLength) ?? -1;
+    } catch (e) {
+      LogTool.e('获取下载文件大小失败', error: e);
+    }
+    return 0;
+  }
 
   // 检查当前平台最新版本
   // 默认调用我账号下的更新服务器，这部分信息闭源，如有需要请自行重写以下内容

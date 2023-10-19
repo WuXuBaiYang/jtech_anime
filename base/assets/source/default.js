@@ -481,7 +481,7 @@ function genQike123(url, name) {
     qike123 = qike123.replaceAll('\\', '%')
         .replaceAll('!', '%21')
         .replaceAll(' ', '%20')
-    return `qike123=${qike123}^${url}_$_|`
+    return encodeURIComponent(`qike123=${qike123}^${url}_$_|`)
 }
 
 function genCookie(cookies, url, name) {

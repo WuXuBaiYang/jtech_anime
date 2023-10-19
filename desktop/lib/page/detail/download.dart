@@ -111,6 +111,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
           return CustomTabBar(
             isScrollable: true,
             controller: widget.tabController,
+            overlayColor: Colors.transparent,
             tabs: List.generate(animeInfo.resources.length, (i) {
               return Tab(text: '资源${i + 1}', height: 35);
             }),
@@ -165,13 +166,20 @@ class _DownloadSheetState extends State<DownloadSheet> {
           final item = items[i];
           final selected = selectList.contains(item);
           final downloaded = downloadMap.containsKey(item.url);
-          final avatar =
-              downloaded ? const Icon(FontAwesomeIcons.circleCheck) : null;
+          final avatar = downloaded
+              ? const Icon(
+                  FontAwesomeIcons.circleCheck,
+                  size: 14,
+                )
+              : null;
           return ChoiceChip(
             avatar: avatar,
             selected: selected,
             label: Text(item.name),
             clipBehavior: Clip.antiAlias,
+            labelPadding: (selected || avatar != null)
+                ? const EdgeInsets.only(left: 4)
+                : null,
             onSelected: !downloaded
                 ? (_) => selected
                     ? selectResources.removeValue(item)

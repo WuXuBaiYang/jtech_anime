@@ -43,7 +43,6 @@ class _AnimeDetailPageState
               TabController(length: resources.length, vsync: this);
         }
         return WindowPage(
-          actions: appbarActions,
           leading: const BackButton(),
           title: _buildAppbarTitle(animeDetail),
           child: NestedScrollView(
@@ -72,23 +71,6 @@ class _AnimeDetailPageState
     );
   }
 
-  // 标题栏动作按钮集合
-  List<Widget> get appbarActions => [
-        ValueListenableBuilder<Collect?>(
-          valueListenable: logic.collectInfo,
-          builder: (_, collect, __) {
-            if (collect == null) return const SizedBox();
-            return IconButton(
-              color: collect.collected ? kPrimaryColor.withOpacity(0.8) : null,
-              icon: Icon(collect.collected
-                  ? FontAwesomeIcons.heartCircleCheck
-                  : FontAwesomeIcons.heart),
-              onPressed: () => logic.updateCollect(collect),
-            );
-          },
-        ),
-      ];
-
   // 构建标题栏
   Widget _buildAppbar(AnimeModel item) {
     return ValueListenableBuilder<bool>(
@@ -106,6 +88,7 @@ class _AnimeDetailPageState
               ),
               child: AnimeDetailInfo(
                 animeInfo: item,
+                nameActions: [_buildCollectButton()],
                 continueButton: _buildContinueButton(),
               ),
             ),
@@ -122,6 +105,25 @@ class _AnimeDetailPageState
     );
   }
 
+  // 构建收藏按钮
+  Widget _buildCollectButton() {
+    return ValueListenableBuilder<Collect?>(
+      valueListenable: logic.collectInfo,
+      builder: (_, collect, __) {
+        if (collect == null) return const SizedBox();
+        return IconButton(
+          icon: Icon(
+            collect.collected
+                ? FontAwesomeIcons.solidHeart
+                : FontAwesomeIcons.heart,
+            color: collect.collected ? kPrimaryColor : null,
+          ),
+          onPressed: () => logic.updateCollect(collect),
+        );
+      },
+    );
+  }
+
   // 构建继续播放按钮
   Widget _buildContinueButton() {
     return ValueListenableBuilder<PlayRecord?>(
@@ -130,8 +132,7 @@ class _AnimeDetailPageState
         if (playRecord == null) return const SizedBox();
         return ElevatedButton(
           style: ButtonStyle(
-            backgroundColor:
-                MaterialStatePropertyAll(kPrimaryColor.withOpacity(0.8)),
+            backgroundColor: MaterialStatePropertyAll(kPrimaryColor),
           ),
           onPressed: () => logic.playTheRecord(),
           child: const Text('继续观看', style: TextStyle(color: Colors.white)),
@@ -152,6 +153,7 @@ class _AnimeDetailPageState
             child: CustomTabBar(
               isScrollable: true,
               controller: tabController,
+              overlayColor: Colors.transparent,
               onTap: logic.resourceIndex.setValue,
               tabs: List.generate(resources.length, (i) {
                 return Tab(text: '资源${i + 1}', height: 35);

@@ -15,8 +15,8 @@ void main() async {
       noPlayerContent: true,
       defaultLoadingSize: 100,
       loadingDismissible: true,
-      baseCachePath: 'jtech_anime',
       m3u8DownloadBatchSize: 30,
+      baseCachePath: 'jtech_anime',
     ),
     themeData: JTechAnimeThemeData(),
   );

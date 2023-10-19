@@ -69,6 +69,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
       selectedIndex: index,
       leading: _buildAnimeSource(context),
       labelType: NavigationRailLabelType.all,
+      backgroundColor: Colors.black.withOpacity(0.01),
       onDestinationSelected: logic.selectIndex.setValue,
       destinations: [
         NavigationRailDestination(
@@ -78,10 +79,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           selectedIcon: Image.asset(CustomIcon.homeNavigationNewestSelected,
               width: 24, height: 24),
         ),
-        const NavigationRailDestination(
-          label: Text('时间表'),
-          icon: Icon(FontAwesomeIcons.solidClock),
-        ),
+        if (animeParser.isSupport(AnimeParserFunction.timeTable))
+          const NavigationRailDestination(
+            label: Text('时间表'),
+            icon: Icon(FontAwesomeIcons.solidClock),
+          ),
         _buildDownloadNavigation(),
         const NavigationRailDestination(
           label: Text('浏览'),
@@ -92,6 +94,32 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           icon: Icon(FontAwesomeIcons.solidHeart),
         ),
       ],
+      trailing: Expanded(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: CacheFutureBuilder<String>(
+              future: () => Tool.version,
+              builder: (_, snap) {
+                return TextButton(
+                  style: ButtonStyle(
+                    textStyle: MaterialStateProperty.all(
+                      const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  child: Text('v${snap.data ?? ''}'),
+                  onPressed: () async {
+                    SnackTool.showMessage(message: '正在检查最新版本');
+                    final result = await AppVersionTool().check(context);
+                    if (!result) SnackTool.showMessage(message: '已是最新版本');
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 

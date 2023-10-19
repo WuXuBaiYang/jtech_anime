@@ -20,14 +20,59 @@ class HomeTimeTablePage extends StatefulWidget {
 * @Time 2023/9/11 14:30
 */
 class _HomeTimeTablePageState
-    extends LogicState<HomeTimeTablePage, _HomeTimeTableLogic> {
+    extends LogicState<HomeTimeTablePage, _HomeTimeTableLogic>
+    with SingleTickerProviderStateMixin {
+  // tab控制器
+  late TabController tabController =
+      TabController(length: logic.weekdayKeys.length, vsync: this);
+
   @override
   _HomeTimeTableLogic initLogic() => _HomeTimeTableLogic();
 
   @override
+  void initState() {
+    super.initState();
+    // 监听tab切换
+    tabController.addListener(() {
+      if (tabController.indexIsChanging) {
+        final weekday = tabController.index;
+        logic.scrollToWeekday(weekday);
+      }
+    });
+    // 监听列表滚动，当滚动到某个key的时候切换tab
+    logic.scrollController.addListener(() {
+      final index = logic.weekdayKeys.indexWhere((e) {
+        final context = e.currentContext;
+        if (context == null) return false;
+        final renderObject = context.findRenderObject();
+        if (renderObject == null) return false;
+        final box = renderObject as RenderBox;
+        final rect = box.localToGlobal(Offset.zero) & box.size;
+        return rect.top <= 0 && rect.bottom >= 0;
+      });
+      if (index != -1 && tabController.index != index) {
+        tabController.animateTo(index);
+      }
+    });
+  }
+
+  @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      body: _buildTimeTable(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomTabBar(
+            isScrollable: true,
+            controller: tabController,
+            overlayColor: Colors.transparent,
+            tabs: logic.weekdayKeys
+                .map((e) => Tab(text: '${e.value}', height: 35))
+                .toList(),
+          ),
+          Expanded(child: _buildTimeTable()),
+        ],
+      ),
     );
   }
 
@@ -35,26 +80,30 @@ class _HomeTimeTablePageState
   Widget _buildTimeTable() {
     return StatusBoxCacheFuture<TimeTableModel?>(
       controller: logic.controller,
-      future: () => animeParser.getTimeTable().whenComplete(
-            logic.scrollToWeekday,
-          ),
+      future: () => animeParser.getTimeTable().whenComplete(() {
+        final weekday = DateTime.now().weekday - 1;
+        tabController.index = weekday;
+        logic.scrollToWeekday(weekday);
+      }),
       builder: (timeTable) {
         if (timeTable == null) return const SizedBox();
-        return CustomScrollView(
+        return SingleChildScrollView(
           controller: logic.scrollController,
-          slivers: timeTable.weekdayAnimeList
-              .asMap()
-              .map((i, v) {
-                final dateTime = logic.weekdayTime[i];
-                final weekdayKey = logic.weekdayKeys[dateTime.weekday - 1];
-                return MapEntry(i, [
-                  _buildHeader(dateTime, weekdayKey),
-                  _buildAnimeList(v),
-                ]);
-              })
-              .values
-              .expand((e) => e)
-              .toList(),
+          child: Column(
+            children: timeTable.weekdayAnimeList
+                .asMap()
+                .map((i, v) {
+                  final dateTime = logic.weekdayTime[i];
+                  final weekdayKey = logic.weekdayKeys[dateTime.weekday - 1];
+                  return MapEntry(i, [
+                    _buildHeader(dateTime, weekdayKey),
+                    _buildAnimeList(v),
+                  ]);
+                })
+                .values
+                .expand((e) => e)
+                .toList(),
+          ),
         );
       },
     );
@@ -63,24 +112,29 @@ class _HomeTimeTablePageState
   // 构建周天头部
   Widget _buildHeader(DateTime dateTime, GlobalObjectKey key) {
     final text = '${dateTime.format(DatePattern.date)} · ${key.value}';
-    return SliverList.list(key: key, children: [
-      const SizedBox(height: 14),
-      Row(
-        children: [
-          Expanded(child: Divider(color: kPrimaryColor)),
-          const SizedBox(width: 8),
-          Text(text, style: TextStyle(color: kPrimaryColor)),
-          const SizedBox(width: 8),
-          Expanded(child: Divider(color: kPrimaryColor)),
-        ],
-      ),
-      const SizedBox(height: 14),
-    ]);
+    return Builder(
+      key: key,
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Row(
+            children: [
+              Expanded(child: Divider(color: kPrimaryColor)),
+              const SizedBox(width: 8),
+              Text(text, style: TextStyle(color: kPrimaryColor)),
+              const SizedBox(width: 8),
+              Expanded(child: Divider(color: kPrimaryColor)),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   // 构建周天番剧列表
   Widget _buildAnimeList(List<TimeTableItemModel> animeList) {
-    return SliverList.builder(
+    return ListView.builder(
+      shrinkWrap: true,
       itemCount: animeList.length,
       itemBuilder: (_, i) {
         return _buildAnimeListItem(animeList[i]);
@@ -158,11 +212,12 @@ class _HomeTimeTableLogic extends BaseLogic {
   }
 
   // 滚动到当前周天
-  void scrollToWeekday() {
+  void scrollToWeekday([int? weekday]) {
     // 判断滚动控制器是否已经加载
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!scrollController.hasClients) return;
-      final context = weekdayKeys[DateTime.now().weekday - 1].currentContext;
+      weekday ??= DateTime.now().weekday - 1;
+      final context = weekdayKeys[weekday!].currentContext;
       if (context != null) await Scrollable.ensureVisible(context);
       scrollController.jumpTo(scrollController.position.pixels);
     });
