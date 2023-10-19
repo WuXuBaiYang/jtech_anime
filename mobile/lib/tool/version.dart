@@ -57,9 +57,10 @@ class AppVersionTool extends AppVersionToolBase {
 
   // 展示进度通知
   Future<void> _showProgressNotice(int count, int total, [int noticeTag = -1]) {
+    count = ((count / total) * 100).toInt();
     return notice.showProgress(
       indeterminate: count <= 0,
-      maxProgress: total,
+      maxProgress: 100,
       progress: count,
       id: noticeTag,
     );
