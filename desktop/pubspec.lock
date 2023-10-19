@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: background_downloader
-      sha256: "585b7e5cb183f2c02b64554a63703103e236f43f4ff0d730f34dbbaafd7ea076"
+      sha256: "7d03f79310d090fb9029811a94ed111640a527080db7540e8b67baf9ccafef11"
       url: "https://pub.dev"
     source: hosted
-    version: "7.10.1"
+    version: "7.11.0"
   blur:
     dependency: transitive
     description:
@@ -242,10 +242,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_lints
-      sha256: a25a15ebbdfc33ab1cd26c63a6ee519df92338a9c10f122adda92938253bef04
+      sha256: ad76540d21c066228ee3f9d1dad64a9f7e46530e8bb7c85011a88bc1fd874bc5
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "3.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -424,10 +424,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: "0a217c6c989d21039f1498c3ed9f3ed71b354e69873f13a8dfc3c9fe76f1b452"
+      sha256: cbf8d4b858bb0134ef3ef87841abdf8d63bfc255c266b7bf6b39daa1085c4290
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "3.0.0"
   logger:
     dependency: transitive
     description:
@@ -889,14 +889,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
-  text_scroll:
-    dependency: transitive
-    description:
-      name: text_scroll
-      sha256: "7869d86a6fdd725dee56bdd150216a99f0372b82fbfcac319214dbd5f36e1908"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   typed_data:
     dependency: transitive
     description:

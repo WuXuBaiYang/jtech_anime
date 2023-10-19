@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/text_scroll.dart';
 
 // 资源选择回调
 typedef ResourceSelect = void Function(ResourceItemModel item);

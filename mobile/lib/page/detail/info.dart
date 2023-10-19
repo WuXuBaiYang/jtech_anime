@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/text_scroll.dart';
 
 /*
 * 动漫详情信息
@@ -161,8 +162,7 @@ class AnimeDetailInfo extends StatelessWidget {
         ...lines
             .where((e) => e.isNotEmpty)
             .map<Widget>((e) => Text(e))
-            .expand((e) => [const SizedBox(height: 4), e])
-            .toList(),
+            .expand((e) => [const SizedBox(height: 4), e]),
       ],
     );
   }

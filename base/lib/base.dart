@@ -69,7 +69,6 @@ export 'widget/source_logo.dart';
 export 'widget/status_box.dart';
 export 'widget/stream_view.dart';
 export 'widget/tab.dart';
-export 'widget/text_scroll.dart';
 export 'widget/lottie.dart';
 export 'widget/blur.dart';
 

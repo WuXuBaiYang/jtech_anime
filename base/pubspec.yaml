@@ -54,9 +54,6 @@ dependencies:
   # 模糊(ALL)
   blur: ^3.1.0
 
-  # 跑马灯(ALL)
-  text_scroll: ^0.2.0
-
   # 刷新组件(ALL)
   easy_refresh: ^3.3.2+1
 
@@ -69,7 +66,7 @@ dependencies:
   flutter_hls_parser: ^2.0.1
 
   # 后台下载器(NO WEB)
-  background_downloader: ^7.10.1
+  background_downloader: ^7.11.0
 
   # js运行时(NO WEB)
   flutter_js: ^0.8.0
@@ -84,7 +81,7 @@ dependencies:
   image_picker: ^1.0.4
 
   # 集合操作(ALL)
-  collection: ^1.17.2
+  collection: any
 
   # url跳转(ALL)
   url_launcher: ^6.1.14
@@ -98,13 +95,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.3
+  flutter_lints: ^3.0.0
 
   # 数据库框架生成器
   isar_generator: ^3.1.0+1
 
   # 构建器
-  build_runner: any
+  build_runner: ^2.4.6
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
