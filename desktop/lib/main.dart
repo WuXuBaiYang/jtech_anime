@@ -1,5 +1,5 @@
 import 'package:desktop/common/route.dart';
-import 'package:desktop/common/theme.dart';
+import 'package:desktop/common/custom.dart';
 import 'package:desktop/page/home/index.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -12,18 +12,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// 下方设置系统主题，全局的配置/样式
-  _setupConfigTheme(
-    config: JTechConfig(
-      noPictureMode: true,
-      noPlayerContent: true,
-      loadingDismissible: true,
-      m3u8DownloadBatchSize: 30,
-      baseCachePath: 'jtech_anime',
-    ),
-    themeData: JTechThemeData(
-      loadingSize: 100,
-    ),
-    systemTheme: CustomTheme.dataMap,
+  CustomConfig.setup(
+    config: CustomConfig.config,
+    themeData: CustomConfig.themeData,
+    systemTheme: CustomConfig.systemThemeData,
   );
   // 初始化核心内容
   await ensureInitializedCore();
@@ -54,15 +46,4 @@ class MyApp extends StatelessWidget {
       home: const HomePage(),
     );
   }
-}
-
-// 管理所有配置样式
-void _setupConfigTheme({
-  required JTechConfig config,
-  required JTechThemeData themeData,
-  required Map<Brightness, ThemeData> systemTheme,
-}) {
-  theme.setup(systemTheme);
-  rootConfig.setup(config: config, theme: themeData);
-  platformConfig.setup(config: config, theme: themeData);
 }

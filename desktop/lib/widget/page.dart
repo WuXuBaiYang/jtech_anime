@@ -1,4 +1,4 @@
-import 'package:desktop/common/theme.dart';
+import 'package:desktop/common/custom.dart';
 import 'package:desktop/tool/version.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
