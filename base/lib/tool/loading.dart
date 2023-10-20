@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/common/notifier.dart';
 import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/router.dart';
+import 'package:jtech_anime_base/manage/theme.dart';
 import 'package:jtech_anime_base/widget/status_box.dart';
 import 'log.dart';
 
@@ -49,27 +50,27 @@ class Loading {
 
   // 构建加载视图
   static Widget _buildLoadingView(ValueChangeNotifier<String>? title) {
-    final theme = rootConfig.theme;
+    final background = theme.isDarkMode ? Colors.black : Colors.white;
+    final config = rootConfig.theme;
     return Center(
       child: SizedBox.square(
-        dimension: theme.loadingSize,
+        dimension: config.loadingSize,
         child: Card(
-          color: Colors.white,
+          color: background.withOpacity(0.85),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               StatusBox(
                 status: StatusBoxStatus.loading,
-                statusSize: theme.loadingSize * 0.6,
+                statusSize: config.loadingSize * 0.6,
               ),
               if (title != null) ...[
                 const SizedBox(height: 4),
                 ValueListenableBuilder<String>(
                   valueListenable: title,
                   builder: (_, text, __) {
-                    return Text(text,
-                        style: const TextStyle(color: Colors.black26));
+                    return Text(text);
                   },
                 ),
               ],

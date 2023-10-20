@@ -25,9 +25,6 @@ class Custom {
 
   // 系统样式表
   static final systemThemeData = <String, ThemeData>{
-    Brightness.dark.name: _createThemeData(
-      colorScheme: const ColorScheme.dark(),
-    ),
     Brightness.light.name: _createThemeData(
       colorScheme: const ColorScheme.light(
         primary: Color(0xFFFF7DB0),
@@ -74,7 +71,7 @@ class Custom {
           style: ButtonStyle(
             elevation: const MaterialStatePropertyAll(0),
             backgroundColor:
-                MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
+            MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
           ),
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(

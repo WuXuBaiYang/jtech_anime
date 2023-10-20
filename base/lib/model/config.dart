@@ -35,12 +35,16 @@ class RootJTechConfig extends BaseJTechConfig {
   // m3u8文件下载时的并发数
   final int m3u8DownloadBatchSize;
 
+  // 是否展示debug日志
+  final bool showDebugLog;
+
   RootJTechConfig({
     this.loadingDismissible = false,
     this.noPictureMode = false,
     this.noPlayerContent = true,
     this.baseCachePath = '',
     this.m3u8DownloadBatchSize = 30,
+    this.showDebugLog = true,
   });
 
   copyWith({
@@ -49,6 +53,7 @@ class RootJTechConfig extends BaseJTechConfig {
     bool? noPlayerContent,
     String? baseCachePath,
     int? m3u8DownloadBatchSize,
+    bool? showDebugLog,
   }) {
     return RootJTechConfig(
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
@@ -57,6 +62,7 @@ class RootJTechConfig extends BaseJTechConfig {
       baseCachePath: baseCachePath ?? this.baseCachePath,
       m3u8DownloadBatchSize:
           m3u8DownloadBatchSize ?? this.m3u8DownloadBatchSize,
+      showDebugLog: showDebugLog ?? this.showDebugLog,
     );
   }
 }

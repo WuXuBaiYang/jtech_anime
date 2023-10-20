@@ -20,10 +20,7 @@ class Custom {
 
   // 系统样式表
   static final systemThemeData = <String, ThemeData>{
-    Brightness.dark.name: _createThemeData(
-      colorScheme: const ColorScheme.dark(),
-    ),
-    Brightness.light.name: _createThemeData(
+    'default': _createThemeData(
       colorScheme: const ColorScheme.light(
         primary: Color(0xFFFF7DB0),
         secondary: Color(0xFF84EBE1),

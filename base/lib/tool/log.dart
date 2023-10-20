@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:logger/logger.dart';
 
 /*
@@ -95,8 +96,13 @@ class LogTool {
     dynamic error,
     StackTrace? stackTrace,
   }) {
-    if (!kDebugMode) return;
+    if (!rootConfig.showDebugLog || !kDebugMode) return;
     _logger ??= Logger();
-    return _logger?.log(level, message, error: error, stackTrace: stackTrace);
+    return _logger?.log(
+      level,
+      message,
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 }

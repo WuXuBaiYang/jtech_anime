@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'log.dart';
 
 /*
-* 文件操作工具方法
+* 文件操作工具方法baseCachePath
 * @author wuxubaiyang
 * @Time 2022/3/17 16:11
 */

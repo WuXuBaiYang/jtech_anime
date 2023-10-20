@@ -6,7 +6,7 @@ import 'notifier.dart';
 * @Time 2022/3/30 17:32
 */
 abstract class BaseController<V> extends ValueChangeNotifier<V> {
-  BaseController(V v) : super(v);
+  BaseController(super.v);
 }
 
 /*
@@ -15,7 +15,7 @@ abstract class BaseController<V> extends ValueChangeNotifier<V> {
 * @Time 2022/3/31 15:36
 */
 abstract class BaseControllerMap<K, V> extends MapValueChangeNotifier<K, V> {
-  BaseControllerMap(Map<K, V> v) : super(v);
+  BaseControllerMap(super.v);
 }
 
 /*
@@ -24,5 +24,5 @@ abstract class BaseControllerMap<K, V> extends MapValueChangeNotifier<K, V> {
 * @Time 2022/3/31 15:37
 */
 abstract class BaseControllerList<V> extends ListValueChangeNotifier<V> {
-  BaseControllerList(List<V> v) : super(v);
+  BaseControllerList(super.v);
 }

@@ -38,7 +38,8 @@ class ThemeManage extends BaseManage {
   ThemeData? _currentTheme;
 
   // 当前样式
-  ThemeData get currentTheme => _currentTheme ??= ThemeData(useMaterial3: true);
+  ThemeData get currentTheme => _currentTheme ??=
+      (_themeDataMap.values.firstOrNull ?? ThemeData(useMaterial3: true));
 
   // 切换默认样式
   Future<void> switchTheme(String key) async {

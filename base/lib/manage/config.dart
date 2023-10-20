@@ -72,6 +72,9 @@ class RootConfigManage
 
   // 获取m3u8文件下载时的并发数
   int get m3u8DownloadBatchSize => config.m3u8DownloadBatchSize;
+
+  // 获取是否展示debug日志
+  bool get showDebugLog => config.showDebugLog;
 }
 
 // 单例调用
