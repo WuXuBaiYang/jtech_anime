@@ -8,7 +8,7 @@ import 'package:jtech_anime_base/base.dart';
 * @author wuxubaiyang
 * @Time 2023/9/6 12:34
 */
-class CustomConfig {
+class Custom {
   // 全局配置
   static final JTechConfig config = JTechConfig(
     noPictureMode: true,

@@ -12,10 +12,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// 下方设置系统主题，全局的配置/样式
-  CustomConfig.setup(
-    config: CustomConfig.config,
-    themeData: CustomConfig.themeData,
-    systemTheme: CustomConfig.systemThemeData,
+  Custom.setup(
+    config: Custom.config,
+    themeData: Custom.themeData,
+    systemTheme: Custom.systemThemeData,
   );
   // 初始化核心内容
   await ensureInitializedCore();
