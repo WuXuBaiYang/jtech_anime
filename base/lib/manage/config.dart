@@ -29,13 +29,13 @@ class GlobalConfigManage extends BaseManage {
   }
 
   // 获取配置
-  JTechAnimeConfig get config => _config ?? JTechAnimeConfig();
+  JTechAnimeConfig get config => _config ??= JTechAnimeConfig();
 
   // 设置配置
   void setConfig(JTechAnimeConfig config) => _config = config;
 
   // 获取样式
-  JTechAnimeThemeData get theme => _theme ?? JTechAnimeThemeData();
+  JTechAnimeThemeData get theme => _theme ??= JTechAnimeThemeData();
 
   // 设置样式
   void setTheme(JTechAnimeThemeData theme) => _theme = theme;
@@ -45,12 +45,6 @@ class GlobalConfigManage extends BaseManage {
 
   // 判断是否为无播放模式
   bool get isNoPlayerContent => config.noPlayerContent;
-
-  // 获取状态组件默认尺寸
-  double get defaultStatusSize => config.defaultStatusSize;
-
-  // 获取加载弹窗默认尺寸
-  double get defaultLoadingSize => config.defaultLoadingSize;
 
   // 获取加载弹窗是否可取消
   bool get loadingDismissible => config.loadingDismissible;

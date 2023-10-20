@@ -13,12 +13,13 @@ void main() async {
     config: JTechAnimeConfig(
       noPictureMode: true,
       noPlayerContent: true,
-      defaultLoadingSize: 100,
       loadingDismissible: true,
       m3u8DownloadBatchSize: 30,
       baseCachePath: 'jtech_anime',
     ),
-    themeData: JTechAnimeThemeData(),
+    themeData: JTechAnimeThemeData(
+      loadingSize: 100,
+    ),
   );
   // 初始化窗口管理
   await windowManager.ensureInitialized();

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:jtech_anime_base/manage/config.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:path_provider/path_provider.dart';
 import 'base.dart';
 
 /// 通用方法

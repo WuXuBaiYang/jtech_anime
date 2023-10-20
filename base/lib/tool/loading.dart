@@ -49,10 +49,10 @@ class Loading {
 
   // 构建加载视图
   static Widget _buildLoadingView(ValueChangeNotifier<String>? title) {
-    final loadingSize = globalConfig.defaultLoadingSize;
+    final theme = globalConfig.theme;
     return Center(
       child: SizedBox.square(
-        dimension: loadingSize,
+        dimension: theme.loadingSize,
         child: Card(
           color: Colors.white,
           child: Column(
@@ -61,7 +61,7 @@ class Loading {
             children: [
               StatusBox(
                 status: StatusBoxStatus.loading,
-                statusSize: loadingSize * 0.6,
+                statusSize: theme.loadingSize * 0.6,
               ),
               if (title != null) ...[
                 const SizedBox(height: 4),

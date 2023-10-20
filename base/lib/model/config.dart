@@ -6,12 +6,6 @@ import 'package:flutter/foundation.dart';
 * @Time 2023/9/25 9:16
 */
 class JTechAnimeConfig with Diagnosticable {
-  // 状态组件默认尺寸
-  final double defaultStatusSize;
-
-  // 加载弹窗默认尺寸
-  final double defaultLoadingSize;
-
   // 加载弹窗是否可取消
   final bool loadingDismissible;
 
@@ -28,8 +22,6 @@ class JTechAnimeConfig with Diagnosticable {
   final int m3u8DownloadBatchSize;
 
   JTechAnimeConfig({
-    this.defaultStatusSize = 120,
-    this.defaultLoadingSize = 100,
     this.loadingDismissible = false,
     this.noPictureMode = false,
     this.noPlayerContent = true,
@@ -38,8 +30,6 @@ class JTechAnimeConfig with Diagnosticable {
   });
 
   copyWith({
-    double? defaultStatusSize,
-    double? defaultLoadingSize,
     bool? loadingDismissible,
     bool? noPictureMode,
     bool? noPlayerContent,
@@ -47,8 +37,6 @@ class JTechAnimeConfig with Diagnosticable {
     int? m3u8DownloadBatchSize,
   }) {
     return JTechAnimeConfig(
-      defaultStatusSize: defaultStatusSize ?? this.defaultStatusSize,
-      defaultLoadingSize: defaultLoadingSize ?? this.defaultLoadingSize,
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
       noPictureMode: noPictureMode ?? this.noPictureMode,
       noPlayerContent: noPlayerContent ?? this.noPlayerContent,
@@ -64,4 +52,25 @@ class JTechAnimeConfig with Diagnosticable {
 * @author wuxubaiyang
 * @Time 2023/9/25 9:16
 */
-class JTechAnimeThemeData with Diagnosticable {}
+class JTechAnimeThemeData with Diagnosticable {
+  // 状态组件默认尺寸
+  final double statusSize;
+
+  // 加载弹窗默认尺寸
+  final double loadingSize;
+
+  JTechAnimeThemeData({
+    this.statusSize = 120,
+    this.loadingSize = 100,
+  });
+
+  copyWith({
+    double? statusSize,
+    double? loadingSize,
+  }) {
+    return JTechAnimeThemeData(
+      statusSize: statusSize ?? this.statusSize,
+      loadingSize: loadingSize ?? this.loadingSize,
+    );
+  }
+}
