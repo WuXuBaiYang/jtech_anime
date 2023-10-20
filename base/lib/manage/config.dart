@@ -2,43 +2,61 @@ import 'package:jtech_anime_base/common/manage.dart';
 import 'package:jtech_anime_base/model/config.dart';
 
 /*
+* 配置管理基类
+* @author wuxubaiyang
+* @Time 2023/10/20 10:26
+*/
+abstract class BaseConfigManage<C extends BaseJTechConfig,
+    T extends BaseJTechThemeData> extends BaseManage {
+  // 缓存配置
+  C? _config;
+
+  // 缓存样式
+  T? _theme;
+
+  // 设置全局配置样式
+  void setup({C? config, T? theme}) {
+    _config = config;
+    _theme = theme;
+  }
+
+  // 创建默认配置
+  C createDefaultConfig();
+
+  // 获取配置
+  C get config => _config ??= createDefaultConfig();
+
+  // 设置配置
+  void setConfig(C config) => _config = config;
+
+  // 创建默认样式
+  T createDefaultTheme();
+
+  // 获取样式
+  T get theme => _theme ??= createDefaultTheme();
+
+  // 设置样式
+  void setTheme(T theme) => _theme = theme;
+}
+
+/*
 * 全局配置管理
 * @author wuxubaiyang
 * @Time 2022/3/17 14:14
 */
-class GlobalConfigManage extends BaseManage {
+class GlobalConfigManage
+    extends BaseConfigManage<RootJTechConfig, RootJTechThemeData> {
   static final GlobalConfigManage _instance = GlobalConfigManage._internal();
 
   factory GlobalConfigManage() => _instance;
 
   GlobalConfigManage._internal();
 
-  // 配置缓存
-  JTechAnimeConfig? _config;
+  @override
+  RootJTechConfig createDefaultConfig() => RootJTechConfig();
 
-  // 样式缓存
-  JTechAnimeThemeData? _theme;
-
-  // 设置全局配置与样式
-  void setup({
-    JTechAnimeConfig? config,
-    JTechAnimeThemeData? theme,
-  }) {
-    _config = config;
-    _theme = theme;
-  }
-
-  // 获取配置
-  JTechAnimeConfig get config => _config ??= JTechAnimeConfig();
-
-  // 设置配置
-  void setConfig(JTechAnimeConfig config) => _config = config;
-
-  // 获取样式
-  JTechAnimeThemeData get theme => _theme ??= JTechAnimeThemeData();
-
-  // 设置样式
-  void setTheme(JTechAnimeThemeData theme) => _theme = theme;
+  @override
+  RootJTechThemeData createDefaultTheme() => RootJTechThemeData();
 
   // 判断是否为无图模式
   bool get isNoPictureMode => config.noPictureMode;

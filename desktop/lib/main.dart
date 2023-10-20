@@ -10,14 +10,18 @@ void main() async {
   // 初始化核心内容
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
-    config: JTechAnimeConfig(
+
+    /// 如需自定义基本配置请更改此处
+    config: RootJTechConfig(
       noPictureMode: true,
       noPlayerContent: true,
       loadingDismissible: true,
       m3u8DownloadBatchSize: 30,
       baseCachePath: 'jtech_anime',
     ),
-    themeData: JTechAnimeThemeData(
+
+    /// 如需自定义基本样式请更改此处
+    themeData: RootJTechThemeData(
       loadingSize: 100,
     ),
   );

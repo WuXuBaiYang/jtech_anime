@@ -15,11 +15,15 @@ void main() async {
   // 初始化核心内容
   await ensureInitializedCore(
     themeDataMap: CustomTheme.dataMap,
-    config: JTechAnimeConfig(
+
+    /// 如需自定义基本配置请更改此处
+    config: RootJTechConfig(
       noPictureMode: true,
       noPlayerContent: true,
     ),
-    themeData: JTechAnimeThemeData(),
+
+    /// 如需自定义基本样式请更改此处
+    themeData: RootJTechThemeData(),
   );
   // 初始化消息通知
   await notice.init();
