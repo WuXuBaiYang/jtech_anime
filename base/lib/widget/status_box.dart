@@ -22,9 +22,6 @@ class StatusBox extends StatelessWidget {
   // 状态图大小
   final double? statusSize;
 
-  // 标题颜色
-  final Color? color;
-
   // 标题与图标的间隔
   final double? space;
 
@@ -35,14 +32,13 @@ class StatusBox extends StatelessWidget {
     this.subTitle,
     this.statusSize,
     this.space = 24,
-    this.color = Colors.black38,
   });
 
   @override
   Widget build(BuildContext context) {
     final size = statusSize ?? rootConfig.theme.statusSize;
     return DefaultTextStyle(
-      style: TextStyle(color: color, fontSize: 14),
+      style: const TextStyle(fontSize: 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

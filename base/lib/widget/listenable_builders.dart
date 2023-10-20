@@ -13,12 +13,12 @@ class ValueListenableBuilder2<A, B> extends StatelessWidget {
   final Widget Function(BuildContext context, A a, B b, Widget? child) builder;
 
   const ValueListenableBuilder2({
+    super.key,
     required this.first,
     required this.second,
-    Key? key,
     required this.builder,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<A>(
@@ -48,13 +48,13 @@ class ValueListenableBuilder3<A, B, C> extends StatelessWidget {
       builder;
 
   const ValueListenableBuilder3({
+    super.key,
     required this.first,
     required this.second,
     required this.third,
-    Key? key,
     required this.builder,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<A>(

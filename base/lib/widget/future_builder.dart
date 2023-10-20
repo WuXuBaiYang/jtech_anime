@@ -20,13 +20,12 @@ class CacheFutureBuilder<T> extends StatefulWidget {
   final CacheFutureBuilderController<T> controller;
 
   CacheFutureBuilder({
-    Key? key,
+    super.key,
     required this.future,
     required this.builder,
     this.initialData,
     CacheFutureBuilderController<T>? controller,
-  })  : controller = controller ?? CacheFutureBuilderController<T>(),
-        super(key: key);
+  })  : controller = controller ?? CacheFutureBuilderController<T>();
 
   @override
   State<StatefulWidget> createState() => _CacheFutureBuilderState<T>();
