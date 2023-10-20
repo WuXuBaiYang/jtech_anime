@@ -12,7 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// 下方设置系统主题，全局的配置/样式
-  setupConfigTheme(
+  _setupConfigTheme(
     config: JTechConfig(
       noPictureMode: true,
       noPlayerContent: true,
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
 }
 
 // 管理所有配置样式
-void setupConfigTheme({
+void _setupConfigTheme({
   required JTechConfig config,
   required JTechThemeData themeData,
   required Map<Brightness, ThemeData> systemTheme,
