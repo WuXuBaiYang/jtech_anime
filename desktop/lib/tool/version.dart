@@ -22,7 +22,7 @@ class AppVersionTool extends AppVersionToolBase {
   Future<void> upgradePlatform(BuildContext context, AppVersion info) async {
     try {
       final saveDir = await FileTool.getDirPath(
-          join(globalConfig.baseCachePath, 'updates'),
+          join(rootConfig.baseCachePath, 'updates'),
           root: FileDir.applicationDocuments);
       if (saveDir == null) return;
       _downloadProgressController.add(0);

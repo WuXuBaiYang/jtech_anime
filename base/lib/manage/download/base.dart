@@ -93,7 +93,7 @@ abstract class Downloader {
     if (downloadMap.isEmpty) return;
     final downloader = FileDownloader();
     int count = 0, total = downloadMap.length;
-    singleBatchSize ??= globalConfig.m3u8DownloadBatchSize;
+    singleBatchSize ??= rootConfig.m3u8DownloadBatchSize;
     // 封装下载任务
     final downloadTasks = _genDownloadBatchTasks(
       baseDirectory: BaseDirectory.values[root.index],

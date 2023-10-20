@@ -276,7 +276,7 @@ class AnimeParserManage extends BaseManage {
   Future<File?> _writeAnimeParserFile(
       AnimeSource source, String content) async {
     final savePath = await FileTool.getDirPath(
-        join(globalConfig.baseCachePath, FileDirPath.animeParserCachePath),
+        join(rootConfig.baseCachePath, FileDirPath.animeParserCachePath),
         root: FileDir.applicationDocuments);
     if (savePath == null) return null;
     final file = File('$savePath/${md5(source.fileUri)}.js');

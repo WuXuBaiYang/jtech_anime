@@ -22,7 +22,7 @@ class Loading {
     ValueChangeNotifier<String>? title,
   }) async {
     context ??= router.navigator?.context;
-    dismissible ??= globalConfig.loadingDismissible;
+    dismissible ??= rootConfig.loadingDismissible;
     if (context == null) return null;
     final navigator = Navigator.of(context);
     try {
@@ -49,7 +49,7 @@ class Loading {
 
   // 构建加载视图
   static Widget _buildLoadingView(ValueChangeNotifier<String>? title) {
-    final theme = globalConfig.theme;
+    final theme = rootConfig.theme;
     return Center(
       child: SizedBox.square(
         dimension: theme.loadingSize,

@@ -40,7 +40,7 @@ class StatusBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = statusSize ?? globalConfig.theme.statusSize;
+    final size = statusSize ?? rootConfig.theme.statusSize;
     return DefaultTextStyle(
       style: TextStyle(color: color, fontSize: 14),
       child: Column(

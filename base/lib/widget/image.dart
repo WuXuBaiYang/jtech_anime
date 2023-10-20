@@ -197,7 +197,7 @@ class ImageView extends StatefulWidget {
 class _ImageViewState extends State<ImageView> {
   @override
   Widget build(BuildContext context) {
-    if (globalConfig.isNoPictureMode && kDebugMode) return const SizedBox();
+    if (rootConfig.isNoPictureMode && kDebugMode) return const SizedBox();
     return GestureDetector(
       onTap: widget.onTap,
       child: ExtendedImage(

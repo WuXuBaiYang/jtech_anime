@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:jtech_anime_base/manage/config.dart';
 import 'package:media_kit/media_kit.dart';
 import 'base.dart';
 
@@ -22,7 +20,7 @@ export 'manage/db.dart';
 export 'manage/event.dart';
 export 'manage/router.dart';
 export 'manage/theme.dart';
-export 'manage/config.dart' show BaseConfigManage;
+export 'manage/config.dart';
 
 /// 数据对象-database
 export 'model/database/collect.dart';
@@ -81,19 +79,11 @@ export 'package:path/path.dart' show join, basename;
 export 'package:path_provider/path_provider.dart';
 
 // 初始化核心方法
-Future<void> ensureInitializedCore({
-  RootJTechConfig? config,
-  RootJTechThemeData? themeData,
-  Map<Brightness, ThemeData>? themeDataMap,
-}) async {
-  // 设置全局配置与样式
-  globalConfig.setup(config: config, theme: themeData);
-  // 设置初始化样式
-  if (themeDataMap != null) theme.setup(themeDataMap);
+Future<void> ensureInitializedCore() async {
   // 初始化视频播放器
   MediaKit.ensureInitialized();
   // 初始化各种manage
-  await globalConfig.init(); // 全局配置
+  await rootConfig.init(); // 全局配置
   await router.init(); // 路由服务
   await cache.init(); // 缓存服务
   await event.init(); // 事件服务

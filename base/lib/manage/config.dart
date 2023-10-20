@@ -44,13 +44,13 @@ abstract class BaseConfigManage<C extends BaseJTechConfig,
 * @author wuxubaiyang
 * @Time 2022/3/17 14:14
 */
-class GlobalConfigManage
+class RootConfigManage
     extends BaseConfigManage<RootJTechConfig, RootJTechThemeData> {
-  static final GlobalConfigManage _instance = GlobalConfigManage._internal();
+  static final RootConfigManage _instance = RootConfigManage._internal();
 
-  factory GlobalConfigManage() => _instance;
+  factory RootConfigManage() => _instance;
 
-  GlobalConfigManage._internal();
+  RootConfigManage._internal();
 
   @override
   RootJTechConfig createDefaultConfig() => RootJTechConfig();
@@ -75,4 +75,4 @@ class GlobalConfigManage
 }
 
 // 单例调用
-final globalConfig = GlobalConfigManage();
+final rootConfig = RootConfigManage();

@@ -5,26 +5,28 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'manage/config.dart';
+import 'model/config.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 初始化核心内容
-  await ensureInitializedCore(
-    themeDataMap: CustomTheme.dataMap,
 
-    /// 如需自定义基本配置请更改此处
-    config: RootJTechConfig(
+  /// 下方设置系统主题，全局的配置/样式
+  setupConfigTheme(
+    config: JTechConfig(
       noPictureMode: true,
       noPlayerContent: true,
       loadingDismissible: true,
       m3u8DownloadBatchSize: 30,
       baseCachePath: 'jtech_anime',
     ),
-
-    /// 如需自定义基本样式请更改此处
-    themeData: RootJTechThemeData(
+    themeData: JTechThemeData(
       loadingSize: 100,
     ),
+    systemTheme: CustomTheme.dataMap,
   );
+  // 初始化核心内容
+  await ensureInitializedCore();
   // 初始化窗口管理
   await windowManager.ensureInitialized();
   const size = Size(800, 600);
@@ -52,4 +54,15 @@ class MyApp extends StatelessWidget {
       home: const HomePage(),
     );
   }
+}
+
+// 管理所有配置样式
+void setupConfigTheme({
+  required JTechConfig config,
+  required JTechThemeData themeData,
+  required Map<Brightness, ThemeData> systemTheme,
+}) {
+  theme.setup(systemTheme);
+  rootConfig.setup(config: config, theme: themeData);
+  platformConfig.setup(config: config, theme: themeData);
 }

@@ -27,7 +27,7 @@ class DBManage extends BaseManage {
 
   @override
   Future<void> init() async {
-    final dir = await FileTool.getDirPath(globalConfig.baseCachePath,
+    final dir = await FileTool.getDirPath(rootConfig.baseCachePath,
         root: FileDir.applicationDocuments);
     isar = await Isar.open(
       [

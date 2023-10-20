@@ -47,7 +47,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 获取控制器
   VideoController get controller =>
-      _controller ??= (globalConfig.isNoPlayerContent && kDebugMode
+      _controller ??= (rootConfig.isNoPlayerContent && kDebugMode
               ? CustomVideoPlayerController()
               : widget.controller)
           .controller;
