@@ -43,6 +43,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {
+      setState(() {});
       // 如果解析源为空则弹出不可取消的强制选择弹窗
       if (event.source == null) {
         AnimeSourceChangeDialog.show(context, dismissible: false);
