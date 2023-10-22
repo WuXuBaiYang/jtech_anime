@@ -150,12 +150,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget _buildNavigationPage(int index) {
     return IndexedStack(
       index: index,
-      children: const [
-        HomeAnimePage(),
-        HomeTimeTablePage(),
-        HomeDownloadPage(),
-        HomeRecordPage(),
-        HomeCollectPage(),
+      children: [
+        const HomeAnimePage(),
+        if (animeParser.isSupport(AnimeParserFunction.timeTable))
+          const HomeTimeTablePage(),
+        const HomeDownloadPage(),
+        const HomeRecordPage(),
+        const HomeCollectPage(),
       ],
     );
   }

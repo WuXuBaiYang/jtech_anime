@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:brotli/brotli.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/services.dart';
 import 'package:html/parser.dart';
 import 'package:jtech_anime_base/common/common.dart';
@@ -350,7 +351,16 @@ class AnimeParserManage extends BaseManage {
       if (url.isEmpty) return null;
       Response? resp;
       try {
-        resp = await Dio().request(
+        final dio = Dio();
+        dio.httpClientAdapter = IOHttpClientAdapter()
+          ..createHttpClient = () => HttpClient()
+            ..badCertificateCallback = (cert, host, port) {
+              return true;
+            }
+            ..findProxy = (uri) {
+              return 'PROXY localhost:7890';
+            };
+        resp = await dio.request(
           url,
           queryParameters: options['query'],
           options: Options(
