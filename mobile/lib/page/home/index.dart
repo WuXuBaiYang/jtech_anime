@@ -7,6 +7,7 @@ import 'package:mobile/page/home/source.dart';
 import 'package:mobile/page/home/timetable.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/tool/version.dart';
+import 'package:mobile/widget/source_import.dart';
 
 /*
 * 首页
@@ -100,6 +101,31 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     );
   }
 
+  // 扩展菜单表
+  final Map<IconData, dynamic> _expandedPopupMenu = {
+    FontAwesomeIcons.heart: (
+      '我的收藏',
+      (BuildContext context) => router.pushNamed(RoutePath.collect),
+    ),
+    FontAwesomeIcons.clockRotateLeft: (
+      '播放记录',
+      (BuildContext context) => router.pushNamed(RoutePath.record),
+    ),
+    FontAwesomeIcons.plug: (
+      '插件管理',
+      (BuildContext context) => router.pushNamed(RoutePath.animeSource),
+    ),
+    FontAwesomeIcons.fileImport: (
+      '插件导入',
+      (BuildContext context) =>
+          AnimeSourceImportSheet.show(context, title: const Text('导入插件'))
+    ),
+    FontAwesomeIcons.globe: (
+      '设置代理',
+      (BuildContext context) => AnimeSourceProxyDialog.show(context)
+    ),
+  };
+
   // 标题栏动作按钮集合
   List<Widget> get _appBarActions => [
         if (animeParser.isSupport(AnimeParserFunction.search))
@@ -107,14 +133,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
             icon: const Icon(FontAwesomeIcons.magnifyingGlass),
             onPressed: () => router.pushNamed(RoutePath.search),
           ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.heart),
-          onPressed: () => router.pushNamed(RoutePath.collect),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.clockRotateLeft),
-          onPressed: () => router.pushNamed(RoutePath.record),
-        ),
         IconButton(
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => router.pushNamed(RoutePath.download),
@@ -124,8 +142,24 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
             final event = snap.data;
             if (event?.source == null) return const SizedBox();
             return GestureDetector(
-              child: AnimeSourceLogo(source: event!.source!),
-              onTap: () => router.pushNamed(RoutePath.animeSource),
+              child: PopupMenuButton<Function?>(
+                tooltip: '',
+                icon: AnimeSourceLogo(source: event!.source!),
+                itemBuilder: (_) => _expandedPopupMenu.keys.map((key) {
+                  final tuple = _expandedPopupMenu[key];
+                  return PopupMenuItem<Function?>(
+                    value: tuple?.$2,
+                    child: Row(
+                      children: [
+                        Icon(key),
+                        const SizedBox(width: 14),
+                        Text(tuple?.$1 ?? ''),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onSelected: (fun) => fun?.call(c),
+              ),
               onLongPress: () {
                 HapticFeedback.vibrate();
                 AnimeSourceChangeDialog.show(c);
