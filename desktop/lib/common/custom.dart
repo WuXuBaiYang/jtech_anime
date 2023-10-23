@@ -11,7 +11,7 @@ import 'package:jtech_anime_base/base.dart';
 class Custom {
   // 全局配置
   static final JTechConfig config = JTechConfig(
-    noPictureMode: false,
+    noPictureMode: true,
     noPlayerContent: true,
     loadingDismissible: true,
     m3u8DownloadBatchSize: 30,
