@@ -54,7 +54,7 @@ class ProxyManage extends BaseManage {
       ..createHttpClient = () {
         final client = HttpClient();
         client.badCertificateCallback = (_, __, ___) => true;
-        client.findProxy = (_) => proxy;
+        client.findProxy = (_) => 'PROXY $proxy';
         return client;
       };
   }
@@ -65,8 +65,12 @@ class ProxyManage extends BaseManage {
   // 添加/更新代理
   Future<ProxyRecord?> updateProxy(ProxyRecord record) async {
     final result = await db.updateProxy(record);
-    if (result != null && currentProxy?.proxy == result.proxy) {
-      await setCurrentProxy(result);
+    if (result != null) {
+      // 如果设置的是当前代理或代理列表为空则设置
+      if (currentProxy?.proxy == result.proxy ||
+          (await getProxyList()).length == 1) {
+        await setCurrentProxy(result);
+      }
     }
     return result;
   }

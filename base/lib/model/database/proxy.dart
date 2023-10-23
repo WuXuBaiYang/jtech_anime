@@ -11,31 +11,28 @@ part 'proxy.g.dart';
 class ProxyRecord {
   Id id = Isar.autoIncrement;
 
-  // 协议
-  String protocol = '';
-
   // 域名
   String host = '';
 
   // 端口
-  int port = 80;
+  int port = 7890;
 
-  // 完整代理
-  @Ignore()
-  String get proxy => '$protocol://$host:$port';
+  // 完成代理地址
+  @Index(type: IndexType.hash, unique: true)
+  String proxy = '';
 
   // 从json加载
   static ProxyRecord from(obj) {
     return ProxyRecord()
-      ..protocol = obj['protocol'] ?? ''
       ..host = obj['host'] ?? ''
-      ..port = obj['port'] ?? '';
+      ..port = obj['port'] ?? ''
+      ..proxy = obj['proxy'] ?? '';
   }
 
   // 转换为json
   Map<String, dynamic> toJson() => {
-        'protocol': protocol,
         'host': host,
         'port': port,
+        'proxy': proxy,
       };
 }

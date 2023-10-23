@@ -106,8 +106,6 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // const SizedBox(height: 4),
-            // Text(item.homepage),
             Row(
               children: [
                 Text('v${item.version}'),
