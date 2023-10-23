@@ -101,31 +101,6 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     );
   }
 
-  // 扩展菜单表
-  final Map<IconData, dynamic> _expandedPopupMenu = {
-    FontAwesomeIcons.heart: (
-      '我的收藏',
-      (BuildContext context) => router.pushNamed(RoutePath.collect),
-    ),
-    FontAwesomeIcons.clockRotateLeft: (
-      '播放记录',
-      (BuildContext context) => router.pushNamed(RoutePath.record),
-    ),
-    FontAwesomeIcons.plug: (
-      '插件管理',
-      (BuildContext context) => router.pushNamed(RoutePath.animeSource),
-    ),
-    FontAwesomeIcons.fileImport: (
-      '插件导入',
-      (BuildContext context) =>
-          AnimeSourceImportSheet.show(context, title: const Text('导入插件'))
-    ),
-    FontAwesomeIcons.globe: (
-      '设置代理',
-      (BuildContext context) => AnimeSourceProxyDialog.show(context)
-    ),
-  };
-
   // 标题栏动作按钮集合
   List<Widget> get _appBarActions => [
         if (animeParser.isSupport(AnimeParserFunction.search))
@@ -137,38 +112,68 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => router.pushNamed(RoutePath.download),
         ),
-        SourceStreamView(
-          builder: (c, snap) {
-            final event = snap.data;
-            if (event?.source == null) return const SizedBox();
-            return GestureDetector(
-              child: PopupMenuButton<Function?>(
-                tooltip: '',
-                icon: AnimeSourceLogo(source: event!.source!),
-                itemBuilder: (_) => _expandedPopupMenu.keys.map((key) {
-                  final tuple = _expandedPopupMenu[key];
-                  return PopupMenuItem<Function?>(
-                    value: tuple?.$2,
-                    child: Row(
-                      children: [
-                        Icon(key),
-                        const SizedBox(width: 14),
-                        Text(tuple?.$1 ?? ''),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onSelected: (fun) => fun?.call(c),
-              ),
-              onLongPress: () {
-                HapticFeedback.vibrate();
-                AnimeSourceChangeDialog.show(c);
-              },
-            );
-          },
-        ),
+        _buildExpandPopupMenu(),
         const SizedBox(width: 14),
       ];
+
+  // 扩展菜单表
+  final Map<String, (IconData, Function)> _expandPopupMenu = {
+    '我的收藏': (
+      FontAwesomeIcons.heart,
+      (BuildContext context) => router.pushNamed(RoutePath.collect),
+    ),
+    '播放记录': (
+      FontAwesomeIcons.clockRotateLeft,
+      (BuildContext context) => router.pushNamed(RoutePath.record),
+    ),
+    '插件管理': (
+      FontAwesomeIcons.plug,
+      (BuildContext context) => router.pushNamed(RoutePath.animeSource),
+    ),
+    '插件导入': (
+      FontAwesomeIcons.fileImport,
+      (BuildContext context) =>
+          AnimeSourceImportSheet.show(context, title: const Text('导入插件'))
+    ),
+    '设置代理': (
+      FontAwesomeIcons.globe,
+      (BuildContext context) => AnimeSourceProxyDialog.show(context)
+    ),
+  };
+
+  // 构建扩展菜单
+  Widget _buildExpandPopupMenu() {
+    return SourceStreamView(
+      builder: (c, snap) {
+        final event = snap.data;
+        if (event?.source == null) return const SizedBox();
+        return GestureDetector(
+          child: PopupMenuButton<Function?>(
+            tooltip: '',
+            icon: AnimeSourceLogo(source: event!.source!),
+            itemBuilder: (_) => _expandPopupMenu.keys.map((key) {
+              final tuple = _expandPopupMenu[key]!;
+              return PopupMenuItem<Function?>(
+                value: tuple.$2,
+                child: Row(
+                  children: [
+                    Icon(tuple.$1),
+                    const SizedBox(width: 14),
+                    Text(key),
+                  ],
+                ),
+              );
+            }).toList(),
+            onSelected: (fun) => fun?.call(c),
+          ),
+          onLongPress: () {
+            HapticFeedback.vibrate();
+            AnimeSourceChangeDialog.show(c);
+          },
+        );
+      },
+    );
+  }
 
   // 判断是否支持番剧时间表
   bool get _supportTimeTable =>
