@@ -12,6 +12,7 @@ import 'package:jtech_anime_base/manage/cache.dart';
 import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/manage/event.dart';
+import 'package:jtech_anime_base/manage/proxy.dart';
 import 'package:jtech_anime_base/model/anime.dart';
 import 'package:jtech_anime_base/model/database/source.dart';
 import 'package:jtech_anime_base/model/database/video_cache.dart';
@@ -352,23 +353,14 @@ class AnimeParserManage extends BaseManage {
       Response? resp;
       try {
         final dio = Dio();
-        dio.httpClientAdapter = IOHttpClientAdapter()
-          ..createHttpClient = () => HttpClient()
-            ..badCertificateCallback = (cert, host, port) {
-              return true;
-            }
-            ..findProxy = (uri) {
-              return 'PROXY localhost:7890';
-            };
-        resp = await dio.request(
-          url,
-          queryParameters: options['query'],
-          options: Options(
-            headers: options['headers'],
-            method: options['method'] ?? 'GET',
-            responseType: ResponseType.bytes,
-          ),
-        );
+        dio.httpClientAdapter = proxy.createProxyHttpAdapter();
+        resp = await dio.request(url,
+            queryParameters: options['query'],
+            options: Options(
+              headers: options['headers'],
+              method: options['method'] ?? 'GET',
+              responseType: ResponseType.bytes,
+            ));
       } on DioException catch (error) {
         resp = error.response;
       }

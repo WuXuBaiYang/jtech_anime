@@ -5,6 +5,7 @@ import 'package:jtech_anime_base/model/database/collect.dart';
 import 'package:jtech_anime_base/model/database/download_record.dart';
 import 'package:jtech_anime_base/model/database/filter_select.dart';
 import 'package:jtech_anime_base/model/database/play_record.dart';
+import 'package:jtech_anime_base/model/database/proxy.dart';
 import 'package:jtech_anime_base/model/database/search_record.dart';
 import 'package:jtech_anime_base/model/database/source.dart';
 import 'package:jtech_anime_base/model/database/video_cache.dart';
@@ -38,10 +39,25 @@ class DBManage extends BaseManage {
         CollectSchema,
         DownloadRecordSchema,
         AnimeSourceSchema,
+        ProxyRecordSchema,
       ],
       directory: dir ?? '',
     );
   }
+
+  // 获取代理记录
+  Future<List<ProxyRecord>> getProxyList() =>
+      isar.proxyRecords.where().findAll();
+
+  // 添加或更新代理记录
+  Future<ProxyRecord?> updateProxy(ProxyRecord item) =>
+      isar.writeTxn<ProxyRecord?>(() {
+        return isar.proxyRecords.put(item).then((id) => item..id = id);
+      });
+
+  // 删除代理记录
+  Future<bool> removeProxy(int id) =>
+      isar.writeTxn<bool>(() => isar.proxyRecords.delete(id));
 
   // 获取所有数据源配置
   Future<List<AnimeSource>> getAnimeSourceList() =>
