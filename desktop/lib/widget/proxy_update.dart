@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:jtech_anime_base/manage/proxy.dart';
-import 'package:jtech_anime_base/manage/router.dart';
-import 'package:jtech_anime_base/model/database/proxy.dart';
-import 'package:jtech_anime_base/tool/log.dart';
-import 'package:jtech_anime_base/tool/snack.dart';
+import 'package:jtech_anime_base/base.dart';
 /*
 * 代理配置编辑/新增
 * @author wuxubaiyang
@@ -55,7 +50,7 @@ class _AnimeSourceProxyUpdateSheetState
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          // crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: TextField(
@@ -63,27 +58,31 @@ class _AnimeSourceProxyUpdateSheetState
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: '域名(默认localhost)',
+                  contentPadding: EdgeInsets.all(14),
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            TextField(
-              maxLength: 5,
-              controller: portController,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                counter: SizedBox(),
-                border: OutlineInputBorder(),
-                labelText: '端口号（默认7890）',
-                constraints: BoxConstraints.tightFor(width: 180),
+            Expanded(
+              child: TextField(
+                maxLength: 5,
+                controller: portController,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  counterText: '',
+                  border: OutlineInputBorder(),
+                  labelText: '端口号（默认7890）',
+                  contentPadding: EdgeInsets.all(14),
+                ),
               ),
             ),
-            const SizedBox(width: 14),
-            IconButton(
-              icon: const Icon(FontAwesomeIcons.checkDouble),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              icon: const Icon(FontAwesomeIcons.check),
+              label: const Text('提交'),
               onPressed: () async {
                 try {
                   final host = hostController.text.isNotEmpty

@@ -21,6 +21,7 @@ export 'manage/event.dart';
 export 'manage/router.dart';
 export 'manage/theme.dart';
 export 'manage/config.dart';
+export 'manage/proxy.dart';
 
 /// 数据对象-database
 export 'model/database/collect.dart';
@@ -30,6 +31,7 @@ export 'model/database/play_record.dart';
 export 'model/database/search_record.dart';
 export 'model/database/source.dart';
 export 'model/database/video_cache.dart';
+export 'model/database/proxy.dart';
 
 /// 数据对象
 export 'model/anime.dart';
@@ -69,7 +71,6 @@ export 'widget/stream_view.dart';
 export 'widget/tab.dart';
 export 'widget/lottie.dart';
 export 'widget/blur.dart';
-export 'widget/proxy.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';

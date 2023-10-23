@@ -1,9 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:jtech_anime_base/manage/proxy.dart';
-import 'package:jtech_anime_base/model/database/proxy.dart';
-
 import 'proxy_update.dart';
 
 /*
@@ -89,16 +86,10 @@ class _AnimeSourceProxyDialogState extends State<AnimeSourceProxyDialog> {
         onChanged: (v) => proxy.setCurrentProxy(v == null ? null : item),
         title: Row(
           children: [
-            Expanded(
-              child: TextField(
-                enabled: false,
-                controller: TextEditingController(text: item.proxy),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
+            Expanded(child: Text(item.proxy, maxLines: 1)),
             IconButton(
+              iconSize: 18,
+              visualDensity: VisualDensity.compact,
               onPressed: () async {
                 final result = await AnimeSourceProxyUpdateSheet.show(context,
                     record: item);
@@ -107,6 +98,8 @@ class _AnimeSourceProxyDialogState extends State<AnimeSourceProxyDialog> {
               icon: const Icon(FontAwesomeIcons.pencil),
             ),
             IconButton(
+              iconSize: 18,
+              visualDensity: VisualDensity.compact,
               onPressed: () async {
                 final result = await proxy.deleteProxy(item);
                 if (result) controller.refreshValue();
