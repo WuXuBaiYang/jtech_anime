@@ -131,8 +131,9 @@ class _AnimeListViewState extends State<AnimeListView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+              child: Card(
+                margin: EdgeInsets.zero,
+                clipBehavior: Clip.antiAlias,
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
