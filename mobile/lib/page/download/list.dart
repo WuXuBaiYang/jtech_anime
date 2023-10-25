@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/text_scroll.dart';
 
 // 下载记录事件回调
 typedef DownloadRecordCallback = void Function(List<DownloadRecord> records);

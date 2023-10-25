@@ -1,17 +1,25 @@
 import 'package:flutter/foundation.dart';
 
 /*
+* 全局配置基类
+* @author wuxubaiyang
+* @Time 2023/10/20 10:24
+*/
+abstract class BaseJTechConfig with Diagnosticable {}
+
+/*
+* 全局样式基类
+* @author wuxubaiyang
+* @Time 2023/10/20 10:25
+*/
+abstract class BaseJTechThemeData with Diagnosticable {}
+
+/*
 * 全局配置
 * @author wuxubaiyang
 * @Time 2023/9/25 9:16
 */
-class JTechAnimeConfig with Diagnosticable {
-  // 状态组件默认尺寸
-  final double defaultStatusSize;
-
-  // 加载弹窗默认尺寸
-  final double defaultLoadingSize;
-
+class RootJTechConfig extends BaseJTechConfig {
   // 加载弹窗是否可取消
   final bool loadingDismissible;
 
@@ -27,34 +35,34 @@ class JTechAnimeConfig with Diagnosticable {
   // m3u8文件下载时的并发数
   final int m3u8DownloadBatchSize;
 
-  JTechAnimeConfig({
-    this.defaultStatusSize = 120,
-    this.defaultLoadingSize = 100,
+  // 是否展示debug日志
+  final bool showDebugLog;
+
+  RootJTechConfig({
     this.loadingDismissible = false,
     this.noPictureMode = false,
     this.noPlayerContent = true,
     this.baseCachePath = '',
     this.m3u8DownloadBatchSize = 30,
+    this.showDebugLog = true,
   });
 
   copyWith({
-    double? defaultStatusSize,
-    double? defaultLoadingSize,
     bool? loadingDismissible,
     bool? noPictureMode,
     bool? noPlayerContent,
     String? baseCachePath,
     int? m3u8DownloadBatchSize,
+    bool? showDebugLog,
   }) {
-    return JTechAnimeConfig(
-      defaultStatusSize: defaultStatusSize ?? this.defaultStatusSize,
-      defaultLoadingSize: defaultLoadingSize ?? this.defaultLoadingSize,
+    return RootJTechConfig(
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
       noPictureMode: noPictureMode ?? this.noPictureMode,
       noPlayerContent: noPlayerContent ?? this.noPlayerContent,
       baseCachePath: baseCachePath ?? this.baseCachePath,
       m3u8DownloadBatchSize:
           m3u8DownloadBatchSize ?? this.m3u8DownloadBatchSize,
+      showDebugLog: showDebugLog ?? this.showDebugLog,
     );
   }
 }
@@ -64,4 +72,25 @@ class JTechAnimeConfig with Diagnosticable {
 * @author wuxubaiyang
 * @Time 2023/9/25 9:16
 */
-class JTechAnimeThemeData with Diagnosticable {}
+class RootJTechThemeData extends BaseJTechThemeData {
+  // 状态组件默认尺寸
+  final double statusSize;
+
+  // 加载弹窗默认尺寸
+  final double loadingSize;
+
+  RootJTechThemeData({
+    this.statusSize = 120,
+    this.loadingSize = 100,
+  });
+
+  copyWith({
+    double? statusSize,
+    double? loadingSize,
+  }) {
+    return RootJTechThemeData(
+      statusSize: statusSize ?? this.statusSize,
+      loadingSize: loadingSize ?? this.loadingSize,
+    );
+  }
+}

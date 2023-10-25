@@ -7,6 +7,7 @@ import 'package:desktop/page/record/index.dart';
 import 'package:desktop/page/timetable/index.dart';
 import 'package:desktop/tool/version.dart';
 import 'package:desktop/widget/page.dart';
+import 'package:desktop/widget/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -43,6 +44,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
     });
     // 监听解析源变化
     event.on<SourceChangeEvent>().listen((event) {
+      setState(() {});
       // 如果解析源为空则弹出不可取消的强制选择弹窗
       if (event.source == null) {
         AnimeSourceChangeDialog.show(context, dismissible: false);
@@ -94,31 +96,41 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
           icon: Icon(FontAwesomeIcons.solidHeart),
         ),
       ],
-      trailing: Expanded(
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: CacheFutureBuilder<String>(
-              future: () => Tool.version,
-              builder: (_, snap) {
-                return TextButton(
-                  style: ButtonStyle(
-                    textStyle: MaterialStateProperty.all(
-                      const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  child: Text('v${snap.data ?? ''}'),
-                  onPressed: () async {
-                    SnackTool.showMessage(message: '正在检查最新版本');
-                    final result = await AppVersionTool().check(context);
-                    if (!result) SnackTool.showMessage(message: '已是最新版本');
-                  },
-                );
-              },
-            ),
+      trailing: _buildSideNavigationTrailing(context),
+    );
+  }
+
+  // 构建侧边导航栏尾部
+  Widget _buildSideNavigationTrailing(BuildContext context) {
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          IconButton(
+            iconSize: 16,
+            onPressed: () => AnimeSourceProxyDialog.show(context),
+            icon: const Icon(FontAwesomeIcons.globe),
           ),
-        ),
+          CacheFutureBuilder<String>(
+            future: () => Tool.version,
+            builder: (_, snap) {
+              return TextButton(
+                style: ButtonStyle(
+                  textStyle: MaterialStateProperty.all(
+                    const TextStyle(fontSize: 12),
+                  ),
+                ),
+                child: Text('v${snap.data ?? ''}'),
+                onPressed: () async {
+                  SnackTool.showMessage(message: '正在检查最新版本');
+                  final result = await AppVersionTool().check(context);
+                  if (!result) SnackTool.showMessage(message: '已是最新版本');
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
@@ -150,12 +162,13 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
   Widget _buildNavigationPage(int index) {
     return IndexedStack(
       index: index,
-      children: const [
-        HomeAnimePage(),
-        HomeTimeTablePage(),
-        HomeDownloadPage(),
-        HomeRecordPage(),
-        HomeCollectPage(),
+      children: [
+        const HomeAnimePage(),
+        if (animeParser.isSupport(AnimeParserFunction.timeTable))
+          const HomeTimeTablePage(),
+        const HomeDownloadPage(),
+        const HomeRecordPage(),
+        const HomeCollectPage(),
       ],
     );
   }

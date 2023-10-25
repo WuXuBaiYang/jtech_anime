@@ -4,6 +4,7 @@ import 'package:mobile/page/detail/download.dart';
 import 'package:mobile/page/detail/info.dart';
 import 'package:mobile/tool/network.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/text_scroll.dart';
 
 /*
 * 番剧详情页

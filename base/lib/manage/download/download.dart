@@ -119,7 +119,7 @@ class DownloadManage extends BaseManage {
           ? record.savePath
           : await FileTool.getDirPath(
               join(
-                globalConfig.baseCachePath,
+                rootConfig.baseCachePath,
                 FileDirPath.videoCachePath,
                 md5(record.downloadUrl),
               ),

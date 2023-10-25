@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime_base/model/anime.dart';
+
 part 'video_cache.g.dart';
 
 /*
@@ -17,6 +18,9 @@ class VideoCache {
 
   // 播放地址
   String playUrl = '';
+
+  // 缓存时间
+  int cacheTime = DateTime.now().millisecondsSinceEpoch;
 
   // 原始资源信息
   @Ignore()

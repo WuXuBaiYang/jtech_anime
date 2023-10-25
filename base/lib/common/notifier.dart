@@ -32,7 +32,7 @@ class ValueChangeNotifier<V> extends ChangeNotifier
 * @Time 2022/3/31 15:27
 */
 class ListValueChangeNotifier<V> extends ValueChangeNotifier<List<V>> {
-  ListValueChangeNotifier(List<V> value) : super(value);
+  ListValueChangeNotifier(super.value);
 
   ListValueChangeNotifier.empty() : this([]);
 
@@ -134,7 +134,7 @@ class ListValueChangeNotifier<V> extends ValueChangeNotifier<List<V>> {
 * @Time 2022/3/31 15:27
 */
 class MapValueChangeNotifier<K, V> extends ValueChangeNotifier<Map<K, V>> {
-  MapValueChangeNotifier(Map<K, V> value) : super(value);
+  MapValueChangeNotifier(super.value);
 
   MapValueChangeNotifier.empty() : this({});
 

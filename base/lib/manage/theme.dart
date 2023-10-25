@@ -12,11 +12,8 @@ class ThemeManage extends BaseManage {
   // 默认样式缓存字段
   final String _themeCacheKey = 'theme_cache';
 
-  // 默认色调
-  final _defBrightness = Brightness.light;
-
   // 缓存样式配置表
-  late Map<Brightness, ThemeData> _themeDataMap = {};
+  late Map<String, ThemeData> _themeDataMap = {};
 
   static final ThemeManage _instance = ThemeManage._internal();
 
@@ -34,44 +31,24 @@ class ThemeManage extends BaseManage {
   bool get isDarkMode => currentTheme.brightness == Brightness.dark;
 
   // 设置样式表
-  void setup(Map<Brightness, ThemeData> themeDataMap) {
-    _themeDataMap = themeDataMap;
-  }
-
-  // 切换默认样式
-  Future<void> switchTheme(Brightness brightness) async {
-    if (await cache.setInt(_themeCacheKey, brightness.index)) {
-      _currentTheme = getThemeByBrightness(brightness);
-      event.send(ThemeEvent(_currentTheme!));
-    }
-  }
-
-  // 明暗样式开关
-  Future<void> toggleTheme() async {
-    final type = currentTheme.brightness == Brightness.light
-        ? Brightness.dark
-        : Brightness.light;
-    return switchTheme(type);
-  }
+  void setup(Map<String, ThemeData> themeDataMap) =>
+      _themeDataMap = themeDataMap;
 
   // 缓存当前样式
   ThemeData? _currentTheme;
 
   // 当前样式
-  ThemeData get currentTheme => _currentTheme ??= getThemeByBrightness(
-      Brightness.values[cache.getInt(_themeCacheKey) ?? _defBrightness.index]);
+  ThemeData get currentTheme => _currentTheme ??=
+      (_themeDataMap.values.firstOrNull ?? ThemeData(useMaterial3: true));
 
-  // 根据色调获取对应的样式
-  ThemeData getThemeByBrightness(Brightness brightness) => {
-        Brightness.dark: _themeDataMap[brightness] ??
-            ThemeData.dark(
-              useMaterial3: true,
-            ),
-        Brightness.light: _themeDataMap[brightness] ??
-            ThemeData.light(
-              useMaterial3: true,
-            ),
-      }[brightness]!;
+  // 切换默认样式
+  Future<void> switchTheme(String key) async {
+    if (await cache.setString(_themeCacheKey, key)) {
+      if (_themeDataMap[key] == null) return;
+      _currentTheme = _themeDataMap[key];
+      event.send(ThemeEvent(_currentTheme!));
+    }
+  }
 }
 
 // 获取当前主色调

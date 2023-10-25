@@ -33,11 +33,13 @@ class _HomeTimeTablePageState
   void initState() {
     super.initState();
     // 监听tab切换
+    bool tabLock = false;
     tabController.addListener(() {
-      if (tabController.indexIsChanging) {
+      if (tabController.indexIsChanging && !tabLock) {
         final weekday = tabController.index;
         logic.scrollToWeekday(weekday);
       }
+      tabLock = false;
     });
     // 监听列表滚动，当滚动到某个key的时候切换tab
     logic.scrollController.addListener(() {
@@ -51,6 +53,7 @@ class _HomeTimeTablePageState
         return rect.top <= 0 && rect.bottom >= 0;
       });
       if (index != -1 && tabController.index != index) {
+        tabLock = true;
         tabController.animateTo(index);
       }
     });

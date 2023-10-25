@@ -58,7 +58,7 @@ class AnimeDetailInfo extends StatelessWidget {
   // 构建信息部分
   Widget _buildInfo() {
     return DefaultTextStyle(
-      maxLines: 999,
+      maxLines: 1,
       style: const TextStyle(
         color: Colors.black54,
         fontSize: 14,
@@ -108,11 +108,15 @@ class AnimeDetailInfo extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              animeInfo.name,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 24,
+            Expanded(
+              child: Text(
+                maxLines: 2,
+                animeInfo.name,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 24,
+                ),
               ),
             ),
             const SizedBox(width: 14),

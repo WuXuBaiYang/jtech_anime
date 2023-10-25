@@ -1,25 +1,24 @@
 import 'package:desktop/common/route.dart';
-import 'package:desktop/common/theme.dart';
+import 'package:desktop/common/custom.dart';
 import 'package:desktop/page/home/index.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'manage/config.dart';
+import 'model/config.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 初始化核心内容
-  await ensureInitializedCore(
-    themeDataMap: CustomTheme.dataMap,
-    config: JTechAnimeConfig(
-      noPictureMode: true,
-      noPlayerContent: true,
-      defaultLoadingSize: 100,
-      loadingDismissible: true,
-      m3u8DownloadBatchSize: 30,
-      baseCachePath: 'jtech_anime',
-    ),
-    themeData: JTechAnimeThemeData(),
+
+  /// 下方设置系统主题，全局的配置/样式
+  Custom.setup(
+    config: Custom.config,
+    themeData: Custom.themeData,
+    systemTheme: Custom.systemThemeData,
   );
+  // 初始化核心内容
+  await ensureInitializedCore();
   // 初始化窗口管理
   await windowManager.ensureInitialized();
   const size = Size(800, 600);

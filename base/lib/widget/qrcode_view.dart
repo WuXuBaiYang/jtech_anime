@@ -23,13 +23,13 @@ class QRCodeView extends StatelessWidget {
   final Widget? child;
 
   const QRCodeView({
-    Key? key,
+    super.key,
     required this.text,
     this.child,
     this.color = Colors.black,
     this.size = const Size(200, 200),
     this.backgroundColor = Colors.white,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

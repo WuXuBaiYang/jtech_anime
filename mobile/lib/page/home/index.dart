@@ -7,6 +7,8 @@ import 'package:mobile/page/home/source.dart';
 import 'package:mobile/page/home/timetable.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/tool/version.dart';
+import 'package:mobile/widget/proxy.dart';
+import 'package:mobile/widget/source_import.dart';
 
 /*
 * 首页
@@ -108,33 +110,71 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
             onPressed: () => router.pushNamed(RoutePath.search),
           ),
         IconButton(
-          icon: const Icon(FontAwesomeIcons.heart),
-          onPressed: () => router.pushNamed(RoutePath.collect),
-        ),
-        IconButton(
-          icon: const Icon(FontAwesomeIcons.clockRotateLeft),
-          onPressed: () => router.pushNamed(RoutePath.record),
-        ),
-        IconButton(
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => router.pushNamed(RoutePath.download),
         ),
-        SourceStreamView(
-          builder: (c, snap) {
-            final event = snap.data;
-            if (event?.source == null) return const SizedBox();
-            return GestureDetector(
-              child: AnimeSourceLogo(source: event!.source!),
-              onTap: () => router.pushNamed(RoutePath.animeSource),
-              onLongPress: () {
-                HapticFeedback.vibrate();
-                AnimeSourceChangeDialog.show(c);
-              },
-            );
-          },
-        ),
+        _buildExpandPopupMenu(),
         const SizedBox(width: 14),
       ];
+
+  // 扩展菜单表
+  final Map<String, (IconData, Function)> _expandPopupMenu = {
+    '我的收藏': (
+      FontAwesomeIcons.heart,
+      (BuildContext context) => router.pushNamed(RoutePath.collect),
+    ),
+    '播放记录': (
+      FontAwesomeIcons.clockRotateLeft,
+      (BuildContext context) => router.pushNamed(RoutePath.record),
+    ),
+    '插件管理': (
+      FontAwesomeIcons.plug,
+      (BuildContext context) => router.pushNamed(RoutePath.animeSource),
+    ),
+    '插件导入': (
+      FontAwesomeIcons.fileImport,
+      (BuildContext context) =>
+          AnimeSourceImportSheet.show(context, title: const Text('导入插件'))
+    ),
+    '设置代理': (
+      FontAwesomeIcons.globe,
+      (BuildContext context) => AnimeSourceProxyDialog.show(context)
+    ),
+  };
+
+  // 构建扩展菜单
+  Widget _buildExpandPopupMenu() {
+    return SourceStreamView(
+      builder: (c, snap) {
+        final event = snap.data;
+        if (event?.source == null) return const SizedBox();
+        return GestureDetector(
+          child: PopupMenuButton<Function?>(
+            tooltip: '',
+            icon: AnimeSourceLogo(source: event!.source!),
+            itemBuilder: (_) => _expandPopupMenu.keys.map((key) {
+              final tuple = _expandPopupMenu[key]!;
+              return PopupMenuItem<Function?>(
+                value: tuple.$2,
+                child: Row(
+                  children: [
+                    Icon(tuple.$1),
+                    const SizedBox(width: 14),
+                    Text(key),
+                  ],
+                ),
+              );
+            }).toList(),
+            onSelected: (fun) => fun?.call(c),
+          ),
+          onLongPress: () {
+            HapticFeedback.vibrate();
+            AnimeSourceChangeDialog.show(c);
+          },
+        );
+      },
+    );
+  }
 
   // 判断是否支持番剧时间表
   bool get _supportTimeTable =>

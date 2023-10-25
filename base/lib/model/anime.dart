@@ -63,15 +63,15 @@ class AnimeModel extends BaseModel {
   // 合并详情（将传入对象合并到当前对象中）
   AnimeModel merge(AnimeModel model) {
     return copyWith(
-      name: model.name,
-      cover: model.cover,
-      status: model.status,
-      types: model.types,
-      region: model.region,
-      intro: model.intro,
-      updateTime: model.updateTime,
-      url: model.url,
-      resources: model.resources,
+      name: _notEmpty(model.name, name),
+      cover: _notEmpty(model.cover, cover),
+      status: _notEmpty(model.status, status),
+      types: model.types.isEmpty ? types : model.types,
+      region: _notEmpty(model.region, region),
+      intro: _notEmpty(model.intro, intro),
+      updateTime: _notEmpty(model.updateTime, updateTime),
+      url: _notEmpty(model.url, url),
+      resources: model.resources.isEmpty ? resources : model.resources,
     );
   }
 
@@ -114,6 +114,13 @@ class AnimeModel extends BaseModel {
           return e.map((e) => e.to()).toList();
         }).toList(),
       };
+
+  // 从两个字符串中选出非空非null的一个返回
+  String _notEmpty(String? a, String? b) {
+    if (a?.isNotEmpty == true) return a!;
+    if (b?.isNotEmpty == true) return b!;
+    return '';
+  }
 }
 
 /*

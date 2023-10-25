@@ -21,6 +21,8 @@ void main() {
   }
 
   test('test', () async {
-    const name = 'adqweadsfqwas000032.ts';
+    final a = (1, 2);
+    // 打印运行时类型
+    print(a.runtimeType);
   });
 }

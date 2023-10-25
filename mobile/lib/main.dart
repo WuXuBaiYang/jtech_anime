@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/common/route.dart';
-import 'package:mobile/common/theme.dart';
+import 'package:mobile/common/custom.dart';
+import 'package:mobile/manage/config.dart';
 import 'package:mobile/manage/notification.dart';
 import 'package:mobile/page/home/index.dart';
 import 'package:mobile/tool/network.dart';
@@ -12,17 +13,18 @@ import 'package:mobile/tool/tool.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 初始化核心内容
-  await ensureInitializedCore(
-    themeDataMap: CustomTheme.dataMap,
-    config: JTechAnimeConfig(
-      noPictureMode: true,
-      noPlayerContent: true,
-    ),
-    themeData: JTechAnimeThemeData(),
+
+  /// 下方设置系统主题，全局的配置/样式
+  Custom.setup(
+    config: Custom.config,
+    themeData: Custom.themeData,
+    systemTheme: Custom.systemThemeData,
   );
-  // 初始化消息通知
-  await notice.init();
+  // 初始化核心内容
+  await ensureInitializedCore();
+  // 初始化各种manage
+  await platformConfig.init(); // 初始化平台配置
+  await notice.init(); // 初始化消息通知
   // 强制竖屏
   setScreenOrientation(true);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
