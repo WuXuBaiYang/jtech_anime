@@ -187,8 +187,8 @@ class AnimeParserManage extends BaseManage {
         final result = await db.getCachePlayUrl(url);
         final diff =
             DateTime.now().millisecondsSinceEpoch - (result?.cacheTime ?? 0);
-        if (result != null && Duration(milliseconds: diff) < expiration) {
-          tempList.add(result);
+        if (Duration(milliseconds: diff) < expiration) {
+          tempList.add(result!);
           continue;
         }
       }
