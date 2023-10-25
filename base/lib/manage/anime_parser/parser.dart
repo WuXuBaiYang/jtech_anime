@@ -169,26 +169,28 @@ class AnimeParserManage extends BaseManage {
     return AnimeModel.from(animeDetail);
   }
 
-  // 获取视频播放地址（缓存时间：永久）
+  // 获取视频播放地址（缓存时间：可自定义，默认10分钟）
   Future<List<VideoCache>> getPlayUrls(
     List<ResourceItemModel> items, {
     CancelToken? cancelToken,
     bool useCache = true,
+    // 缓存时间
+    Duration expiration = const Duration(minutes: 10),
   }) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
     final tempList = <VideoCache>[];
     for (var item in items) {
-      String? playUrl;
       final url = item.url;
       // 先从缓存中提取播放地址，如果存在则直接封装
-      if (useCache) playUrl = await db.getCachePlayUrl(url);
-      if (playUrl != null) {
-        tempList.add(VideoCache()
-          ..url = url
-          ..playUrl = playUrl
-          ..item = item);
-        continue;
+      if (useCache) {
+        final result = await db.getCachePlayUrl(url);
+        final diff =
+            DateTime.now().millisecondsSinceEpoch - (result?.cacheTime ?? 0);
+        if (result != null && Duration(milliseconds: diff) < expiration) {
+          tempList.add(result);
+          continue;
+        }
       }
       // 如果不存在缓存地址则去获取播放地址并封装
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);

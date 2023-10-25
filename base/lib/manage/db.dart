@@ -246,8 +246,8 @@ class DBManage extends BaseManage {
   }
 
   // 根据原视频地址获取已缓存播放地址
-  Future<String?> getCachePlayUrl(String url) async =>
-      (await isar.videoCaches.where().urlEqualTo(url).findFirst())?.playUrl;
+  Future<VideoCache?> getCachePlayUrl(String url) async =>
+      (await isar.videoCaches.where().urlEqualTo(url).findFirst());
 
   // 缓存视频播放地址
   Future<VideoCache?> cachePlayUrl(String url, String playUrl) =>
