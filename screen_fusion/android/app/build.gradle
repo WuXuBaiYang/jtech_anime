@@ -22,8 +22,17 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// 加载签名文件
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("../keystore/keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 android {
-    namespace "com.jtech.jtech_anime.screen_fusion.screen_fusion"
+    namespace "com.jtech.jtech_anime.screen_fusion"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -42,20 +51,35 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.jtech.jtech_anime.screen_fusion.screen_fusion"
+        applicationId "com.jtech.jtech_anime.screen_fusion"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 24
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
+        ndk {
+            // 默认仅支持 v7 v8,如有其他架构需要请自行修改
+            abiFilters 'armeabi-v7a','arm64-v8a'
+        }
+    }
+
+    signingConfigs {
+        config {
+            keyAlias keystoreProperties['keyAlias'] ? keystoreProperties['keyAlias'] : 'jtech_anime'
+            keyPassword keystoreProperties['keyPassword'] ? keystoreProperties['keyPassword'] : 'jtech_anime'
+            storeFile file(keystoreProperties['storeFile'] ? keystoreProperties['storeFile'] : '../../debug.keystore')
+            storePassword keystoreProperties['storePassword'] ? keystoreProperties['storePassword'] : 'jtech_anime'
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.config
+        }
+        debug {
+            signingConfig signingConfigs.config
         }
     }
 }
@@ -64,4 +88,11 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    configurations {
+        all {
+            exclude group: 'androidx.lifecycle', module: 'lifecycle-viewmodel-ktx'
+        }
+    }
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
+}
