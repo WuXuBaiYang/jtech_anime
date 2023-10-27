@@ -5,9 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'manage/config.dart';
-import 'model/config.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
