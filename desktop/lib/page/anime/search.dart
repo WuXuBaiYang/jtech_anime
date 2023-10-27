@@ -107,6 +107,7 @@ class SearchBarView extends StatelessWidget {
       iconSize: 14,
       icon: const Icon(FontAwesomeIcons.xmark),
       onPressed: () {
+        if (controller.text.isEmpty) return;
         controller.clear();
         search('');
       },
