@@ -305,7 +305,7 @@ async function getAnimeDetail(animeUrl) {
         url: animeUrl,
         name: await info.querySelector('div:nth-child(3)', 'text'),
         status: status.split('  ')[0].trim(),
-        updateTime: status.split('  ')[1].trim(),
+        updateTime: '-',
         types: await resp.doc.querySelectorAll('#player-div-wrapper > div.video-details-wrapper.video-tags-wrapper > div > a', 'text'),
         intro: await info.querySelector('div:nth-child(5)', 'text'),
         resources: resources,
