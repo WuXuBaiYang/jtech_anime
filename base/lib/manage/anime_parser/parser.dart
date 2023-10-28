@@ -420,6 +420,14 @@ class AnimeParserManage extends BaseManage {
       if (attr.contains(RegExp('text|textContent'))) {
         return item.text;
       }
+      if (attr == 'children') {
+        return item.children.map((e) => e.outerHtml).toList();
+      }
+      if (attr.startsWith('children')) {
+        final result = RegExp(r'\[\d*\]').stringMatch(attr) ?? '';
+        final index = int.tryParse(result.replaceAll(RegExp(r'\[|\]'), '')) ?? 0;
+        return item.children[index].outerHtml;
+      }
       return item.attributes[attr];
     });
   }
