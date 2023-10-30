@@ -183,7 +183,7 @@ class _CustomMobileVideoPlayerState extends State<CustomMobileVideoPlayer> {
             // 区分左右屏
             final offset = details.delta.dy / screenHeight;
             if (details.globalPosition.dx > screenWidth / 2) {
-              controller.setVolume(controller.currentVolume - offset * 100);
+              controller.setVolume(controller.currentVolume - offset);
               controlVolume.setValue(true);
             } else {
               controller.setBrightness(controller.currentBrightness - offset);

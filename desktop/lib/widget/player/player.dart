@@ -117,6 +117,7 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
       ),
       sliderTheme: const SliderThemeData(
         trackHeight: 2,
+        trackShape: RoundedRectSliderTrackShape(),
         thumbShape: RoundSliderThumbShape(
           enabledThumbRadius: 6,
         ),

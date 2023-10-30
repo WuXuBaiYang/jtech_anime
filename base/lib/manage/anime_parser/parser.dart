@@ -88,7 +88,7 @@ class AnimeParserManage extends BaseManage {
     if (content == null) return null;
     final request = AnimeParserRequestModel.fromTimeTable();
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     return TimeTableModel.from(result ?? {});
   }
 
@@ -99,17 +99,16 @@ class AnimeParserManage extends BaseManage {
     if (content == null) return [];
     final request = AnimeParserRequestModel.fromFilter();
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     return (result ?? [])
         .map<AnimeFilterModel>(
           (e) => AnimeFilterModel.from(e),
-        )
+    )
         .toList();
   }
 
   // 搜索番剧列表
-  Future<List<AnimeModel>> searchAnimeList(
-    String keyword, {
+  Future<List<AnimeModel>> searchAnimeList(String keyword, {
     int pageIndex = 1,
     int pageSize = 25,
     Map<String, dynamic> filterSelect = const {},
@@ -120,11 +119,11 @@ class AnimeParserManage extends BaseManage {
     final request = AnimeParserRequestModel.fromSearch(
         pageIndex: pageIndex, pageSize: pageSize, keyword: keyword);
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     return (result ?? [])
         .map<AnimeModel>(
           (e) => AnimeModel.from(e),
-        )
+    )
         .toList();
   }
 
@@ -140,17 +139,16 @@ class AnimeParserManage extends BaseManage {
     final request = AnimeParserRequestModel.fromHome(
         pageIndex: pageIndex, pageSize: pageSize, filterSelect: filterSelect);
     final result =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     return (result ?? [])
         .map<AnimeModel>(
           (e) => AnimeModel.from(e),
-        )
+    )
         .toList();
   }
 
   // 获取详情页数据(缓存时间：6小时)
-  Future<AnimeModel?> getAnimeDetail(
-    String animeUrl, {
+  Future<AnimeModel?> getAnimeDetail(String animeUrl, {
     CancelToken? cancelToken,
     bool useCache = true,
   }) async {
@@ -162,7 +160,7 @@ class AnimeParserManage extends BaseManage {
     if (animeDetail != null) return AnimeModel.from(animeDetail);
     final request = AnimeParserRequestModel.fromDetail(animeUrl: animeUrl);
     animeDetail =
-        await _doJSFunction(content, request, cancelToken: cancelToken);
+    await _doJSFunction(content, request, cancelToken: cancelToken);
     if (animeDetail == null) return null;
     await cache.setJsonMap(cacheKey, animeDetail,
         expiration: const Duration(hours: 6));
@@ -170,12 +168,9 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 获取视频播放地址（缓存时间：可自定义，默认10分钟）
-  Future<List<VideoCache>> getPlayUrls(
-    List<ResourceItemModel> items, {
+  Future<List<VideoCache>> getPlayUrls(List<ResourceItemModel> items, {
     CancelToken? cancelToken,
     bool useCache = true,
-    // 缓存时间
-    Duration expiration = const Duration(minutes: 10),
   }) async {
     final content = await _readParserFileContent();
     if (content == null) return [];
@@ -185,26 +180,25 @@ class AnimeParserManage extends BaseManage {
       // 先从缓存中提取播放地址，如果存在则直接封装
       if (useCache) {
         final result = await db.getCachePlayUrl(url);
-        // final diff =
-        //     DateTime.now().millisecondsSinceEpoch - (result?.cacheTime ?? 0);
-        // if (Duration(milliseconds: diff) < expiration) {
-        tempList.add(result!);
-        //   continue;
-        // }
+        if (result != null) {
+          tempList.add(result!);
+          continue;
+        }
       }
       // 如果不存在缓存地址则去获取播放地址并封装
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
       final result =
-          await _doJSFunction(content, request, cancelToken: cancelToken);
+      await _doJSFunction(content, request, cancelToken: cancelToken);
       for (final e in (result ?? [])) {
         final playUrl = e['playUrl'];
         useCache = e['useCache'] ?? true;
         final result = useCache
             ? await db.cachePlayUrl(url, playUrl)
             : (VideoCache()
-              ..url = url
-              ..playUrl = playUrl);
-        tempList.add((result ?? VideoCache.from(e))..item = item);
+          ..url = url
+          ..playUrl = playUrl);
+        tempList.add((result ?? VideoCache.from(e))
+          ..item = item);
       }
     }
     return tempList;
@@ -276,8 +270,8 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 将解析js写入本地
-  Future<File?> _writeAnimeParserFile(
-      AnimeSource source, String content) async {
+  Future<File?> _writeAnimeParserFile(AnimeSource source,
+      String content) async {
     final savePath = await FileTool.getDirPath(
         join(rootConfig.baseCachePath, FileDirPath.animeParserCachePath),
         root: FileDir.applicationDocuments);
@@ -310,11 +304,10 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 执行js方法
-  Future<T?> _doJSFunction<T>(
-    String sourceCode,
-    AnimeParserRequestModel request, {
-    CancelToken? cancelToken,
-  }) async {
+  Future<T?> _doJSFunction<T>(String sourceCode,
+      AnimeParserRequestModel request, {
+        CancelToken? cancelToken,
+      }) async {
     final params = request.to();
     final completer = Completer<T?>();
     final function = request.function.getCaseFunction(params);
@@ -370,15 +363,15 @@ class AnimeParserManage extends BaseManage {
       // 如果是br压缩则
       String data = resp.data.isNotEmpty
           ? (contentEncoding == 'br'
-              ? brotli.decodeToString(resp.data, encoding: utf8)
-              : utf8.decode(resp.data))
+          ? brotli.decodeToString(resp.data, encoding: utf8)
+          : utf8.decode(resp.data))
           : '';
       dynamic json;
       try {
         json = jsonDecode(data);
       } catch (_) {}
       final headers = resp.headers.map.map(
-        (k, v) => MapEntry(k, v.join(';')),
+            (k, v) => MapEntry(k, v.join(';')),
       );
       return {
         'ok': resp.statusCode == 200,
@@ -434,7 +427,8 @@ class AnimeParserManage extends BaseManage {
   }
 
   // 注入方法
-  String get _injectionMethods => [
+  String get _injectionMethods =>
+      [
         // 扩展string方法querySelectorAll
         '''
         String.prototype.querySelectorAll = async function (selector, attr) {

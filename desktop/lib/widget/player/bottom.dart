@@ -87,7 +87,7 @@ class _CustomPlayerControlsBottomState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _buildPlayVolumeAction(),
+                    _buildPlayVolumeAction(context),
                     _buildPlaySpeedAction(),
                     const SizedBox(width: 8),
                     _buildFullscreenAction(),
@@ -167,42 +167,56 @@ class _CustomPlayerControlsBottomState
   double _lastVolume = 0;
 
   // 构建播放音量按钮
-  Widget _buildPlayVolumeAction() {
+  Widget _buildPlayVolumeAction(BuildContext context) {
     final controller = widget.controller;
-    return StreamBuilder<double>(
-      stream: controller.stream.volume,
-      builder: (_, snap) {
-        final volume = snap.data ?? 100;
-        final length = volumeLevel.length - 1;
-        final index = ((volume / 100) * length).ceil();
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(volumeLevel[min(index, length)]),
-              onPressed: () {
-                if (volume == 0) {
-                  controller.setVolume(_lastVolume);
-                } else {
-                  _lastVolume = volume;
-                  controller.setVolume(0);
-                }
-              },
-            ),
-            SizedBox.fromSize(
-              size: const Size(140, 10),
-              child: Slider(
-                max: 100,
-                value: volume,
-                onChanged: (v) {
-                  controller.setVolume(v);
-                  controller.setControlVisible(true);
+    return Theme(
+      data: Theme.of(context).copyWith(
+        sliderTheme: const SliderThemeData(
+          trackHeight: 1,
+          thumbShape: RoundSliderThumbShape(
+            enabledThumbRadius: 4,
+          ),
+          overlayShape: RoundSliderOverlayShape(
+            overlayRadius: 12,
+          ),
+        ),
+      ),
+      child: ValueListenableBuilder<double>(
+        valueListenable: controller.volume,
+        builder: (_, volume, __) {
+          final length = volumeLevel.length - 1;
+          final index = (volume * length).ceil();
+          return Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              IconButton(
+                icon: Icon(volumeLevel[min(index, length)]),
+                onPressed: () {
+                  if (volume == 0) {
+                    controller.setVolume(_lastVolume);
+                  } else {
+                    _lastVolume = volume;
+                    controller.setVolume(0);
+                  }
                 },
               ),
-            ),
-          ],
-        );
-      },
+              Padding(
+                padding: const EdgeInsets.only(left: 34),
+                child: SizedBox.fromSize(
+                  size: const Size(120, 10),
+                  child: Slider(
+                    value: volume,
+                    onChanged: (v) {
+                      controller.setVolume(v);
+                      controller.setControlVisible(true);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
