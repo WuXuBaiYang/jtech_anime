@@ -185,12 +185,12 @@ class AnimeParserManage extends BaseManage {
       // 先从缓存中提取播放地址，如果存在则直接封装
       if (useCache) {
         final result = await db.getCachePlayUrl(url);
-        final diff =
-            DateTime.now().millisecondsSinceEpoch - (result?.cacheTime ?? 0);
-        if (Duration(milliseconds: diff) < expiration) {
-          tempList.add(result!);
-          continue;
-        }
+        // final diff =
+        //     DateTime.now().millisecondsSinceEpoch - (result?.cacheTime ?? 0);
+        // if (Duration(milliseconds: diff) < expiration) {
+        tempList.add(result!);
+        //   continue;
+        // }
       }
       // 如果不存在缓存地址则去获取播放地址并封装
       final request = AnimeParserRequestModel.fromPlayUrl(resourceUrls: [url]);
@@ -425,7 +425,8 @@ class AnimeParserManage extends BaseManage {
       }
       if (attr.startsWith('children')) {
         final result = RegExp(r'\[\d*\]').stringMatch(attr) ?? '';
-        final index = int.tryParse(result.replaceAll(RegExp(r'\[|\]'), '')) ?? 0;
+        final index =
+            int.tryParse(result.replaceAll(RegExp(r'[\[\]]'), '')) ?? 0;
         return item.children[index].outerHtml;
       }
       return item.attributes[attr];
