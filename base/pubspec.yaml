@@ -95,6 +95,9 @@ dependencies:
   # 系统音量调节（NO WEB）
   flutter_volume_controller: ^1.3.0
 
+  # ping方法
+  dart_ping: ^9.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

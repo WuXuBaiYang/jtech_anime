@@ -347,7 +347,9 @@ class AnimeParserManage extends BaseManage {
       Response? resp;
       try {
         final dio = Dio();
-        dio.httpClientAdapter = proxy.createProxyHttpAdapter();
+        if (await proxy.checkProxy()) {
+          dio.httpClientAdapter = proxy.createProxyHttpAdapter();
+        }
         resp = await dio.request(url,
             queryParameters: options['query'],
             options: Options(
