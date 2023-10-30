@@ -29,6 +29,9 @@ class ProxyManage extends BaseManage {
   // 获取当前代理
   ProxyRecord? get currentProxy => _currentProxy ??= _loadCurrentProxy();
 
+  // 判断当前是否存在代理
+  bool get hasProxy => currentProxy != null;
+
   // 从json中加载当前代理记录
   ProxyRecord? _loadCurrentProxy() {
     final json = cache.getJson(_currentProxyKey);
@@ -46,8 +49,22 @@ class ProxyManage extends BaseManage {
     return result;
   }
 
+  // 创建包含代理的httpAdapter
+  HttpClientAdapter createProxyHttpAdapter() {
+    final proxy = currentProxy?.proxy;
+    if (proxy == null) return IOHttpClientAdapter();
+    return IOHttpClientAdapter()
+      ..createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback = (_, __, ___) => true;
+        client.findProxy = (_) => 'PROXY $proxy';
+        return client;
+      };
+  }
+
   // 验证当前选中的代理是否有效
   Future<bool> checkProxy() async {
+    if (!hasProxy) return false;
     try {
       // 通过访问百度判断代理是否可用
       final dio = Dio(
@@ -69,19 +86,6 @@ class ProxyManage extends BaseManage {
       LogTool.w('代理不可用', error: e);
     }
     return false;
-  }
-
-  // 创建包含代理的httpAdapter
-  HttpClientAdapter createProxyHttpAdapter() {
-    final proxy = currentProxy?.proxy;
-    if (proxy == null) return IOHttpClientAdapter();
-    return IOHttpClientAdapter()
-      ..createHttpClient = () {
-        final client = HttpClient();
-        client.badCertificateCallback = (_, __, ___) => true;
-        client.findProxy = (_) => 'PROXY $proxy';
-        return client;
-      };
   }
 
   // 获取代理列表

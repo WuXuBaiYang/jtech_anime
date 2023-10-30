@@ -22,6 +22,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);
 
+  // 小窗口模式
+  final miniWindow = ValueChangeNotifier<bool>(false);
+
   // 屏幕亮度控制（0-1）
   final screenBrightness = ValueChangeNotifier<double>(1);
 
@@ -74,6 +77,15 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
       _cancelTimer();
     });
   }
+
+  // 获取当前小窗口状态
+  bool get isMiniWindow => miniWindow.value;
+
+  // 切换小窗口状态
+  void toggleMiniWindow() => setMiniWindow(!miniWindow.value);
+
+  // 设置小窗口状态
+  void setMiniWindow(bool mini) => miniWindow.setValue(mini);
 
   // 获取当前锁屏状态
   bool get isScreenLocked => screenLocked.value;
