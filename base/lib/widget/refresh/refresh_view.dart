@@ -74,7 +74,7 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 判断是否启用初始化加载
       if (widget.initialRefresh) {
-        Future.delayed(const Duration(milliseconds: 100))
+        Future.delayed(const Duration(milliseconds: 200))
             .then((_) => widget.controller.startRefresh());
       }
     });
