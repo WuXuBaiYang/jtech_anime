@@ -1,14 +1,12 @@
 import 'dart:io';
-
-import 'package:dart_ping/dart_ping.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:jtech_anime_base/base.dart';
 import 'package:jtech_anime_base/common/manage.dart';
 import 'package:jtech_anime_base/manage/cache.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/manage/event.dart';
 import 'package:jtech_anime_base/model/database/proxy.dart';
+import 'package:jtech_anime_base/tool/log.dart';
 
 /*
 * 代理管理器
