@@ -68,25 +68,22 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
       windowManager.setFullScreen(value);
     });
     // 监听小窗口状态切换
-    controller.miniWindow.addListener(() {
+    Offset? cachePosition;
+    controller.miniWindow.addListener(() async {
       if (!mounted) return;
-      if (controller.isMiniWindow) {
-        windowManager
-          ..setAlwaysOnTop(true)
-          ..setAlignment(Alignment.topLeft);
-        Future.wait([
-          windowManager.setMinimumSize(Custom.miniWindowSize),
-          windowManager.setSize(Custom.miniWindowSize),
-        ]);
-      } else {
-        windowManager
-          ..setAlwaysOnTop(false)
-          ..setAlignment(Alignment.center);
-        Future.wait([
-          windowManager.setMinimumSize(Custom.defaultWindowSize),
-          windowManager.setSize(Custom.defaultWindowSize),
-        ]);
-      }
+      final mini = controller.isMiniWindow;
+      final windowSize =
+          mini ? Custom.miniWindowSize : Custom.defaultWindowSize;
+      if (mini) cachePosition = await windowManager.getPosition();
+      await Future.wait([
+        windowManager.setAlwaysOnTop(mini),
+        if (mini)
+          windowManager.setAlignment(Alignment.topLeft, animate: true)
+        else if (cachePosition != null)
+          windowManager.setPosition(cachePosition!, animate: true),
+        windowManager.setMinimumSize(windowSize),
+        windowManager.setSize(windowSize),
+      ]);
     });
   }
 
