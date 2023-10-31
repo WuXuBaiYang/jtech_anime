@@ -389,7 +389,9 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
-    // 种植视频播放并销毁资源获取
+    // 取消mini窗口
+    controller.setMiniWindow(false);
+    // 终止视频播放并销毁资源获取
     cancelVideoPlay();
     // 销毁控制器
     controller.dispose();
