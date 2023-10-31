@@ -25,4 +25,7 @@ class Throttle {
       {Duration delay = const Duration(milliseconds: 2000)}) {
     return () => c(func, key, delay: delay);
   }
+
+  // 清除节流
+  static void clear(String key) => _throttle.remove(key);
 }

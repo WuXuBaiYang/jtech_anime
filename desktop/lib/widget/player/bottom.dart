@@ -228,34 +228,47 @@ class _CustomPlayerControlsBottomState
     3.0: FontAwesomeIcons.gaugeHigh,
   };
 
+  // 倍速按钮key
+  final playSpeedKey = GlobalKey<PopupMenuButtonState>();
+
   // 构建播放速度按钮
   Widget _buildPlaySpeedAction() {
     final controller = widget.controller;
-    return StreamBuilder<double>(
-      stream: controller.stream.rate,
-      builder: (_, snap) {
-        final rate = snap.data ?? 1.0;
-        return PopupMenuButton<double>(
-          elevation: 0,
-          icon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(playSpeedMap[rate]),
-              const SizedBox(width: 8),
-              Text('${rate}x'),
-            ],
-          ),
-          itemBuilder: (_) => playSpeedMap.entries
-              .map<PopupMenuItem<double>>((e) => CheckedPopupMenuItem(
-                    value: e.key,
-                    checked: rate == e.key,
-                    padding: EdgeInsets.zero,
-                    child: Text('${e.key}x'),
-                  ))
-              .toList(),
-          onSelected: controller.setRate,
-        );
-      },
+    // 当鼠标进入范围等待一秒后弹出菜单
+    return MouseRegion(
+      onEnter: (_) => Debounce.c(
+        () => playSpeedKey.currentState?.showButtonMenu(),
+        delay: const Duration(milliseconds: 500),
+        'showPlaySpeedMenu',
+      ),
+      onExit: (_) => Debounce.clear('showPlaySpeedMenu'),
+      child: StreamBuilder<double>(
+        stream: controller.stream.rate,
+        builder: (_, snap) {
+          final rate = snap.data ?? 1.0;
+          return PopupMenuButton<double>(
+            key: playSpeedKey,
+            elevation: 0,
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(playSpeedMap[rate]),
+                const SizedBox(width: 8),
+                Text('${rate}x'),
+              ],
+            ),
+            itemBuilder: (_) => playSpeedMap.entries
+                .map<PopupMenuItem<double>>((e) => CheckedPopupMenuItem(
+                      value: e.key,
+                      checked: rate == e.key,
+                      padding: EdgeInsets.zero,
+                      child: Text('${e.key}x'),
+                    ))
+                .toList(),
+            onSelected: controller.setRate,
+          );
+        },
+      ),
     );
   }
 
