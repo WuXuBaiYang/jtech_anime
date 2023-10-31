@@ -2,39 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*
-* 自定义播放器控制层-锁屏状态下的进度条
+* 自定义播放器控制层-mini窗口状态下的进度条
 * @author wuxubaiyang
 * @Time 2023/8/28 10:19
 */
-class CustomPlayerLockProgress extends StatefulWidget {
+class CustomPlayerMiniProgress extends StatefulWidget {
   // 播放器控制器
   final CustomVideoPlayerController controller;
 
-  const CustomPlayerLockProgress({
+  const CustomPlayerMiniProgress({
     super.key,
     required this.controller,
   });
 
   @override
-  State<StatefulWidget> createState() => _CustomPlayerLockProgressState();
+  State<StatefulWidget> createState() => _CustomPlayerMiniProgressState();
 }
 
 /*
-* 自定义播放器控制层-侧边-状态
+* 自定义播放器控制层-mini窗口-状态
 * @author wuxubaiyang
 * @Time 2023/8/28 10:19
 */
-class _CustomPlayerLockProgressState extends State<CustomPlayerLockProgress> {
+class _CustomPlayerMiniProgressState extends State<CustomPlayerMiniProgress> {
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: _buildLockProgress(),
+      child: _buildMiniProgress(),
     );
   }
 
-  // 构建锁屏状态下的进度条
-  Widget _buildLockProgress() {
+  // 构建mini窗口下的进度条
+  Widget _buildMiniProgress() {
     final controller = widget.controller;
     return StreamBuilder<Duration>(
       stream: controller.stream.position,

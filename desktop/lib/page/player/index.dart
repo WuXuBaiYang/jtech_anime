@@ -31,11 +31,14 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   @override
   Widget buildWidget(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: logic.controller.controlFullscreen,
-      builder: (_, isFullscreen, __) {
+    final controller = logic.controller;
+    return ValueListenableBuilder2<bool, bool>(
+      first: controller.controlFullscreen,
+      second: controller.miniWindow,
+      builder: (_, isFullscreen, isMiniWindow, __) {
         return WindowPage(
-          isFullScreen: isFullscreen,
+          isDraggable: isMiniWindow,
+          isFullScreen: isFullscreen || isMiniWindow,
           leading: const BackButton(),
           child: Scaffold(
             key: pageKey,
@@ -238,6 +241,11 @@ class _PlayerLogic extends BaseLogic {
         () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
+    });
+    // 当切换迷你窗口时关闭播放进度提示
+    controller.miniWindow.addListener(() {
+      if (!controller.isMiniWindow) return;
+      playRecord.setValue(null);
     });
   }
 

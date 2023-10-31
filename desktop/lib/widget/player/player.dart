@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:desktop/common/custom.dart';
+import 'package:desktop/widget/player/mini.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,9 +63,30 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
     // 控制器
     final controller = widget.controller;
     // 监听全屏状态切换
-    widget.controller.controlFullscreen.addListener(() {
+    controller.controlFullscreen.addListener(() {
       final value = controller.controlFullscreen.value;
       windowManager.setFullScreen(value);
+    });
+    // 监听小窗口状态切换
+    controller.miniWindow.addListener(() {
+      if (!mounted) return;
+      if (controller.isMiniWindow) {
+        windowManager
+          ..setAlwaysOnTop(true)
+          ..setAlignment(Alignment.topLeft);
+        Future.wait([
+          windowManager.setMinimumSize(Custom.miniWindowSize),
+          windowManager.setSize(Custom.miniWindowSize),
+        ]);
+      } else {
+        windowManager
+          ..setAlwaysOnTop(false)
+          ..setAlignment(Alignment.center);
+        Future.wait([
+          windowManager.setMinimumSize(Custom.defaultWindowSize),
+          windowManager.setSize(Custom.defaultWindowSize),
+        ]);
+      }
     });
   }
 
@@ -178,16 +201,21 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
   // 构建显示控制层
   Widget _buildVisibleControls() {
     final controller = widget.controller;
-    return ValueListenableBuilder<bool>(
-      valueListenable: controller.controlVisible,
-      builder: (_, visible, __) {
+    return ValueListenableBuilder2<bool, bool>(
+      first: controller.controlVisible,
+      second: controller.miniWindow,
+      builder: (_, visible, isMiniWindow, __) {
         return AnimatedOpacity(
           opacity: visible ? 1 : 0,
           duration: const Duration(milliseconds: 180),
           child: Stack(
             children: [
-              _buildTopActions(),
-              _buildBottomActions(),
+              if (isMiniWindow)
+                _buildMiniScreenAction()
+              else ...[
+                _buildTopActions(),
+                _buildBottomActions(),
+              ],
             ],
           ),
         );
@@ -212,6 +240,13 @@ class _CustomDesktopVideoPlayerState extends State<CustomDesktopVideoPlayer> {
       actions: widget.bottomActions,
       controller: widget.controller,
       seekStream: playerSeekStream.stream,
+    );
+  }
+
+  // 构建迷你操作栏
+  Widget _buildMiniScreenAction() {
+    return CustomPlayerControlsMini(
+      controller: widget.controller,
     );
   }
 

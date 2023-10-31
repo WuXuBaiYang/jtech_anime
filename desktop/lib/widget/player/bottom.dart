@@ -90,6 +90,7 @@ class _CustomPlayerControlsBottomState
                     _buildPlayVolumeAction(context),
                     _buildPlaySpeedAction(),
                     const SizedBox(width: 8),
+                    _buildMiniScreenAction(),
                     _buildFullscreenAction(),
                   ],
                 ),
@@ -190,6 +191,7 @@ class _CustomPlayerControlsBottomState
             alignment: Alignment.centerLeft,
             children: [
               IconButton(
+                tooltip: '点击静音',
                 icon: Icon(volumeLevel[min(index, length)]),
                 onPressed: () {
                   if (volume == 0) {
@@ -272,6 +274,21 @@ class _CustomPlayerControlsBottomState
     );
   }
 
+  // 构建迷你屏幕按钮
+  Widget _buildMiniScreenAction() {
+    final controller = widget.controller;
+    return ValueListenableBuilder<bool>(
+      valueListenable: controller.miniWindow,
+      builder: (_, isMiniWindow, __) {
+        return IconButton(
+          tooltip: '小窗口播放',
+          onPressed: controller.toggleMiniWindow,
+          icon: const Icon(FontAwesomeIcons.windowRestore),
+        );
+      },
+    );
+  }
+
   // 构建全屏按钮
   Widget _buildFullscreenAction() {
     final controller = widget.controller;
@@ -279,6 +296,7 @@ class _CustomPlayerControlsBottomState
       valueListenable: controller.controlFullscreen,
       builder: (_, expanded, __) {
         return IconButton(
+          tooltip: '全屏播放',
           icon: Icon(
               expanded ? FontAwesomeIcons.compress : FontAwesomeIcons.expand),
           onPressed: () => controller.toggleFullscreen(),

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:jtech_anime_base/manage/config.dart';
+import 'package:window_manager/window_manager.dart';
 
 /*
 * 应用版本检查
@@ -29,8 +29,11 @@ class AppVersionTool extends AppVersionToolBase {
       final downloadFilePath = await downloadUpdateFile(
         info,
         saveDir: saveDir,
-        onReceiveProgress: (count, total) =>
-            _downloadProgressController.add(count / total),
+        onReceiveProgress: (count, total) {
+          final progress = count / total;
+          windowManager.setProgressBar(progress);
+          _downloadProgressController.add(progress);
+        },
       );
       if (downloadFilePath == null) return;
       // 使用命令启动已下载文件
@@ -38,6 +41,8 @@ class AppVersionTool extends AppVersionToolBase {
       SnackTool.showMessage(message: '正在启动安装...');
     } catch (e) {
       LogTool.e('版本更新检查失败', error: e);
+    } finally {
+      windowManager.setProgressBar(0);
     }
   }
 }

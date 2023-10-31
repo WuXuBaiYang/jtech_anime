@@ -28,6 +28,9 @@ class WindowPage extends StatelessWidget {
   // 是否全屏
   final bool isFullScreen;
 
+  // 是否整个页面可拖动
+  final bool isDraggable;
+
   // 窗口最大化状态
   final maximized = ValueChangeNotifier<bool>(false);
 
@@ -38,6 +41,7 @@ class WindowPage extends StatelessWidget {
     this.leading,
     this.sideBar,
     this.actions = const [],
+    this.isDraggable = false,
     this.isFullScreen = false,
   }) {
     // 获取当前最大化状态
@@ -50,6 +54,16 @@ class WindowPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isDraggable) {
+      return DragToMoveArea(
+        child: _buildPageContent(context),
+      );
+    }
+    return _buildPageContent(context);
+  }
+
+  // 构建页面内容
+  Widget _buildPageContent(BuildContext context) {
     return Stack(
       children: [
         Positioned.fill(child: _buildWindowPage(context)),

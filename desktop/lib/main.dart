@@ -18,17 +18,25 @@ void main() async {
   await ensureInitializedCore();
   // 初始化窗口管理
   await windowManager.ensureInitialized();
-  const size = Size(800, 600);
   const windowOptions = WindowOptions(
-    size: size,
     center: true,
-    minimumSize: size,
     skipTaskbar: false,
+    size: Custom.defaultWindowSize,
     titleBarStyle: TitleBarStyle.hidden,
+    minimumSize: Custom.defaultWindowSize,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
+  });
+  // 监听下载进度变化
+  download.downloadProgress.listen((task) {
+    if (task != null && task.downloadingMap.isNotEmpty) {
+      final progress = task.totalRatio;
+      windowManager.setProgressBar(progress);
+      return;
+    }
+    windowManager.setProgressBar(0);
   });
   runApp(const MyApp());
 }
