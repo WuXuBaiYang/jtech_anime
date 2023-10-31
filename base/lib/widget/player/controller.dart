@@ -67,6 +67,10 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     _timer = null;
   }
 
+  // 获取当前播放进度
+  double get progress =>
+      state.position.inMilliseconds / state.duration.inMilliseconds;
+
   // 切换控制组件
   void setControlVisible(bool visible, {bool ongoing = false}) {
     controlVisible.setValue(visible);

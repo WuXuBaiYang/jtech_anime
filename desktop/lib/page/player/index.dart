@@ -3,6 +3,7 @@ import 'package:desktop/widget/page.dart';
 import 'package:desktop/widget/player/player.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'resource.dart';
 
@@ -238,7 +239,10 @@ class _PlayerLogic extends BaseLogic {
     controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
-        () => _updateVideoProgress(e),
+        () {
+          _updateVideoProgress(e);
+          windowManager.setProgressBar(controller.progress);
+        },
         'updateVideoProgress',
       );
     });
