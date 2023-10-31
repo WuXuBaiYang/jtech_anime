@@ -87,6 +87,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
         _buildBottomActionsNext(),
         const Spacer(),
         _buildBottomActionsChoice(),
+        _buildBottomActionsAutoPlay(),
       ],
     );
   }
@@ -130,6 +131,26 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       onPressed: () {
         logic.controller.setControlVisible(true, ongoing: true);
         pageKey.currentState?.openEndDrawer();
+      },
+    );
+  }
+
+  // 构建底部连播按钮
+  Widget _buildBottomActionsAutoPlay() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.autoPlay,
+      builder: (_, autoPlay, __) {
+        return Tooltip(
+          message: autoPlay ? '关闭自动连播' : '开启自动连播',
+          child: Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: autoPlay,
+              activeColor: kPrimaryColor,
+              onChanged: logic.autoPlay.setValue,
+            ),
+          ),
+        );
       },
     );
   }
@@ -195,9 +216,21 @@ class _PlayerLogic extends BaseLogic {
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
+  // 是否自动连播
+  final autoPlay = ValueChangeNotifier<bool>(true);
+
   @override
   void init() {
     super.init();
+    // 监听播放完成状态
+    controller.stream.completed.listen((completed) {
+      if (!completed) return;
+      // 自动播放下一集
+      if (autoPlay.value) {
+        final nextVideo = nextResourceInfo.value;
+        if (nextVideo != null) changeVideo(nextVideo);
+      }
+    });
     // 监听视频播放进度
     controller.stream.position.listen((e) {
       // 更新当前播放进度
