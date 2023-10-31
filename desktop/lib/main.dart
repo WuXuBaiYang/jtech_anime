@@ -1,6 +1,7 @@
 import 'package:desktop/common/route.dart';
 import 'package:desktop/common/custom.dart';
 import 'package:desktop/page/home/index.dart';
+import 'package:desktop/tool/version.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
@@ -33,8 +34,22 @@ void main() async {
   download.downloadProgress.listen((task) {
     if (task != null && task.downloadingMap.isNotEmpty) {
       final progress = task.totalRatio;
-      windowManager.setProgressBar(progress);
-      return;
+      return Throttle.c(
+        () => windowManager.setProgressBar(progress),
+        delay: const Duration(milliseconds: 500),
+        'update_progress',
+      );
+    }
+    windowManager.setProgressBar(0);
+  });
+  // 监听版本更新状态
+  AppVersionTool.downloadProgressStream.listen((progress) {
+    if (progress < 1.0) {
+      return Throttle.c(
+        () => windowManager.setProgressBar(progress),
+        delay: const Duration(milliseconds: 500),
+        'update_progress',
+      );
     }
     windowManager.setProgressBar(0);
   });
