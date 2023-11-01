@@ -238,13 +238,10 @@ class _PlayerLogic extends BaseLogic {
     // 监听视频播放进度
     controller.stream.position.listen((e) {
       // 更新当前播放进度
-      Throttle.c(
-        () {
-          _updateVideoProgress(e);
-          windowManager.setProgressBar(controller.progress);
-        },
-        'updateVideoProgress',
-      );
+      Throttle.c(() {
+        _updateVideoProgress(e);
+        windowManager.setProgressBar(controller.progress);
+      }, 'updateVideoProgress');
     });
     // 当切换迷你窗口时关闭播放进度提示
     controller.miniWindow.addListener(() {
