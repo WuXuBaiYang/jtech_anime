@@ -126,9 +126,10 @@ class _CustomPlayerControlsBottomState
                     value: max(progress.inMilliseconds.toDouble(), 0),
                     secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
                     secondaryTrackValue:
-                        max(buffer.inMilliseconds.toDouble(), 0),
-                    onChanged: (v) => tempProgress
-                        .setValue(Duration(milliseconds: v.toInt())),
+                    max(buffer.inMilliseconds.toDouble(), 0),
+                    onChanged: (v) =>
+                        tempProgress
+                            .setValue(Duration(milliseconds: v.toInt())),
                     onChangeEnd: (v) =>
                         _delaySeekVideo(Duration(milliseconds: v.toInt())),
                   ),
@@ -191,7 +192,7 @@ class _CustomPlayerControlsBottomState
             alignment: Alignment.centerLeft,
             children: [
               IconButton(
-                tooltip: '点击静音',
+                tooltip: '静音',
                 icon: Icon(volumeLevel[min(index, length)]),
                 onPressed: () {
                   if (volume == 0) {
@@ -238,11 +239,12 @@ class _CustomPlayerControlsBottomState
     final controller = widget.controller;
     // 当鼠标进入范围等待一秒后弹出菜单
     return MouseRegion(
-      onEnter: (_) => Debounce.c(
-        () => playSpeedKey.currentState?.showButtonMenu(),
-        delay: const Duration(milliseconds: 500),
-        'showPlaySpeedMenu',
-      ),
+      onEnter: (_) =>
+          Debounce.c(
+                () => playSpeedKey.currentState?.showButtonMenu(),
+            delay: const Duration(milliseconds: 500),
+            'showPlaySpeedMenu',
+          ),
       onExit: (_) => Debounce.clear('showPlaySpeedMenu'),
       child: StreamBuilder<double>(
         stream: controller.stream.rate,
@@ -259,14 +261,16 @@ class _CustomPlayerControlsBottomState
                 Text('${rate}x'),
               ],
             ),
-            itemBuilder: (_) => playSpeedMap.entries
-                .map<PopupMenuItem<double>>((e) => CheckedPopupMenuItem(
+            itemBuilder: (_) =>
+                playSpeedMap.entries
+                    .map<PopupMenuItem<double>>((e) =>
+                    CheckedPopupMenuItem(
                       value: e.key,
                       checked: rate == e.key,
                       padding: EdgeInsets.zero,
                       child: Text('${e.key}x'),
                     ))
-                .toList(),
+                    .toList(),
             onSelected: controller.setRate,
           );
         },

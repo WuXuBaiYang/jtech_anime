@@ -145,7 +145,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       valueListenable: logic.autoPlay,
       builder: (_, autoPlay, __) {
         return Tooltip(
-          message: autoPlay ? '关闭自动连播' : '开启自动连播',
+          message: '自动连播',
           child: Transform.scale(
             scale: 0.8,
             child: Switch(
