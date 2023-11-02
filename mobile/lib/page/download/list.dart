@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:mobile/widget/text_scroll.dart';
+import 'downloaded.dart';
+import 'downloading.dart';
 
 // 下载记录事件回调
 typedef DownloadRecordCallback = void Function(List<DownloadRecord> records);
@@ -71,9 +72,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
           padding: widget.padding ??
               const EdgeInsets.symmetric(horizontal: 8).copyWith(top: 4),
           itemBuilder: (_, i) {
-            final item = widget.groupList[i];
-            final expanded = expandedList.contains(item.url);
-            return _buildGroupItem(item, expanded);
+            return _buildGroupItem(widget.groupList[i], expandedList);
           },
         );
       },
@@ -81,112 +80,128 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   }
 
   // 构建分组项
-  Widget _buildGroupItem(DownloadGroup item, bool expanded) {
+  Widget _buildGroupItem(DownloadGroup group, List<String> expandedList) {
     final downloadTask = widget.downloadTask;
+    final expanded = expandedList.contains(group.url);
     return Card(
-      clipBehavior: Clip.hardEdge,
+      elevation: 0,
+      color: kPrimaryColor.withOpacity(0.08),
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: ImageView.net(
-                    width: 70,
-                    height: 85,
-                    item.cover,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Expanded(
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.only(left: 8),
-                    title: Text(item.title,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: SizedBox.fromSize(
-                      size: const Size.fromHeight(40),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: downloadTask != null
-                            ? _buildGroupItemSimpleDownloadingInfo(
-                                item.records, downloadTask, expanded)
-                            : _buildGroupItemSimpleDownloadedInfo(item.records),
-                      ),
-                    ),
-                  ),
-                ),
-                AnimatedRotation(
-                  turns: expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: IconButton(
-                    iconSize: 20,
-                    color: kPrimaryColor.withOpacity(0.5),
-                    onPressed: () => _toggleExpanded(item.url),
-                    icon: const Icon(FontAwesomeIcons.chevronDown),
-                  ),
-                ),
-              ],
+            _buildGroupItemInfo(
+              group,
+              expanded: expanded,
+              downloadTask: downloadTask,
             ),
+            const SizedBox(height: 2),
             if (expanded)
-              widget.downloadTask != null
-                  ? _buildGroupItemDownloadingRecords(
-                      item.records, downloadTask)
-                  : _buildGroupItemDownloadedRecords(
-                      item.records, widget.playRecordMap?[item.url]),
+              _buildGroupItemRecords(group.records,
+                  downloadTask: downloadTask,
+                  playRecord: widget.playRecordMap?[group.url]),
           ],
         ),
-        onTap: () => _toggleExpanded(item.url),
-        onLongPress: () => widget.onRemoveRecords?.call(item.records),
+        onTap: () => _toggleExpanded(group.url),
+        onLongPress: () => widget.onRemoveRecords?.call(group.records),
       ),
     );
   }
 
-  // 构建组信息中下载队列简略信息
-  Widget _buildGroupItemSimpleDownloadingInfo(
-      List<DownloadRecord> records, DownloadTask task, bool expanded) {
-    num speed = 0, ratio = 0, count = 0;
-    // 遍历组内任务并计算速度、进度、正在下载任务数
-    for (var e in records) {
-      final item = task.getDownloadTaskItem(e);
-      if (item == null) continue;
-      speed += item.speed;
-      ratio += item.ratio;
-      count++;
-    }
-    if (count > 0) ratio = ratio / count;
-    final content = count > 0
-        ? '正在下载 $count 条任务  ·  ${FileTool.formatSize(speed.toInt())}/s'
-        : '共有 ${records.length} 条下载任务';
-    return Stack(
-      alignment: Alignment.centerLeft,
+  // 构建组信息
+  Widget _buildGroupItemInfo(DownloadGroup group,
+      {required bool expanded, DownloadTask? downloadTask}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 如果有下载任务并且是折叠状态则展示进度条
-        if (count > 0 && !expanded)
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: ratio.toDouble(),
-                backgroundColor: Colors.transparent,
-                color: kPrimaryColor.withOpacity(0.2),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: ImageView.net(
+            width: 70,
+            height: 85,
+            group.cover,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Expanded(
+          child: ListTile(
+            contentPadding: const EdgeInsets.only(left: 14),
+            title: Text(
+              group.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: SizedBox.fromSize(
+              size: const Size.fromHeight(40),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: _buildGroupItemInfoSimple(group.records,
+                    expanded: expanded, downloadTask: downloadTask),
               ),
             ),
           ),
-        Text(content,
-            style: const TextStyle(
-              color: Colors.black38,
-              fontSize: 12,
-            )),
+        ),
+        AnimatedRotation(
+          turns: expanded ? 0.5 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: IconButton(
+            iconSize: 20,
+            color: kPrimaryColor.withOpacity(0.5),
+            onPressed: () => _toggleExpanded(group.url),
+            icon: const Icon(FontAwesomeIcons.chevronDown),
+          ),
+        ),
       ],
     );
   }
 
-  // 构建组信息中已下载队列简略信息
-  Widget _buildGroupItemSimpleDownloadedInfo(List<DownloadRecord> records) {
+  // 构建组信息缩略信息
+  Widget _buildGroupItemInfoSimple(List<DownloadRecord> records,
+      {required bool expanded, DownloadTask? downloadTask}) {
+    if (downloadTask != null) {
+      num speed = 0, ratio = 0, count = 0;
+      // 遍历组内任务并计算速度、进度、正在下载任务数
+      for (var e in records) {
+        final item = downloadTask.getDownloadTaskItem(e);
+        if (item == null) continue;
+        speed += item.speed;
+        ratio += item.ratio;
+        count++;
+      }
+      if (count > 0) ratio = ratio / count;
+      final content = count > 0
+          ? '正在下载 $count 条任务  ·  ${FileTool.formatSize(speed.toInt())}/s'
+          : '共有 ${records.length} 条下载任务';
+      final showProgress = count > 0 && !expanded;
+      return Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          // 如果有下载任务并且是折叠状态则展示进度条
+          if (showProgress)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: ratio.toDouble(),
+                  backgroundColor: Colors.transparent,
+                  color: kPrimaryColor.withOpacity(0.2),
+                ),
+              ),
+            ),
+          Padding(
+            padding: showProgress
+                ? const EdgeInsets.symmetric(horizontal: 8)
+                : EdgeInsets.zero,
+            child: Text(content,
+                style: const TextStyle(
+                  color: Colors.black38,
+                  fontSize: 12,
+                )),
+          ),
+        ],
+      );
+    }
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
@@ -196,109 +211,23 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     );
   }
 
-  // 构建分组项下载中列表
-  Widget _buildGroupItemDownloadingRecords(
-      List<DownloadRecord> records, DownloadTask? downloadTask) {
-    const textStyle = TextStyle(color: Colors.black38, fontSize: 12);
-    return ListView.separated(
-      shrinkWrap: true,
-      itemCount: records.length,
-      padding: const EdgeInsets.only(top: 2),
-      physics: const NeverScrollableScrollPhysics(),
-      separatorBuilder: (_, i) => const SizedBox(height: 4),
-      itemBuilder: (_, i) {
-        final record = records[i];
-        final task = downloadTask?.getDownloadTaskItem(record);
-        final speedText =
-            task != null ? '  ·  ${FileTool.formatSize(task.speed)}/s' : '';
-        return InkWell(
-          child: SizedBox.fromSize(
-            size: const Size.fromHeight(40),
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                if (task != null)
-                  Positioned.fill(
-                    child: LinearProgressIndicator(
-                      value: task.ratio,
-                      backgroundColor: Colors.transparent,
-                      color: kPrimaryColor.withOpacity(0.2),
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Text('${record.name}$speedText', style: textStyle),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 14),
-                    child: Icon(_getDownloadingStatusIcon(task, record),
-                        color: kPrimaryColor, size: 22),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          onLongPress: () => widget.onRemoveRecords?.call([record]),
-          onTap: () {
-            if (download.inStoppingBuffed(record)) return;
-            return (task != null || download.inStartingBuffed(record))
-                ? widget.onStopDownloads?.call([record])
-                : widget.onStartDownloads?.call([record]);
-          },
-        );
-      },
-    );
-  }
-
-  // 获取当前下载状态图标
-  IconData _getDownloadingStatusIcon(
-      DownloadTaskItem? task, DownloadRecord record) {
-    if (task != null) return FontAwesomeIcons.pause;
-    if (download.inWaitingBuffed(record) || download.inPrepareQueue(record)) {
-      return FontAwesomeIcons.hourglass;
+  // 构建折叠列表组件
+  Widget _buildGroupItemRecords(List<DownloadRecord> records,
+      {DownloadTask? downloadTask, PlayRecord? playRecord}) {
+    if (downloadTask != null) {
+      return DownloadingRecordList(
+        records: records,
+        downloadTask: downloadTask,
+        onRemoveRecords: widget.onRemoveRecords,
+        onStopDownloads: widget.onStopDownloads,
+        onStartDownloads: widget.onStartDownloads,
+      );
     }
-    return FontAwesomeIcons.play;
-  }
-
-  // 构建分组项已下载列表
-  Widget _buildGroupItemDownloadedRecords(
-      List<DownloadRecord> records, PlayRecord? playRecord) {
-    return GridView.builder(
-      shrinkWrap: true,
-      itemCount: records.length,
-      padding: const EdgeInsets.all(4),
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        mainAxisExtent: 40,
-        crossAxisCount: 4,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-      ),
-      itemBuilder: (_, i) {
-        final item = records[i];
-        final hasPlayRecord = playRecord?.resUrl == item.resUrl;
-        return InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => widget.onPlayRecords?.call([item]),
-          onLongPress: () => widget.onRemoveRecords?.call([item]),
-          child: Container(
-            width: double.maxFinite,
-            height: double.maxFinite,
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withOpacity(0.8)),
-            ),
-            child: hasPlayRecord
-                ? CustomScrollText.slow('上次看到 ${item.name}',
-                    style: TextStyle(color: kPrimaryColor))
-                : Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-          ),
-        );
-      },
+    return DownloadedRecordList(
+      records: records,
+      playRecord: playRecord,
+      onPlayRecords: widget.onPlayRecords,
+      onRemoveRecords: widget.onRemoveRecords,
     );
   }
 
