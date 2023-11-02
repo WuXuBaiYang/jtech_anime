@@ -49,9 +49,9 @@ class DownloadingRecordList extends StatelessWidget {
 
   // 构建下载记录列表子项
   Widget _buildRecordListItem(DownloadRecord record) {
-    final task = downloadTask?.getDownloadTaskItem(record);
+    final taskItem = downloadTask?.getDownloadTaskItem(record);
     final speedText =
-        task != null ? '  ·  ${FileTool.formatSize(task.speed)}/s' : '';
+        taskItem != null ? '  ·  ${FileTool.formatSize(taskItem.speed)}/s' : '';
     const textStyle = TextStyle(color: Colors.black38, fontSize: 12);
     return InkWell(
       child: SizedBox.fromSize(
@@ -59,10 +59,10 @@ class DownloadingRecordList extends StatelessWidget {
         child: Stack(
           alignment: Alignment.centerLeft,
           children: [
-            if (task != null)
+            if (taskItem != null)
               Positioned.fill(
                 child: LinearProgressIndicator(
-                  value: task.ratio,
+                  value: taskItem.ratio,
                   backgroundColor: Colors.transparent,
                   color: kPrimaryColor.withOpacity(0.2),
                 ),
@@ -75,7 +75,7 @@ class DownloadingRecordList extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Padding(
                 padding: const EdgeInsets.only(right: 14),
-                child: Icon(_getDownloadingStatusIcon(record),
+                child: Icon(_getDownloadingStatusIcon(taskItem, record),
                     color: kPrimaryColor, size: 22),
               ),
             ),
@@ -85,7 +85,7 @@ class DownloadingRecordList extends StatelessWidget {
       onLongPress: () => onRemoveRecords?.call([record]),
       onTap: () {
         if (download.inStoppingBuffed(record)) return;
-        return (task != null || download.inStartingBuffed(record))
+        return (taskItem != null || download.inStartingBuffed(record))
             ? onStopDownloads?.call([record])
             : onStartDownloads?.call([record]);
       },
@@ -93,8 +93,9 @@ class DownloadingRecordList extends StatelessWidget {
   }
 
   // 获取当前下载状态图标
-  IconData _getDownloadingStatusIcon(DownloadRecord record) {
-    if (downloadTask != null) return FontAwesomeIcons.pause;
+  IconData _getDownloadingStatusIcon(
+      DownloadTaskItem? taskItem, DownloadRecord record) {
+    if (taskItem != null) return FontAwesomeIcons.pause;
     if (download.inWaitingBuffed(record) || download.inPrepareQueue(record)) {
       return FontAwesomeIcons.hourglass;
     }
