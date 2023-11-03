@@ -181,7 +181,8 @@ class AnimeParserManage extends BaseManage {
       if (useCache) {
         final result = await db.getCachePlayUrl(url);
         if (result != null) {
-          tempList.add(result!);
+          tempList.add(result!
+            ..item = item);
           continue;
         }
       }
