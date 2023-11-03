@@ -152,9 +152,7 @@ class _HomeDownloadPageState
               onStopDownloads: download.stopTasks,
               onStartDownloads: download.startTasks,
               downloadTask: snap.data ?? DownloadTask(),
-              onRemoveRecords: (records) {
-                _showDeleteDialog(context, records);
-              },
+              onRemoveRecords: logic.removeDownloadRecord,
             );
           },
         );
@@ -175,7 +173,7 @@ class _HomeDownloadPageState
             return DownloadRecordListView(
               groupList: groups,
               playRecordMap: playRecordMap,
-              onRemoveRecords: (records) => _showDeleteDialog(context, records),
+              onRemoveRecords: logic.removeDownloadRecord,
               onPlayRecords: (records) {
                 if (records.isEmpty) return;
                 final item = records.first;
@@ -186,31 +184,6 @@ class _HomeDownloadPageState
           },
         );
       },
-    );
-  }
-
-  // 展示删除弹窗
-  Future<void> _showDeleteDialog(BuildContext context,
-      List<DownloadRecord> records) async {
-    if (records.isEmpty) return;
-    final item = records.first;
-    final content = '是否删除 ${item.title} ${item.name} '
-        '${records.length > 1 ? '等${records.length}条下载记录' : ''}';
-    return MessageDialog.show(
-      context,
-      title: const Text('删除'),
-      content: Text(content),
-      actionMiddle: TextButton(
-        child: const Text('取消'),
-        onPressed: () => router.pop(),
-      ),
-      actionRight: TextButton(
-        child: const Text('删除'),
-        onPressed: () {
-          logic.removeDownloadRecord(records);
-          router.pop();
-        },
-      ),
     );
   }
 }
@@ -232,7 +205,7 @@ class _HomeDownloadLogic extends BaseLogic {
 
   // 播放记录缓存控制
   final playRecordController =
-  CacheFutureBuilderController<Map<String, PlayRecord>>();
+      CacheFutureBuilderController<Map<String, PlayRecord>>();
 
   // 获取下载队列与已下载队列
   Future<void> loadDownloadRecords() async {
@@ -259,8 +232,7 @@ class _HomeDownloadLogic extends BaseLogic {
     final result = await db.getDownloadRecordList(source, status: status);
     // 遍历下载记录并将记录分组排序
     String? lastUrl;
-    final groupList = <DownloadGroup>[],
-        subList = <DownloadRecord>[];
+    final groupList = <DownloadGroup>[], subList = <DownloadRecord>[];
     for (int i = 0; i < result.length; i++) {
       final item = result[i];
       if ((lastUrl ??= item.url) != item.url) {

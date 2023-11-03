@@ -86,7 +86,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (selectedRecords.isNotEmpty) _buildSelectHeader(selectedRecords),
+            if (selectedRecords.isNotEmpty)
+              _buildSelectHeader(context, selectedRecords),
             Expanded(child: _buildDownloadRecords(selectedRecords)),
           ],
         );
@@ -95,7 +96,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   }
 
   // 构建选择头部
-  Widget _buildSelectHeader(List<DownloadRecord> selectedRecords) {
+  Widget _buildSelectHeader(
+      BuildContext context, List<DownloadRecord> selectedRecords) {
     final totalRecords = widget.groupList.expand((e) => e.records).length;
     final checked = selectedRecords.length >= totalRecords;
     return Padding(
@@ -104,7 +106,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
-            onPressed: () => widget.onRemoveRecords?.call(selectedRecords),
+            onPressed: () => _showDeleteDialog(context, selectedRecords),
             child: Text('删除(${selectedRecords.length})'),
           ),
           Checkbox(
@@ -308,6 +310,32 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       playRecord: playRecord,
       onPlayRecords: widget.onPlayRecords,
       onRemoveRecords: selectedRecords.addValues,
+    );
+  }
+
+  // 展示删除弹窗
+  Future<void> _showDeleteDialog(
+      BuildContext context, List<DownloadRecord> records) async {
+    if (records.isEmpty) return;
+    final item = records.first;
+    final content = '是否删除 ${item.title} ${item.name} '
+        '${records.length > 1 ? '等${records.length}条下载记录' : ''}';
+    return MessageDialog.show(
+      context,
+      title: const Text('删除'),
+      content: Text(content),
+      actionMiddle: TextButton(
+        child: const Text('取消'),
+        onPressed: () => router.pop(),
+      ),
+      actionRight: TextButton(
+        child: const Text('删除'),
+        onPressed: () {
+          selectedRecords.removeWhere(records.contains);
+          widget.onRemoveRecords?.call(records);
+          router.pop();
+        },
+      ),
     );
   }
 

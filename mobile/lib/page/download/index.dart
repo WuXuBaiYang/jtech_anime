@@ -141,7 +141,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
                   .copyWith(bottom: kToolbarHeight * 1.5),
               initialExpanded: expandedList,
               downloadTask: snap.data ?? DownloadTask(),
-              onRemoveRecords: (records) => _showDeleteDialog(context, records),
+              onRemoveRecords: logic.removeDownloadRecord,
               onStartDownloads: (records) async {
                 // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
                 final result =
@@ -170,7 +170,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
             return DownloadRecordListView(
               groupList: groups,
               playRecordMap: playRecordMap,
-              onRemoveRecords: (records) => _showDeleteDialog(context, records),
+              onRemoveRecords: logic.removeDownloadRecord,
               onPlayRecords: (records) {
                 if (records.isEmpty) return;
                 final item = records.first;
@@ -181,31 +181,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           },
         );
       },
-    );
-  }
-
-  // 展示删除弹窗
-  Future<void> _showDeleteDialog(
-      BuildContext context, List<DownloadRecord> records) async {
-    if (records.isEmpty) return;
-    final item = records.first;
-    final content = '是否删除 ${item.title} ${item.name} '
-        '${records.length > 1 ? '等${records.length}条下载记录' : ''}';
-    return MessageDialog.show(
-      context,
-      title: const Text('删除'),
-      content: Text(content),
-      actionMiddle: TextButton(
-        child: const Text('取消'),
-        onPressed: () => router.pop(),
-      ),
-      actionRight: TextButton(
-        child: const Text('删除'),
-        onPressed: () {
-          logic.removeDownloadRecord(records);
-          router.pop();
-        },
-      ),
     );
   }
 }
