@@ -331,9 +331,9 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       actionRight: TextButton(
         child: const Text('删除'),
         onPressed: () {
-          selectedRecords.removeWhere(records.contains);
-          widget.onRemoveRecords?.call(records);
           router.pop();
+          widget.onRemoveRecords?.call(records);
+          selectedRecords.removeWhere(records.contains);
         },
       ),
     );
