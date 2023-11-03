@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mobile/common/route.dart';
-import 'package:mobile/page/download/list.dart';
 import 'package:mobile/tool/network.dart';
 import 'package:mobile/tool/permission.dart';
 import 'package:jtech_anime_base/base.dart';

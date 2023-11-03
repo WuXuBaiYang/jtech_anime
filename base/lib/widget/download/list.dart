@@ -1,8 +1,9 @@
-import 'package:desktop/page/download/downloaded.dart';
-import 'package:desktop/page/download/downloading.dart';
-import 'package:desktop/page/download/selector.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+
+import 'downloaded.dart';
+import 'downloading.dart';
+import 'selector.dart';
 
 // 下载记录事件回调
 typedef DownloadRecordCallback = void Function(List<DownloadRecord> records);

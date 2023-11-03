@@ -3,8 +3,6 @@ import 'package:desktop/model/event.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
-import 'list.dart';
-
 /*
 * 首页下载管理页面
 * @author wuxubaiyang

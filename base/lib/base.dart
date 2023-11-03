@@ -71,6 +71,7 @@ export 'widget/stream_view.dart';
 export 'widget/tab.dart';
 export 'widget/lottie.dart';
 export 'widget/blur.dart';
+export 'widget/download/list.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
