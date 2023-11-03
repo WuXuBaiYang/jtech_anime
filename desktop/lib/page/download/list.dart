@@ -1,5 +1,6 @@
 import 'package:desktop/page/download/downloaded.dart';
 import 'package:desktop/page/download/downloading.dart';
+import 'package:desktop/page/download/selector.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -58,12 +59,90 @@ class DownloadRecordListView extends StatefulWidget {
 
 class _DownloadRecordListViewState extends State<DownloadRecordListView> {
   // 记录折叠状态
-  late ListValueChangeNotifier<String> expandedStatus =
+  late final expandedStatus =
       ListValueChangeNotifier([...widget.initialExpanded]);
+
+  // 已选择下载记录
+  final selectedRecords = ListValueChangeNotifier<DownloadRecord>.empty();
+
+  @override
+  void initState() {
+    super.initState();
+    // 监听下载状态变化
+    download.addDownloadCompleteListener((record) {
+      selectedRecords.removeWhere(
+        (e) => e.id == record.id,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     if (widget.groupList.isEmpty) return _buildEmptyView();
+    return ValueListenableBuilder<List<DownloadRecord>>(
+      valueListenable: selectedRecords,
+      builder: (_, selectedRecords, __) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (selectedRecords.isNotEmpty) _buildSelectHeader(selectedRecords),
+            Expanded(child: _buildDownloadRecords(selectedRecords)),
+          ],
+        );
+      },
+    );
+  }
+
+  // 构建选择头部
+  Widget _buildSelectHeader(List<DownloadRecord> selectedRecords) {
+    final totalRecords = widget.groupList.expand((e) => e.records).length;
+    final checked = selectedRecords.length >= totalRecords;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: () => widget.onRemoveRecords?.call(selectedRecords),
+            child: Text('删除(${selectedRecords.length})'),
+          ),
+          Checkbox(
+            tristate: true,
+            value: checked ? true : null,
+            onChanged: (value) {
+              if (value == true) {
+                this.selectedRecords.addValues(
+                    widget.groupList.expand((e) => e.records).toList());
+              } else {
+                this.selectedRecords.clear();
+              }
+            },
+          ),
+          const SizedBox(width: 14),
+        ],
+      ),
+    );
+  }
+
+  // 构建下载记录
+  Widget _buildDownloadRecords(List<DownloadRecord> selectedRecords) {
+    if (selectedRecords.isNotEmpty) {
+      return DownloadRecordSelectorList(
+        padding: widget.padding,
+        groupList: widget.groupList,
+        selectedRecords: selectedRecords,
+        onSelectRecords: (values) {
+          for (final v in values) {
+            if (selectedRecords.contains(v)) {
+              selectedRecords.remove(v);
+            } else {
+              selectedRecords.add(v);
+            }
+          }
+          this.selectedRecords.setValue([...selectedRecords]);
+        },
+      );
+    }
     return ValueListenableBuilder<List<String>>(
       valueListenable: expandedStatus,
       builder: (_, expandedList, __) {
@@ -104,7 +183,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
           ],
         ),
         onTap: () => _toggleExpanded(group.url),
-        onLongPress: () => widget.onRemoveRecords?.call(group.records),
+        onLongPress: () => selectedRecords.addValues(group.records),
       ),
     );
   }
@@ -218,16 +297,16 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
       return DownloadingRecordList(
         records: records,
         downloadTask: downloadTask,
-        onRemoveRecords: widget.onRemoveRecords,
         onStopDownloads: widget.onStopDownloads,
         onStartDownloads: widget.onStartDownloads,
+        onRemoveRecords: selectedRecords.addValues,
       );
     }
     return DownloadedRecordList(
       records: records,
       playRecord: playRecord,
       onPlayRecords: widget.onPlayRecords,
-      onRemoveRecords: widget.onRemoveRecords,
+      onRemoveRecords: selectedRecords.addValues,
     );
   }
 

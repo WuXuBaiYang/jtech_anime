@@ -73,7 +73,7 @@ class DownloadingRecordList extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
-                padding: const EdgeInsets.only(right: 14),
+                padding: const EdgeInsets.only(right: 8),
                 child: Icon(_getDownloadingStatusIcon(taskItem, record),
                     color: kPrimaryColor, size: 22),
               ),
