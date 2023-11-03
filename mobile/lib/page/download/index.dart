@@ -144,9 +144,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
               onRemoveRecords: (records) => _showDeleteDialog(context, records),
               onStartDownloads: (records) async {
                 // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
-                if (!await Network.checkNetwork(context, logic.checkNetwork)) {
-                  return;
-                }
+                final result =
+                    await Network.checkNetwork(context, logic.checkNetwork);
+                if (!result) return;
                 download.startTasks(records);
               },
               onStopDownloads: download.stopTasks,
