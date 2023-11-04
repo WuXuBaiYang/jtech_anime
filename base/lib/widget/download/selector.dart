@@ -44,6 +44,7 @@ class DownloadRecordSelectorList extends StatelessWidget {
   Widget _buildGroupItem(DownloadGroup group) {
     return Card(
       elevation: 0,
+      clipBehavior: Clip.antiAlias,
       color: kPrimaryColor.withOpacity(0.08),
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(

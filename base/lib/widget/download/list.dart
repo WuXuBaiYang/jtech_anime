@@ -167,6 +167,7 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     final expanded = expandedList.contains(group.url);
     return Card(
       elevation: 0,
+      clipBehavior: Clip.antiAlias,
       color: kPrimaryColor.withOpacity(0.08),
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
