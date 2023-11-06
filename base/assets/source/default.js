@@ -538,7 +538,7 @@ async function getPlayUrls(resourceUrls) {
             tempList.push({
                 url: url, playUrl: decodeURIComponent(playUrl('', url, 0, resp.text))
             })
-            await sleep(2000)
+            await sleep(800)
         } catch (e) {
             throw e
         }
