@@ -80,32 +80,47 @@ class DownloadRecordSelectorList extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
+        const SizedBox(width: 14),
         Expanded(
-          child: CheckboxListTile(
-            value: checked,
-            tristate: true,
-            contentPadding: const EdgeInsets.only(left: 14, right: 8),
-            onChanged: (value) {
-              final records = value == true
-                  ? group.records
-                  : group.records.where(selectedRecords.contains).toList();
-              onSelectRecords?.call(records);
-            },
-            title: Text(
-              group.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Text('共有 ${group.records.length} 条下载任务',
-                  style: const TextStyle(
-                    color: Colors.black38,
-                    fontSize: 12,
-                  )),
-            ),
+          child: Row(
+            children: [
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    group.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 13),
+                  Text(
+                    '共有 ${group.records.length} 条下载任务',
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),),
+              Checkbox(
+                value: checked,
+                tristate: true,
+                onChanged: (value) {
+                  final records = value == true
+                      ? group.records
+                      : group.records.where(selectedRecords.contains).toList();
+                  onSelectRecords?.call(records);
+                },
+              ),
+            ],
           ),
         ),
+        const SizedBox(width: 14),
       ],
     );
   }
@@ -119,24 +134,22 @@ class DownloadRecordSelectorList extends StatelessWidget {
       itemBuilder: (_, i) {
         final record = records[i];
         return InkWell(
-          child: Padding(
-            padding: const EdgeInsets.all(4).copyWith(right: 0, left: 8),
-            child: Row(
-              children: [
-                Text(
-                  record.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textStyle,
-                ),
-                const Spacer(),
-                Checkbox(
-                  value: selectedRecords.contains(record),
-                  onChanged: (_) => onSelectRecords?.call([record]),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
+          child:Row(
+            children: [
+              const SizedBox(width: 14),
+              Text(
+                record.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textStyle,
+              ),
+              const Spacer(),
+              Checkbox(
+                value: selectedRecords.contains(record),
+                onChanged: (_) => onSelectRecords?.call([record]),
+              ),
+              const SizedBox(width: 14),
+            ],
           ),
           onTap: () => onSelectRecords?.call([record]),
         );

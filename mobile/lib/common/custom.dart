@@ -11,7 +11,7 @@ import 'package:mobile/model/config.dart';
 class Custom {
   // 全局配置
   static final JTechConfig config = JTechConfig(
-    noPictureMode: true,
+    noPictureMode: false,
     noPlayerContent: true,
   );
 

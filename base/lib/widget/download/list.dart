@@ -101,7 +101,8 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
     final totalRecords = widget.groupList.expand((e) => e.records).length;
     final checked = selectedRecords.length >= totalRecords;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(
+          vertical: 4, horizontal: (widget.padding?.horizontal ?? 0) + 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -121,7 +122,6 @@ class _DownloadRecordListViewState extends State<DownloadRecordListView> {
               }
             },
           ),
-          const SizedBox(width: 14),
         ],
       ),
     );
