@@ -71,7 +71,7 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   double get progress =>
       state.position.inMilliseconds / state.duration.inMilliseconds;
 
-  // 切换控制组件
+  // 设置控制层显示状态
   void setControlVisible(bool visible, {bool ongoing = false}) {
     controlVisible.setValue(visible);
     _cancelTimer();
@@ -81,6 +81,9 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
       _cancelTimer();
     });
   }
+
+  // 切换控制层显示状态
+  void toggleControlVisible() => setControlVisible(!controlVisible.value);
 
   // 获取当前小窗口状态
   bool get isMiniWindow => miniWindow.value;
@@ -176,6 +179,19 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 降低音量
   Future<double> volumeLower([double step = 0.15]) =>
       setVolume(currentVolume - step);
+
+  // 切换静音状态
+  Future<void> toggleMute() => FlutterVolumeController.toggleMute();
+
+  // 设置静音
+  Future<void> setMute(bool isMuted) =>
+      FlutterVolumeController.setMute(isMuted);
+
+  // 静音
+  Future<void> mute() => setMute(true);
+
+  // 取消静音
+  Future<void> unmute() => setMute(false);
 
   // 加载视频并播放
   Future<void> play(String uri, [bool autoPlay = true]) =>
