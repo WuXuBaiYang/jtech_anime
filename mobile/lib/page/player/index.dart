@@ -78,17 +78,26 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return CustomVideoPlayer(
-      subTitle: _buildSubTitle(),
-      controller: logic.controller,
-      title: Text(logic.animeInfo.value.name),
-      bottomActions: [
-        _buildBottomActionsNext(),
-        const Spacer(),
-        _buildBottomActionsChoice(),
-        _buildBottomActionsAutoPlay(),
-        // _buildBottomActionsOrientation(),
-      ],
+    return ValueListenableBuilder<Orientation>(
+      valueListenable: logic.screenOrientation,
+      builder: (_, orientation, __) {
+        final landscape = orientation == Orientation.landscape;
+        return CustomVideoPlayer(
+          subTitle: _buildSubTitle(),
+          controller: logic.controller,
+          title: Text(logic.animeInfo.value.name),
+          showTimer: landscape,
+          showSpeed: landscape,
+          showProgressText: landscape,
+          bottomActions: [
+            _buildBottomActionsNext(),
+            const Spacer(),
+            if (landscape) _buildBottomActionsChoice(),
+            if (landscape) _buildBottomActionsAutoPlay(),
+            _buildBottomActionsOrientation(),
+          ],
+        );
+      },
     );
   }
 
@@ -113,9 +122,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         return IconButton(
           onPressed: canPlayNext
               ? Throttle.click(() {
-                  logic.controller.setControlVisible(true);
-                  logic.changeVideo(resource);
-                }, 'playNextResource')
+            logic.controller.setControlVisible(true);
+            logic.changeVideo(resource);
+          }, 'playNextResource')
               : null,
           icon: Icon(FontAwesomeIcons.forward,
               color: canPlayNext ? Colors.white : Colors.white30),
@@ -163,15 +172,17 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
     return ValueListenableBuilder<Orientation>(
       valueListenable: logic.screenOrientation,
       builder: (_, orientation, __) {
-        return IconButton(
-          icon: Icon(orientation == Orientation.landscape
-              ? FontAwesomeIcons.mobileScreen
-              : FontAwesomeIcons.arrowLeft),
-          onPressed: () {
-            logic.screenOrientation
-                .setValue(Orientation.values[orientation.index ^ 1]);
-            logic.controller.setControlVisible(true);
-          },
+        return AnimatedRotation(
+          duration: const Duration(milliseconds: 200),
+          turns: orientation == Orientation.landscape ? 0 : 0.25,
+          child: IconButton(
+            icon: const Icon(FontAwesomeIcons.mobileScreen),
+            onPressed: () {
+              logic.screenOrientation
+                  .setValue(Orientation.values[orientation.index ^ 1]);
+              logic.controller.setControlVisible(true);
+            },
+          ),
         );
       },
     );
@@ -266,7 +277,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 当前屏幕方向
   final screenOrientation =
-      ValueChangeNotifier<Orientation>(Orientation.landscape);
+  ValueChangeNotifier<Orientation>(Orientation.landscape);
 
   @override
   void init() {
@@ -286,7 +297,7 @@ class _PlayerLogic extends BaseLogic {
     controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
-        () => _updateVideoProgress(e),
+            () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
     });
@@ -334,7 +345,7 @@ class _PlayerLogic extends BaseLogic {
         if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
         final result =
-            await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
+        await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
@@ -393,8 +404,9 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 一定时间后关闭播放记录弹窗
-  void time2CloseRecord() => Debounce.c(
-        () => playRecord.setValue(null),
+  void time2CloseRecord() =>
+      Debounce.c(
+            () => playRecord.setValue(null),
         'time2CloseRecord',
         delay: const Duration(milliseconds: 5000),
       );

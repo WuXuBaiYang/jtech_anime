@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime_base/base.dart';
+import 'package:jtech_anime_base/widget/player/controller.dart';
 import 'package:jtech_anime_base/widget/timer.dart';
 
 /*
@@ -61,7 +61,13 @@ class CustomPlayerControlsTop extends StatelessWidget {
           children: [
             ...actions,
             if (actions.isNotEmpty) const SizedBox(width: 8),
-            if (!showTimer) TimerView(pattern: DatePattern.time),
+            if (showTimer)
+              const TimerView(
+                // textStyle: TextStyle(
+                //   color: Colors.white,
+                //   fontSize: 12,
+                // ),
+              ),
           ],
         ),
       ),

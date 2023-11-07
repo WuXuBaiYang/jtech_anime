@@ -37,6 +37,24 @@ class CustomVideoPlayer extends StatefulWidget {
   // 缓冲状态大小
   final double? buffingSize;
 
+  // 是否展示音量按钮
+  final bool showVolume;
+
+  // 是否展示倍速按钮
+  final bool showSpeed;
+
+  // 是否展示迷你屏幕按钮
+  final bool showMiniScreen;
+
+  // 是否展示全屏按钮
+  final bool showFullScreen;
+
+  // 是否展示进度条两侧的文本
+  final bool showProgressText;
+
+  // 是否展示时间
+  final bool showTimer;
+
   const CustomVideoPlayer({
     super.key,
     required this.controller,
@@ -45,6 +63,12 @@ class CustomVideoPlayer extends StatefulWidget {
     this.leading,
     this.subTitle,
     this.buffingSize,
+    this.showSpeed = true,
+    this.showVolume = true,
+    this.showMiniScreen = true,
+    this.showFullScreen = true,
+    this.showProgressText = true,
+    this.showTimer = true,
     this.topActions = const [],
     this.bottomActions = const [],
   });
@@ -91,6 +115,10 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         controller: widget.controller,
         buffingSize: widget.buffingSize,
         bottomActions: widget.bottomActions,
+        showVolume: widget.showVolume,
+        showSpeed: widget.showSpeed,
+        showProgressText: widget.showProgressText,
+        showTimer: widget.showTimer,
       );
     }
     if (isDesktop) {
@@ -103,6 +131,12 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         controller: widget.controller,
         buffingSize: widget.buffingSize,
         bottomActions: widget.bottomActions,
+        showVolume: widget.showVolume,
+        showSpeed: widget.showSpeed,
+        showMiniScreen: widget.showMiniScreen,
+        showFullScreen: widget.showFullScreen,
+        showProgressText: widget.showProgressText,
+        showTimer: widget.showTimer,
       );
     }
     return const SizedBox();

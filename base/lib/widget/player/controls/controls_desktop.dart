@@ -15,6 +15,24 @@ import 'top.dart';
 * @Time 2023/11/7 9:51
 */
 class DesktopCustomPlayerControls extends CustomPlayerControls {
+  // 是否展示音量按钮
+  final bool showVolume;
+
+  // 是否展示倍速按钮
+  final bool showSpeed;
+
+  // 是否展示迷你屏幕按钮
+  final bool showMiniScreen;
+
+  // 是否展示全屏按钮
+  final bool showFullScreen;
+
+  // 是否展示进度条两侧的文本
+  final bool showProgressText;
+
+  // 是否展示时间
+  final bool showTimer;
+
   const DesktopCustomPlayerControls({
     super.key,
     required super.controller,
@@ -25,6 +43,12 @@ class DesktopCustomPlayerControls extends CustomPlayerControls {
     super.buffingSize,
     super.topActions,
     super.bottomActions,
+    this.showSpeed = true,
+    this.showVolume = true,
+    this.showMiniScreen = true,
+    this.showFullScreen = true,
+    this.showProgressText = true,
+    this.showTimer = true,
   });
 
   @override
@@ -36,7 +60,8 @@ class DesktopCustomPlayerControls extends CustomPlayerControls {
 * @author wuxubaiyang
 * @Time 2023/11/6 16:54
 */
-class _DesktopCustomPlayerControlsState extends State<CustomPlayerControls> {
+class _DesktopCustomPlayerControlsState
+    extends State<DesktopCustomPlayerControls> {
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -142,13 +167,19 @@ class _DesktopCustomPlayerControlsState extends State<CustomPlayerControls> {
                   controller: controller,
                   leading: widget.leading,
                   subTitle: widget.subTitle,
+                  showTimer: widget.showTimer,
                   decoration: topDecoration,
                   actions: widget.topActions,
                 ),
                 CustomPlayerControlsBottom(
                   controller: controller,
+                  showSpeed: widget.showSpeed,
                   decoration: bottomDecoration,
+                  showVolume: widget.showVolume,
                   actions: widget.bottomActions,
+                  showMiniScreen: widget.showMiniScreen,
+                  showFullScreen: widget.showFullScreen,
+                  showProgressText: widget.showProgressText,
                 ),
               ],
             ],

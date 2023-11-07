@@ -17,6 +17,17 @@ import 'top.dart';
 * @Time 2023/11/7 9:50
 */
 class MobileCustomPlayerControls extends CustomPlayerControls {
+  // 是否展示音量按钮
+  final bool showVolume;
+
+  // 是否展示倍速按钮
+  final bool showSpeed;
+
+  // 是否展示进度条两侧的文本
+  final bool showProgressText;
+  // 是否展示时间
+  final bool showTimer;
+
   const MobileCustomPlayerControls({
     super.key,
     required super.controller,
@@ -27,6 +38,10 @@ class MobileCustomPlayerControls extends CustomPlayerControls {
     super.buffingSize,
     super.topActions,
     super.bottomActions,
+    this.showVolume = true,
+    this.showSpeed = true,
+    this.showProgressText = true,
+    this.showTimer = true,
   });
 
   @override
@@ -142,13 +157,17 @@ class _MobileCustomPlayerControlsState
                     leading: widget.leading,
                     subTitle: widget.subTitle,
                     actions: widget.topActions,
+                    showTimer: widget.showTimer,
                   ),
                   CustomPlayerControlsBottom(
                     showMiniScreen: false,
                     showFullScreen: false,
                     controller: controller,
+                    showSpeed: widget.showSpeed,
+                    showVolume: widget.showVolume,
                     actions: widget.bottomActions,
                     seekStream: playerSeekStream.stream,
+                    showProgressText: widget.showProgressText,
                   ),
                 ],
                 CustomPlayerControlsSide(
