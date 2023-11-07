@@ -13,16 +13,13 @@ class TimerView extends StatelessWidget {
   // 文本样式
   final TextStyle? textStyle;
 
-  TimerView({super.key, this.pattern, this.textStyle});
-
-  // 计时器
-  final timeClock = Stream<DateTime>.periodic(
-      const Duration(seconds: 1), (_) => DateTime.now()).asBroadcastStream();
+  const TimerView({super.key, this.pattern, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DateTime>(
-      stream: timeClock,
+      stream: Stream<DateTime>.periodic(
+          const Duration(seconds: 1), (_) => DateTime.now()),
       builder: (_, snap) {
         final dateTime = snap.data ?? DateTime.now();
         return Text(

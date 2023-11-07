@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/manage/config.dart';
+import 'package:jtech_anime_base/tool/tool.dart';
+import 'package:jtech_anime_base/widget/player/controls/controls_mobile.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'controls/controls_desktop.dart';
 import 'controller.dart';
 
 /*
@@ -36,7 +39,7 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
   Widget build(BuildContext context) {
     return Video(
       controller: controller,
-      controls: widget.controls,
+      controls: _buildControls,
       pauseUponEnteringBackgroundMode: true,
       resumeUponEnteringForegroundMode: true,
     );
@@ -51,4 +54,21 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
               ? CustomVideoPlayerController()
               : widget.controller)
           .controller;
+
+  // 构建控制层
+  Widget _buildControls(VideoState state) {
+    final child = widget.controls?.call(state);
+    if (child != null) return child;
+    if (isMobile) {
+      return MobileCustomPlayerControls(
+        controller: widget.controller,
+      );
+    }
+    if (isDesktop) {
+      return DesktopCustomPlayerControls(
+        controller: widget.controller,
+      );
+    }
+    return const SizedBox();
+  }
 }

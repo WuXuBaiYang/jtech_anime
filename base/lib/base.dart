@@ -58,6 +58,8 @@ export 'tool/version.dart';
 ///自定义组件
 export 'widget/player/controller.dart';
 export 'widget/player/player.dart';
+export 'widget/player/controls/controls_desktop.dart';
+export 'widget/player/controls/controls_mobile.dart';
 export 'widget/refresh/controller.dart';
 export 'widget/refresh/refresh_view.dart';
 export 'widget/future_builder.dart';
