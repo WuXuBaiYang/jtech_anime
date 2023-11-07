@@ -77,7 +77,6 @@ class _DesktopCustomPlayerControlsState extends State<CustomPlayerControls> {
               onExit: (_) => controller.setControlVisible(false),
               child: Stack(
                 children: [
-                  Container(color: Colors.grey,),
                   CustomPlayerBrightness(controller: widget.controller),
                   _buildVisibleControls(),
                   CustomPlayerControlsStatus(

@@ -32,15 +32,15 @@ class CustomPlayerBrightnessStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<double>(
-      valueListenable: controller.volume,
-      builder: (_, volume, __) {
+      valueListenable: controller.screenBrightness,
+      builder: (_, brightness, __) {
         return AnimatedOpacity(
           opacity: visible ? 1.0 : 0,
           duration: const Duration(milliseconds: 150),
           child: VerticalProgressView(
             size: size,
             margin: margin,
-            progress: volume,
+            progress: brightness,
             icon: const Icon(FontAwesomeIcons.sun),
           ),
         );
