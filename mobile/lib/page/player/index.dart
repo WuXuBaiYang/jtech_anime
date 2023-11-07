@@ -87,6 +87,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         const Spacer(),
         _buildBottomActionsChoice(),
         _buildBottomActionsAutoPlay(),
+        // _buildBottomActionsOrientation(),
       ],
     );
   }
@@ -152,6 +153,25 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
               },
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // 构建底部屏幕方向按钮
+  Widget _buildBottomActionsOrientation() {
+    return ValueListenableBuilder<Orientation>(
+      valueListenable: logic.screenOrientation,
+      builder: (_, orientation, __) {
+        return IconButton(
+          icon: Icon(orientation == Orientation.landscape
+              ? FontAwesomeIcons.mobileScreen
+              : FontAwesomeIcons.arrowLeft),
+          onPressed: () {
+            logic.screenOrientation
+                .setValue(Orientation.values[orientation.index ^ 1]);
+            logic.controller.setControlVisible(true);
+          },
         );
       },
     );
@@ -244,6 +264,10 @@ class _PlayerLogic extends BaseLogic {
   // 是否自动连播
   final autoPlay = ValueChangeNotifier<bool>(true);
 
+  // 当前屏幕方向
+  final screenOrientation =
+      ValueChangeNotifier<Orientation>(Orientation.landscape);
+
   @override
   void init() {
     super.init();
@@ -265,6 +289,10 @@ class _PlayerLogic extends BaseLogic {
         () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
+    });
+    // 监听屏幕旋转方向
+    screenOrientation.addListener(() {
+      setScreenOrientation(screenOrientation.value == Orientation.portrait);
     });
   }
 
