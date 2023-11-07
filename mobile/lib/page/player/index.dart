@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/page/player/resource.dart';
 import 'package:mobile/tool/tool.dart';
-import 'package:mobile/widget/player/player.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*
@@ -79,7 +78,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return CustomMobileVideoPlayer(
+    return CustomVideoPlayer(
       subTitle: _buildSubTitle(),
       controller: logic.controller,
       title: Text(logic.animeInfo.value.name),

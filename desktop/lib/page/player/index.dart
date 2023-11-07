@@ -1,10 +1,9 @@
+import 'package:desktop/common/custom.dart';
 import 'package:desktop/model/event.dart';
 import 'package:desktop/widget/page.dart';
-import 'package:desktop/widget/player/player.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
-
 import 'resource.dart';
 
 /*
@@ -29,6 +28,36 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   @override
   _PlayerLogic initLogic() => _PlayerLogic();
+
+  @override
+  void initState() {
+    super.initState();
+    // 控制器
+    final controller = logic.controller;
+    // 监听全屏状态切换
+    controller.controlFullscreen.addListener(() {
+      final value = controller.controlFullscreen.value;
+      windowManager.setFullScreen(value);
+    });
+    // 监听小窗口状态切换
+    Offset? cachePosition;
+    controller.miniWindow.addListener(() async {
+      if (!mounted) return;
+      final mini = controller.isMiniWindow;
+      final windowSize =
+          mini ? Custom.miniWindowSize : Custom.defaultWindowSize;
+      if (mini) cachePosition = await windowManager.getPosition();
+      await Future.wait([
+        windowManager.setAlwaysOnTop(mini),
+        if (mini)
+          windowManager.setAlignment(Alignment.topLeft, animate: true)
+        else if (cachePosition != null)
+          windowManager.setPosition(cachePosition!, animate: true),
+        windowManager.setMinimumSize(windowSize),
+        windowManager.setSize(windowSize),
+      ]);
+    });
+  }
 
   @override
   Widget buildWidget(BuildContext context) {
@@ -83,7 +112,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return CustomDesktopVideoPlayer(
+    return CustomVideoPlayer(
       subTitle: _buildSubTitle(),
       controller: logic.controller,
       title: Text(logic.animeInfo.value.name),

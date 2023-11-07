@@ -1,3 +1,5 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:jtech_anime_base/widget/listenable_builders.dart';
 import 'package:jtech_anime_base/widget/player/widgets/brightness.dart';
 import 'package:flutter/material.dart';
@@ -46,27 +48,49 @@ class _DesktopCustomPlayerControlsState extends State<CustomPlayerControls> {
   // 构建控制器
   Widget _buildControls() {
     final controller = widget.controller;
-    return GestureDetector(
-      onTap: () => widget.controller.resumeOrPause().then((playing) {
-        if (playing) controller.setControlVisible(true);
-      }),
-      onDoubleTap: () => controller.toggleFullscreen(),
-      child: MouseRegion(
-        onHover: (_) => controller.setControlVisible(true),
-        onEnter: (_) => controller.setControlVisible(true),
-        onExit: (_) => controller.setControlVisible(false),
-        child: Stack(
-          children: [
-            CustomPlayerBrightness(controller: widget.controller),
-            _buildVisibleControls(),
-            CustomPlayerControlsStatus(
-              showVolume: false,
-              showPlaySpeed: false,
-              showBrightness: false,
-              controller: widget.controller,
-              statusSize: widget.buffingSize,
+    return Focus(
+      // 处理所有键盘事件，防止焦点抢夺
+      onKey: (_, __) => KeyEventResult.handled,
+      child: Listener(
+        // 滚轮操作音量
+        onPointerSignal: (signal) {
+          if (signal is PointerScrollEvent) {
+            if (signal.scrollDelta.dy > 0) {
+              controller.volumeLower();
+            } else {
+              controller.volumeRaise();
+            }
+          }
+        },
+        child: RawKeyboardListener(
+          autofocus: true,
+          onKey: _keyEvent,
+          focusNode: FocusNode(),
+          child: GestureDetector(
+            onTap: () => widget.controller.resumeOrPause().then((playing) {
+              if (playing) controller.setControlVisible(true);
+            }),
+            onDoubleTap: () => controller.toggleFullscreen(),
+            child: MouseRegion(
+              onHover: (_) => controller.setControlVisible(true),
+              onEnter: (_) => controller.setControlVisible(true),
+              onExit: (_) => controller.setControlVisible(false),
+              child: Stack(
+                children: [
+                  Container(color: Colors.grey,),
+                  CustomPlayerBrightness(controller: widget.controller),
+                  _buildVisibleControls(),
+                  CustomPlayerControlsStatus(
+                    showVolume: false,
+                    showPlaySpeed: false,
+                    showBrightness: false,
+                    controller: widget.controller,
+                    statusSize: widget.buffingSize,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -133,5 +157,34 @@ class _DesktopCustomPlayerControlsState extends State<CustomPlayerControls> {
         );
       },
     );
+  }
+
+  // 键盘与事件对照表
+  Map<LogicalKeyboardKey, void Function()> get keyEventMap => {
+        // 方向键上音量增加
+        LogicalKeyboardKey.arrowUp: widget.controller.volumeRaise,
+        // 方向键下音量减少
+        LogicalKeyboardKey.arrowDown: widget.controller.volumeLower,
+        // 方向键左控制快退
+        LogicalKeyboardKey.arrowLeft: widget.controller.seekBackward,
+        // 方向键右控制快进
+        LogicalKeyboardKey.arrowRight: widget.controller.seekForward,
+        // 空格键暂停/恢复播放
+        LogicalKeyboardKey.space: widget.controller.resumeOrPause,
+        // esc取消全屏
+        LogicalKeyboardKey.escape: () {
+          widget.controller.setFullscreen(false);
+        },
+      };
+
+  // 处理键盘事件
+  void _keyEvent(RawKeyEvent event) {
+    if (event is RawKeyDownEvent) {
+      final key = event.logicalKey;
+      if (keyEventMap.containsKey(key)) {
+        widget.controller.setControlVisible(true);
+        keyEventMap[key]?.call();
+      }
+    }
   }
 }
