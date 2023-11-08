@@ -25,6 +25,7 @@ class MobileCustomPlayerControls extends CustomPlayerControls {
 
   // 是否展示进度条两侧的文本
   final bool showProgressText;
+
   // 是否展示时间
   final bool showTimer;
 
@@ -123,6 +124,7 @@ class _MobileCustomPlayerControlsState
         playerSeekStream.add(tempPosition);
       },
       onHorizontalDragEnd: (_) {
+        controller.setControlVisible(true);
         playerSeekStream.add(null);
         tempPosition = null;
       },
