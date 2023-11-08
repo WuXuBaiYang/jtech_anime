@@ -101,6 +101,12 @@ class DownloadRecord {
         ..savePath = savePath ?? this.savePath
         ..updateTime = updateTime ?? this.updateTime
         ..order = order ?? this.order;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  operator ==(other) => other is DownloadRecord && other.id == id;
 }
 
 enum DownloadRecordStatus { download, complete, fail }

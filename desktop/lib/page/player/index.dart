@@ -1,9 +1,9 @@
+import 'package:desktop/common/custom.dart';
 import 'package:desktop/model/event.dart';
 import 'package:desktop/widget/page.dart';
-import 'package:desktop/widget/player/player.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-
+import 'package:window_manager/window_manager.dart';
 import 'resource.dart';
 
 /*
@@ -30,12 +30,45 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
   _PlayerLogic initLogic() => _PlayerLogic();
 
   @override
+  void initState() {
+    super.initState();
+    // 控制器
+    final controller = logic.controller;
+    // 监听全屏状态切换
+    controller.controlFullscreen.addListener(() {
+      final value = controller.controlFullscreen.value;
+      windowManager.setFullScreen(value);
+    });
+    // 监听小窗口状态切换
+    Offset? cachePosition;
+    controller.miniWindow.addListener(() async {
+      if (!mounted) return;
+      final mini = controller.isMiniWindow;
+      final windowSize =
+          mini ? Custom.miniWindowSize : Custom.defaultWindowSize;
+      if (mini) cachePosition = await windowManager.getPosition();
+      await Future.wait([
+        windowManager.setAlwaysOnTop(mini),
+        if (mini)
+          windowManager.setAlignment(Alignment.topLeft, animate: true)
+        else if (cachePosition != null)
+          windowManager.setPosition(cachePosition!, animate: true),
+        windowManager.setMinimumSize(windowSize),
+        windowManager.setSize(windowSize),
+      ]);
+    });
+  }
+
+  @override
   Widget buildWidget(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: logic.controller.controlFullscreen,
-      builder: (_, isFullscreen, __) {
+    final controller = logic.controller;
+    return ValueListenableBuilder2<bool, bool>(
+      first: controller.controlFullscreen,
+      second: controller.miniWindow,
+      builder: (_, isFullscreen, isMiniWindow, __) {
         return WindowPage(
-          isFullScreen: isFullscreen,
+          isDraggable: isMiniWindow,
+          isFullScreen: isFullscreen || isMiniWindow,
           leading: const BackButton(),
           child: Scaffold(
             key: pageKey,
@@ -79,7 +112,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return CustomDesktopVideoPlayer(
+    return CustomVideoPlayer(
       subTitle: _buildSubTitle(),
       controller: logic.controller,
       title: Text(logic.animeInfo.value.name),
@@ -87,6 +120,7 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
         _buildBottomActionsNext(),
         const Spacer(),
         _buildBottomActionsChoice(),
+        _buildBottomActionsAutoPlay(),
       ],
     );
   }
@@ -130,6 +164,26 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic> {
       onPressed: () {
         logic.controller.setControlVisible(true, ongoing: true);
         pageKey.currentState?.openEndDrawer();
+      },
+    );
+  }
+
+  // 构建底部连播按钮
+  Widget _buildBottomActionsAutoPlay() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.autoPlay,
+      builder: (_, autoPlay, __) {
+        return Tooltip(
+          message: '自动连播',
+          child: Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: autoPlay,
+              activeColor: kPrimaryColor,
+              onChanged: logic.autoPlay.setValue,
+            ),
+          ),
+        );
       },
     );
   }
@@ -195,16 +249,33 @@ class _PlayerLogic extends BaseLogic {
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
+  // 是否自动连播
+  final autoPlay = ValueChangeNotifier<bool>(true);
+
   @override
   void init() {
     super.init();
+    // 监听播放完成状态
+    controller.stream.completed.listen((completed) {
+      if (!completed) return;
+      // 自动播放下一集
+      if (autoPlay.value) {
+        final nextVideo = nextResourceInfo.value;
+        if (nextVideo != null) changeVideo(nextVideo);
+      }
+    });
     // 监听视频播放进度
     controller.stream.position.listen((e) {
       // 更新当前播放进度
-      Throttle.c(
-        () => _updateVideoProgress(e),
-        'updateVideoProgress',
-      );
+      Throttle.c(() {
+        _updateVideoProgress(e);
+        windowManager.setProgressBar(controller.progress);
+      }, 'updateVideoProgress');
+    });
+    // 当切换迷你窗口时关闭播放进度提示
+    controller.miniWindow.addListener(() {
+      if (!controller.isMiniWindow) return;
+      playRecord.setValue(null);
     });
   }
 
@@ -344,7 +415,9 @@ class _PlayerLogic extends BaseLogic {
 
   @override
   void dispose() {
-    // 种植视频播放并销毁资源获取
+    // 取消mini窗口
+    controller.setMiniWindow(false);
+    // 终止视频播放并销毁资源获取
     cancelVideoPlay();
     // 销毁控制器
     controller.dispose();

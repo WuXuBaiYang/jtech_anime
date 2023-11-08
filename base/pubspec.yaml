@@ -49,24 +49,24 @@ dependencies:
   package_info_plus: ^4.2.0
 
   # 动画(ALL)
-  lottie: ^2.6.0
+  lottie: ^2.7.0
 
   # 模糊(ALL)
   blur: ^3.1.0
 
   # 刷新组件(ALL)
-  easy_refresh: ^3.3.2+1
+  easy_refresh: ^3.3.2+2
 
   # 视频播放器(ALL)
-  media_kit: ^1.1.9
-  media_kit_video: ^1.2.2
+  media_kit: ^1.1.10+1
+  media_kit_video: ^1.2.4
   media_kit_libs_video: ^1.0.4
 
   # hls文件解析(ALL)
   flutter_hls_parser: ^2.0.1
 
   # 后台下载器(NO WEB)
-  background_downloader: ^7.11.0
+  background_downloader: ^7.12.2
 
   # js运行时(NO WEB)
   flutter_js: ^0.8.0
@@ -84,13 +84,16 @@ dependencies:
   collection: any
 
   # url跳转(ALL)
-  url_launcher: ^6.1.14
+  url_launcher: ^6.2.1
 
-  # zxing基础库
+  # zxing基础库(ALL)
   zxing_lib: ^1.1.1
 
-  # zxing扫码组件
+  # zxing扫码组件(ALL)
   zxing_widget: ^1.1.0
+
+  # 系统音量调节（NO WEB）
+  flutter_volume_controller: ^1.3.0
 
 dev_dependencies:
   flutter_test:

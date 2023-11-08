@@ -140,6 +140,14 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       FontAwesomeIcons.globe,
       (BuildContext context) => AnimeSourceProxyDialog.show(context)
     ),
+    '检查更新': (
+      FontAwesomeIcons.wrench,
+      (BuildContext context) async {
+        SnackTool.showMessage(message: '正在检查最新版本');
+        final result = await AppVersionTool().check(context);
+        if (!result) SnackTool.showMessage(message: '已是最新版本');
+      }
+    ),
   };
 
   // 构建扩展菜单

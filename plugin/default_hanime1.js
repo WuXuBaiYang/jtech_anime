@@ -334,8 +334,13 @@ async function getPlayUrls(resourceUrls) {
             const url = resourceUrls[i]
             let resp = await request(url, getFetchOptions())
             if (!resp.ok) continue
+            let result = await resp.doc.querySelector('#player > source', 'src')
+			if(result == null){
+				result = await resp.doc.querySelector('#player-div-wrapper', 'children\[4\]')
+				result = result.match(/source = '.*';/)[0].replace(/'/g,'').replace(/source = /,'').replace(/;/,'')
+			}
             tempList.push({
-                url: url, useCache: false, playUrl: await resp.doc.querySelector('#player > source', 'src'),
+                url: url, useCache: false, playUrl: result,
             })
         } catch (e) {
             throw e

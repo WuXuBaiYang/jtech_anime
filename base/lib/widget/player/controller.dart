@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -21,8 +22,14 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   // 屏幕锁定状态
   final screenLocked = ValueChangeNotifier<bool>(false);
 
+  // 小窗口模式
+  final miniWindow = ValueChangeNotifier<bool>(false);
+
   // 屏幕亮度控制（0-1）
   final screenBrightness = ValueChangeNotifier<double>(1);
+
+  // 音量控制（0-1）
+  final volume = ValueChangeNotifier<double>(0.3);
 
   // 控制器
   late final VideoController controller = VideoController(_player);
@@ -31,9 +38,18 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     VideoCache? initialVideo,
     bool autoPlay = true,
   }) : super(initialVideo) {
-    if (initialVideo == null) return;
+    // 禁止展示系统音量控制
+    FlutterVolumeController.updateShowSystemUI(false);
+    // 获取当前音量
+    FlutterVolumeController.getVolume().then((v) {
+      volume.setValue(v ?? 0.3);
+    });
+    // 监听音量变化并设置系统音量
+    volume.addListener(() {
+      FlutterVolumeController.setVolume(volume.value);
+    });
     // 如果存在初始化视频，则加载并播放
-    play(initialVideo.playUrl, autoPlay);
+    if (initialVideo != null) play(initialVideo.playUrl, autoPlay);
   }
 
   // 获取状态控制
@@ -51,7 +67,11 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
     _timer = null;
   }
 
-  // 切换控制组件
+  // 获取当前播放进度
+  double get progress =>
+      state.position.inMilliseconds / state.duration.inMilliseconds;
+
+  // 设置控制层显示状态
   void setControlVisible(bool visible, {bool ongoing = false}) {
     controlVisible.setValue(visible);
     _cancelTimer();
@@ -61,6 +81,18 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
       _cancelTimer();
     });
   }
+
+  // 切换控制层显示状态
+  void toggleControlVisible() => setControlVisible(!controlVisible.value);
+
+  // 获取当前小窗口状态
+  bool get isMiniWindow => miniWindow.value;
+
+  // 切换小窗口状态
+  void toggleMiniWindow() => setMiniWindow(!miniWindow.value);
+
+  // 设置小窗口状态
+  void setMiniWindow(bool mini) => miniWindow.setValue(mini);
 
   // 获取当前锁屏状态
   bool get isScreenLocked => screenLocked.value;
@@ -97,12 +129,12 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
 
   // 快进播放进度
   Future<Duration> seekForward(
-      [Duration duration = const Duration(seconds: 3)]) =>
+          [Duration duration = const Duration(seconds: 3)]) =>
       seekTo(state.position + duration);
 
   // 快进播放进度
   Future<Duration> seekBackward(
-      [Duration duration = const Duration(seconds: 3)]) =>
+          [Duration duration = const Duration(seconds: 3)]) =>
       seekTo(state.position - duration);
 
   // 获取当前播放倍速
@@ -132,30 +164,42 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
       setBrightness(screenBrightness.value - step);
 
   // 获取当前音量
-  double get currentVolume => state.volume;
+  double get currentVolume => volume.value;
 
-  // 设置音量(0-100)
-  Future<double> setVolume(double volume) async {
-    await _player.setVolume(range(volume, 0, 100));
-    return state.volume;
+  // 设置音量(0-1)
+  Future<double> setVolume(double value) async {
+    volume.setValue(range(value, 0, 1));
+    return currentVolume;
   }
 
   // 增加音量
-  Future<double> volumeRaise([double step = 5]) =>
-      setVolume(state.volume + step);
+  Future<double> volumeRaise([double step = 0.15]) =>
+      setVolume(currentVolume + step);
 
   // 降低音量
-  Future<double> volumeLower([double step = 5]) =>
-      setVolume(state.volume - step);
+  Future<double> volumeLower([double step = 0.15]) =>
+      setVolume(currentVolume - step);
+
+  // 切换静音状态
+  Future<void> toggleMute() => FlutterVolumeController.toggleMute();
+
+  // 设置静音
+  Future<void> setMute(bool isMuted) =>
+      FlutterVolumeController.setMute(isMuted);
+
+  // 静音
+  Future<void> mute() => setMute(true);
+
+  // 取消静音
+  Future<void> unmute() => setMute(false);
 
   // 加载视频并播放
   Future<void> play(String uri, [bool autoPlay = true]) =>
       _player.open(Media(uri), play: autoPlay);
 
   // 增加视频到视频队列
-  Future<void> playlist(List<String> uris, [bool autoPlay = true]) =>
-      _player
-          .open(Playlist(uris.map((e) => Media(e)).toList()), play: autoPlay);
+  Future<void> playlist(List<String> uris, [bool autoPlay = true]) => _player
+      .open(Playlist(uris.map((e) => Media(e)).toList()), play: autoPlay);
 
   // 切换播放暂停状态
   Future<bool> resumeOrPause() async {

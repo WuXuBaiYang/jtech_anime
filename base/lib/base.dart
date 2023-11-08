@@ -58,6 +58,8 @@ export 'tool/version.dart';
 ///自定义组件
 export 'widget/player/controller.dart';
 export 'widget/player/player.dart';
+export 'widget/player/controls/controls_desktop.dart';
+export 'widget/player/controls/controls_mobile.dart';
 export 'widget/refresh/controller.dart';
 export 'widget/refresh/refresh_view.dart';
 export 'widget/future_builder.dart';
@@ -71,6 +73,9 @@ export 'widget/stream_view.dart';
 export 'widget/tab.dart';
 export 'widget/lottie.dart';
 export 'widget/blur.dart';
+export 'widget/download/list.dart';
+export 'widget/timer.dart';
+export 'widget/vertical_progress.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';

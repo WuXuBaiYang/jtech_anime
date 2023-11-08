@@ -1,12 +1,10 @@
 import 'package:desktop/common/route.dart';
 import 'package:desktop/common/custom.dart';
 import 'package:desktop/page/home/index.dart';
+import 'package:desktop/tool/version.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'manage/config.dart';
-import 'model/config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,17 +19,39 @@ void main() async {
   await ensureInitializedCore();
   // 初始化窗口管理
   await windowManager.ensureInitialized();
-  const size = Size(800, 600);
   const windowOptions = WindowOptions(
-    size: size,
     center: true,
-    minimumSize: size,
     skipTaskbar: false,
+    size: Custom.defaultWindowSize,
     titleBarStyle: TitleBarStyle.hidden,
+    minimumSize: Custom.defaultWindowSize,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
+  });
+  // 监听下载进度变化
+  download.downloadProgress.listen((task) {
+    if (task != null && task.downloadingMap.isNotEmpty) {
+      final progress = task.totalRatio;
+      return Throttle.c(
+        () => windowManager.setProgressBar(progress),
+        delay: const Duration(milliseconds: 500),
+        'update_progress',
+      );
+    }
+    windowManager.setProgressBar(0);
+  });
+  // 监听版本更新状态
+  AppVersionTool.downloadProgressStream.listen((progress) {
+    if (progress < 1.0) {
+      return Throttle.c(
+        () => windowManager.setProgressBar(progress),
+        delay: const Duration(milliseconds: 500),
+        'update_progress',
+      );
+    }
+    windowManager.setProgressBar(0);
   });
   runApp(const MyApp());
 }

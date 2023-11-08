@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -93,3 +94,17 @@ String md5(String value) => crypto.md5.convert(utf8.encode(value)).toString();
 
 // 区间计算
 T range<T extends num>(T value, T begin, T end) => max(begin, min(end, value));
+
+// 判断当前是否是移动端平台
+bool get isMobile => [
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+      TargetPlatform.fuchsia,
+    ].contains(defaultTargetPlatform);
+
+// 判断当前是否是桌面端平台
+bool get isDesktop => [
+      TargetPlatform.linux,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+    ].contains(defaultTargetPlatform);

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:jtech_anime_base/common/manage.dart';
@@ -7,6 +6,7 @@ import 'package:jtech_anime_base/manage/cache.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/manage/event.dart';
 import 'package:jtech_anime_base/model/database/proxy.dart';
+import 'package:jtech_anime_base/tool/log.dart';
 
 /*
 * 代理管理器
@@ -28,6 +28,9 @@ class ProxyManage extends BaseManage {
 
   // 获取当前代理
   ProxyRecord? get currentProxy => _currentProxy ??= _loadCurrentProxy();
+
+  // 判断当前是否存在代理
+  bool get hasProxy => currentProxy != null;
 
   // 从json中加载当前代理记录
   ProxyRecord? _loadCurrentProxy() {
@@ -57,6 +60,32 @@ class ProxyManage extends BaseManage {
         client.findProxy = (_) => 'PROXY $proxy';
         return client;
       };
+  }
+
+  // 验证当前选中的代理是否有效
+  Future<bool> checkProxy() async {
+    if (!hasProxy) return false;
+    try {
+      // 通过访问百度判断代理是否可用
+      final dio = Dio(
+        BaseOptions(
+          maxRedirects: 0,
+          followRedirects: false,
+          baseUrl: 'https://www.google.com',
+          responseType: ResponseType.plain,
+          validateStatus: (status) => true,
+          headers: {'User-Agent': 'Mozilla/5.0'},
+          connectTimeout: const Duration(seconds: 2),
+          receiveTimeout: const Duration(seconds: 2),
+        ),
+      );
+      dio.httpClientAdapter = createProxyHttpAdapter();
+      final resp = await dio.get('/');
+      return resp.statusCode == 200;
+    } catch (e) {
+      LogTool.w('代理不可用', error: e);
+    }
+    return false;
   }
 
   // 获取代理列表

@@ -9,6 +9,12 @@ import 'package:jtech_anime_base/base.dart';
 * @Time 2023/9/6 12:34
 */
 class Custom {
+  // 默认窗口尺寸
+  static const defaultWindowSize = Size(800, 600);
+
+  // 小窗口尺寸
+  static const miniWindowSize = Size(300, 200);
+
   // 全局配置
   static final JTechConfig config = JTechConfig(
     noPictureMode: true,
@@ -71,7 +77,7 @@ class Custom {
           style: ButtonStyle(
             elevation: const MaterialStatePropertyAll(0),
             backgroundColor:
-            MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
+                MaterialStatePropertyAll(colorScheme.primary.withOpacity(0.12)),
           ),
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(

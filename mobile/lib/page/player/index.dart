@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/page/player/resource.dart';
 import 'package:mobile/tool/tool.dart';
-import 'package:mobile/widget/player/player.dart';
 import 'package:jtech_anime_base/base.dart';
 
 /*
@@ -79,15 +78,26 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
 
   // 构建视频播放器
   Widget _buildVideoPlayer() {
-    return CustomMobileVideoPlayer(
-      subTitle: _buildSubTitle(),
-      controller: logic.controller,
-      title: Text(logic.animeInfo.value.name),
-      bottomActions: [
-        _buildBottomActionsNext(),
-        const Spacer(),
-        _buildBottomActionsChoice(),
-      ],
+    return ValueListenableBuilder<Orientation>(
+      valueListenable: logic.screenOrientation,
+      builder: (_, orientation, __) {
+        final landscape = orientation == Orientation.landscape;
+        return CustomVideoPlayer(
+          subTitle: _buildSubTitle(),
+          controller: logic.controller,
+          title: Text(logic.animeInfo.value.name),
+          showTimer: landscape,
+          showSpeed: landscape,
+          showProgressText: landscape,
+          bottomActions: [
+            _buildBottomActionsNext(),
+            const Spacer(),
+            if (landscape) _buildBottomActionsChoice(),
+            if (landscape) _buildBottomActionsAutoPlay(),
+            _buildBottomActionsOrientation(),
+          ],
+        );
+      },
     );
   }
 
@@ -112,9 +122,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         return IconButton(
           onPressed: canPlayNext
               ? Throttle.click(() {
-                  logic.controller.setControlVisible(true);
-                  logic.changeVideo(resource);
-                }, 'playNextResource')
+            logic.controller.setControlVisible(true);
+            logic.changeVideo(resource);
+          }, 'playNextResource')
               : null,
           icon: Icon(FontAwesomeIcons.forward,
               color: canPlayNext ? Colors.white : Colors.white30),
@@ -130,6 +140,50 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
       onPressed: () {
         logic.controller.setControlVisible(true, ongoing: true);
         pageKey.currentState?.openEndDrawer();
+      },
+    );
+  }
+
+  // 构建底部连播按钮
+  Widget _buildBottomActionsAutoPlay() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: logic.autoPlay,
+      builder: (_, autoPlay, __) {
+        return Tooltip(
+          message: autoPlay ? '关闭自动连播' : '开启自动连播',
+          child: Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: autoPlay,
+              activeColor: kPrimaryColor,
+              onChanged: (v) {
+                logic.autoPlay.setValue(v);
+                logic.controller.setControlVisible(true);
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 构建底部屏幕方向按钮
+  Widget _buildBottomActionsOrientation() {
+    return ValueListenableBuilder<Orientation>(
+      valueListenable: logic.screenOrientation,
+      builder: (_, orientation, __) {
+        return AnimatedRotation(
+          duration: const Duration(milliseconds: 200),
+          turns: orientation == Orientation.landscape ? 0 : 0.25,
+          child: IconButton(
+            icon: const Icon(FontAwesomeIcons.mobileScreen),
+            onPressed: () {
+              logic.screenOrientation
+                  .setValue(Orientation.values[orientation.index ^ 1]);
+              logic.controller.setControlVisible(true);
+            },
+          ),
+        );
       },
     );
   }
@@ -218,18 +272,38 @@ class _PlayerLogic extends BaseLogic {
   // 获取资源列表
   List<List<ResourceItemModel>> get resources => animeInfo.value.resources;
 
+  // 是否自动连播
+  final autoPlay = ValueChangeNotifier<bool>(true);
+
+  // 当前屏幕方向
+  final screenOrientation =
+  ValueChangeNotifier<Orientation>(Orientation.landscape);
+
   @override
   void init() {
     super.init();
+    // 监听播放完成状态
+    controller.stream.completed.listen((completed) {
+      if (!completed) return;
+      // 自动播放下一集
+      if (autoPlay.value) {
+        final nextVideo = nextResourceInfo.value;
+        if (nextVideo != null) changeVideo(nextVideo);
+      }
+    });
     // 设置页面进入状态
     entryPlayer();
     // 监听视频播放进度
     controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
-        () => _updateVideoProgress(e),
+            () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
+    });
+    // 监听屏幕旋转方向
+    screenOrientation.addListener(() {
+      setScreenOrientation(screenOrientation.value == Orientation.portrait);
     });
   }
 
@@ -271,7 +345,7 @@ class _PlayerLogic extends BaseLogic {
         if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
         final result =
-            await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
+        await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
@@ -330,8 +404,9 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 一定时间后关闭播放记录弹窗
-  void time2CloseRecord() => Debounce.c(
-        () => playRecord.setValue(null),
+  void time2CloseRecord() =>
+      Debounce.c(
+            () => playRecord.setValue(null),
         'time2CloseRecord',
         delay: const Duration(milliseconds: 5000),
       );

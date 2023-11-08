@@ -68,19 +68,6 @@ class CustomRefreshView extends StatefulWidget {
 class _CustomRefreshViewState extends State<CustomRefreshView>
     with SingleTickerProviderStateMixin {
   @override
-  void initState() {
-    super.initState();
-    // 初始化
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 判断是否启用初始化加载
-      if (widget.initialRefresh) {
-        Future.delayed(const Duration(milliseconds: 100))
-            .then((_) => widget.controller.startRefresh());
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final onRefresh =
         widget.enableRefresh ? () => widget.onRefresh(false) : null;
@@ -90,6 +77,7 @@ class _CustomRefreshViewState extends State<CustomRefreshView>
       onLoad: onloadMore,
       onRefresh: onRefresh,
       triggerAxis: Axis.vertical,
+      refreshOnStart: widget.initialRefresh,
       footer: widget.footer.getFooter(
         triggerOffset: widget.loadMoreTriggerOffset,
       ),
