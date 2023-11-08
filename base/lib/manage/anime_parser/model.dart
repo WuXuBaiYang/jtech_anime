@@ -1,4 +1,5 @@
 import 'package:jtech_anime_base/common/model.dart';
+import 'package:jtech_anime_base/model/anime.dart';
 import 'functions.dart';
 
 /*
@@ -63,8 +64,7 @@ class AnimeParserRequestModel extends BaseModel {
     this.pageIndex = 1,
     this.pageSize = 25,
     this.filterSelect,
-  })
-      : keyword = null,
+  })  : keyword = null,
         animeUrl = null,
         resourceUrls = null,
         function = AnimeParserFunction.home;
@@ -75,16 +75,14 @@ class AnimeParserRequestModel extends BaseModel {
     this.pageSize = 25,
     this.keyword,
     this.filterSelect,
-  })
-      : animeUrl = null,
+  })  : animeUrl = null,
         resourceUrls = null,
         function = AnimeParserFunction.search;
 
   // 构建详情页请求数据结构
   AnimeParserRequestModel.fromDetail({
     required this.animeUrl,
-  })
-      : pageIndex = null,
+  })  : pageIndex = null,
         pageSize = null,
         keyword = null,
         filterSelect = null,
@@ -94,17 +92,25 @@ class AnimeParserRequestModel extends BaseModel {
   // 构建视频播放地址请求数据
   AnimeParserRequestModel.fromPlayUrl({
     required this.resourceUrls,
-  })
-      : pageIndex = null,
+  })  : pageIndex = null,
         pageSize = null,
         keyword = null,
         animeUrl = null,
         filterSelect = null,
         function = AnimeParserFunction.playUrl;
 
+  // 构建相关推荐请求数据结构
+  AnimeParserRequestModel.fromRecommend(AnimeModel model)
+      : pageIndex = null,
+        pageSize = null,
+        keyword = null,
+        animeUrl = model.url,
+        filterSelect = model.to(),
+        resourceUrls = null,
+        function = AnimeParserFunction.recommend;
+
   @override
-  Map<String, dynamic> to() =>
-      {
+  Map<String, dynamic> to() => {
         'pageIndex': pageIndex,
         'pageSize': pageSize,
         'filterSelect': filterSelect,

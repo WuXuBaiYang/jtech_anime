@@ -18,6 +18,8 @@ enum AnimeParserFunction {
   detail,
   // 获取视频真实播放地址
   playUrl,
+  // 详情页推荐列表
+  recommend,
 }
 
 /*
@@ -27,57 +29,54 @@ enum AnimeParserFunction {
 */
 extension AnimeParserFunctionExtension on AnimeParserFunction {
   // 获取方法中文名
-  String get functionNameCN =>
-      {
+  String get functionNameCN => {
         AnimeParserFunction.timeTable: '番剧时间表',
         AnimeParserFunction.filter: '过滤条件',
         AnimeParserFunction.search: '搜索',
         AnimeParserFunction.home: '番剧列表',
         AnimeParserFunction.detail: '番剧详情',
         AnimeParserFunction.playUrl: '视频解析',
+        AnimeParserFunction.recommend: '相关推荐',
       }[this]!;
 
   // 获取方法名
-  String get functionName =>
-      {
+  String get functionName => {
         AnimeParserFunction.timeTable: 'getTimeTable',
         AnimeParserFunction.filter: 'loadFilterList',
         AnimeParserFunction.search: 'searchAnimeList',
         AnimeParserFunction.home: 'loadHomeList',
         AnimeParserFunction.detail: 'getAnimeDetail',
         AnimeParserFunction.playUrl: 'getPlayUrls',
+        AnimeParserFunction.recommend: 'loadRecommendList',
       }[this]!;
 
   // 判断方法是否为必须
-  bool get required =>
-      {
+  bool get required => {
         AnimeParserFunction.timeTable: false,
         AnimeParserFunction.filter: false,
         AnimeParserFunction.search: false,
         AnimeParserFunction.home: true,
         AnimeParserFunction.detail: true,
         AnimeParserFunction.playUrl: true,
+        AnimeParserFunction.recommend: false,
       }[this]!;
 
   // 拼装方法请求
-  String getCaseFunction(Map<String, dynamic> params) =>
-      {
+  String getCaseFunction(Map<String, dynamic> params) => {
         AnimeParserFunction.timeTable: (params) => '$functionName()',
         AnimeParserFunction.search: (params) {
           final pageIndex = params['pageIndex'];
           final pageSize = params['pageSize'];
           final keyword = params['keyword'];
           final filterSelect = params['filterSelect'];
-          return '$functionName($pageIndex, $pageSize, "$keyword", ${jsonEncode(
-              filterSelect)})';
+          return '$functionName($pageIndex, $pageSize, "$keyword", ${jsonEncode(filterSelect)})';
         },
         AnimeParserFunction.filter: (params) => '$functionName()',
         AnimeParserFunction.home: (params) {
           final pageIndex = params['pageIndex'];
           final pageSize = params['pageSize'];
           final filterSelect = params['filterSelect'];
-          return '$functionName($pageIndex, $pageSize, ${jsonEncode(
-              filterSelect)})';
+          return '$functionName($pageIndex, $pageSize, ${jsonEncode(filterSelect)})';
         },
         AnimeParserFunction.detail: (params) {
           final animeUrl = params['animeUrl'];
@@ -86,6 +85,11 @@ extension AnimeParserFunctionExtension on AnimeParserFunction {
         AnimeParserFunction.playUrl: (params) {
           final resourceUrls = params['resourceUrls'];
           return '$functionName(${jsonEncode(resourceUrls)})';
+        },
+        AnimeParserFunction.recommend: (params) {
+          final animeUrl = params['animeUrl'];
+          final filterSelect = params['filterSelect'];
+          return '$functionName("$animeUrl" , ${jsonEncode(filterSelect)})';
         },
       }[this]!(params);
 }
