@@ -19,6 +19,7 @@ class PermissionTool {
       OnPermissionCheckFail? onCheckFail}) async {
     final failResults = <PermissionResult>[];
     for (final item in permissions) {
+      if (await item.isGranted) continue;
       final result = await item.request();
       if (!result.isGranted) failResults.add(result);
     }
@@ -374,6 +375,9 @@ class PermissionRequest {
     return PermissionResult.from(status,
         message: !status.isGranted ? requestFail : '');
   }
+
+  // 判断是否有权限
+  Future<bool> get isGranted => _permission.isGranted;
 
   // 日历权限
   const PermissionRequest.calendar({
