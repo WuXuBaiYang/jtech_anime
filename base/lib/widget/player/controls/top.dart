@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/widget/player/controller.dart';
+import 'package:jtech_anime_base/widget/player/controls/ignore_gesture.dart';
 import 'package:jtech_anime_base/widget/timer.dart';
 
 /*
@@ -44,7 +45,9 @@ class CustomPlayerControlsTop extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.topCenter,
-      child: _buildTopActions(),
+      child: IgnoreGesture(
+        child: _buildTopActions(),
+      ),
     );
   }
 

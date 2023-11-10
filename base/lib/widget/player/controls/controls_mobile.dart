@@ -29,6 +29,9 @@ class MobileCustomPlayerControls extends CustomPlayerControls {
   // 是否展示时间
   final bool showTimer;
 
+  // 忽略区域大小
+  final double ignoreEdgeSize;
+
   const MobileCustomPlayerControls({
     super.key,
     required super.controller,
@@ -43,6 +46,7 @@ class MobileCustomPlayerControls extends CustomPlayerControls {
     this.showSpeed = true,
     this.showProgressText = true,
     this.showTimer = true,
+    this.ignoreEdgeSize = 24,
   });
 
   @override
@@ -70,6 +74,18 @@ class _MobileCustomPlayerControlsState
     );
   }
 
+  // 缓存垂直与水平滑动的忽略状态
+  bool _ignoreVertical = false, _ignoreHorizontal = false;
+
+  // 判断是否在忽略范围内
+  bool _isIgnoreEdge(Offset offset) {
+    final size = MediaQuery.of(context).size;
+    return offset.dx < widget.ignoreEdgeSize ||
+        offset.dx > size.width - widget.ignoreEdgeSize ||
+        offset.dy < widget.ignoreEdgeSize ||
+        offset.dy > size.height - widget.ignoreEdgeSize;
+  }
+
   // 构建控制器
   Widget _buildControls(BuildContext context) {
     Duration? tempPosition;
@@ -94,12 +110,16 @@ class _MobileCustomPlayerControlsState
       },
       onLongPressEnd: (_) => visiblePlaySpeed.setValue(false),
       // 垂直滑动
-      onVerticalDragStart: (_) {
-        if (controller.isScreenLocked) return;
+      onVerticalDragStart: (details) {
+        if (controller.isScreenLocked ||
+            _isIgnoreEdge(details.globalPosition)) {
+          _ignoreVertical = true;
+          return;
+        }
         controller.setControlVisible(false);
       },
       onVerticalDragUpdate: (details) {
-        if (controller.isScreenLocked) return;
+        if (_ignoreVertical) return;
         // 区分左右屏
         final offset = details.delta.dy / screenHeight;
         if (details.globalPosition.dx > screenWidth / 2) {
@@ -108,12 +128,20 @@ class _MobileCustomPlayerControlsState
           controller.setBrightness(controller.currentBrightness - offset);
         }
       },
-      onHorizontalDragStart: (_) {
-        if (controller.isScreenLocked) return;
+      onVerticalDragEnd: (_) {
+        _ignoreVertical = false;
+      },
+      // 水平滑动
+      onHorizontalDragStart: (details) {
+        if (controller.isScreenLocked ||
+            _isIgnoreEdge(details.globalPosition)) {
+          _ignoreHorizontal = true;
+          return;
+        }
         controller.setControlVisible(true, ongoing: true);
       },
       onHorizontalDragUpdate: (details) {
-        if (controller.isScreenLocked) return;
+        if (_ignoreHorizontal) return;
         final current = tempPosition?.inMilliseconds ??
             controller.state.position.inMilliseconds;
         final total = controller.state.duration.inMilliseconds;
@@ -124,6 +152,7 @@ class _MobileCustomPlayerControlsState
         playerSeekStream.add(tempPosition);
       },
       onHorizontalDragEnd: (_) {
+        _ignoreHorizontal = false;
         controller.setControlVisible(true);
         playerSeekStream.add(null);
         tempPosition = null;

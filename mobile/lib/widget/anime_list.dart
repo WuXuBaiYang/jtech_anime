@@ -88,6 +88,7 @@ class _AnimeListViewState extends State<AnimeListView> {
       children: [
         if (widget.animeList.isEmpty) _buildEmptyResults(),
         CustomScrollView(
+          shrinkWrap: true,
           slivers: [
             if (widget.header != null)
               SliverList(

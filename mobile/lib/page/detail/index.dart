@@ -4,6 +4,7 @@ import 'package:mobile/page/detail/download.dart';
 import 'package:mobile/page/detail/info.dart';
 import 'package:mobile/tool/network.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/anime_list.dart';
 import 'package:mobile/widget/text_scroll.dart';
 
 /*
@@ -216,6 +217,7 @@ class _AnimeDetailPageState
   Widget _buildAnimeResourcesTabItem(List<ResourceItemModel> items,
       PlayRecord? playRecord, Map<String, DownloadRecord> downloadMap) {
     return GridView.builder(
+      shrinkWrap: true,
       itemCount: items.length,
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -266,6 +268,23 @@ class _AnimeDetailPageState
         ],
       ),
       onTap: () => logic.goPlay(item),
+    );
+  }
+
+  // 构建推荐番剧列表
+  Widget _buildRecommendList() {
+    return CacheFutureBuilder<List<AnimeModel>>(
+      future: () => animeParser.loadRecommendList(logic.animeDetail.value),
+      builder: (_, snap) {
+        final animeList = snap.data ?? [];
+        if (animeList.isEmpty) return const SizedBox();
+        return AnimeListView(
+          animeList: animeList,
+          enableRefresh: false,
+          enableLoadMore: false,
+          onRefresh: (_) async {},
+        );
+      },
     );
   }
 }

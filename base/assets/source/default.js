@@ -546,6 +546,33 @@ async function getPlayUrls(resourceUrls) {
     return tempList
 }
 
+/**
+ * 饭局相关推荐列表
+ * @param {string} animeUrl 番剧详情页地址
+ * @param {Map.<string,string>} animeInfo 番剧详情信息
+ * @returns {Array} [
+ *         {
+ *             'name': '番剧名称',
+ *             'cover': '番剧封面',
+ *             'status': '当前状态（更新到xx集/已完结等）',
+ *             'types': '番剧类型（武侠/玄幻这种）',
+ *             'intro': '番剧介绍',
+ *             'url': '番剧详情页地址'
+ *         }
+ *     ]
+ */
+async function loadRecommendList(animeUrl, animeInfo) {
+    let resp = await request(getUri('/list/', {
+        'region': animeInfo.region, 'label': animeInfo.types[0]
+    }), getFetchOptions())
+    if (!resp.ok) {
+        if (resp.code === 404) return []
+        throw new Error('番剧搜索失败，请重试')
+    }
+    return parserAnimeList(resp.doc)
+}
+
+
 async function parserAnimeList(doc) {
     let tempList = []
     const selector = 'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li'

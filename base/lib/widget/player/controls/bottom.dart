@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:jtech_anime_base/widget/player/controls/ignore_gesture.dart';
 import 'package:jtech_anime_base/widget/player/widgets/full_screen_button.dart';
 import 'package:jtech_anime_base/widget/player/widgets/mini_screen_button.dart';
 import 'package:jtech_anime_base/widget/player/widgets/play_button.dart';
@@ -57,7 +58,9 @@ class CustomPlayerControlsBottom extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: _buildBottomActions(),
+      child: IgnoreGesture(
+        child: _buildBottomActions(),
+      ),
     );
   }
 

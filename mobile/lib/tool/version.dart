@@ -20,8 +20,7 @@ class AppVersionTool extends AppVersionToolBase {
       const PermissionRequest.androidManageExternalStorage(),
       const PermissionRequest.androidRequestInstallPackages(),
     ]).then((result) {
-      if (!result) return SnackTool.showMessage(message: '未能获取到权限');
-      SnackTool.showMessage(message: '正在下载安装包...');
+      if (!result) SnackTool.showMessage(message: '未能获取到权限');
       _installAndroidApk(context, info);
     });
   }
