@@ -32,9 +32,6 @@ class CustomPlayerVolume extends StatelessWidget {
           thumbShape: RoundSliderThumbShape(
             enabledThumbRadius: 4,
           ),
-          overlayShape: RoundSliderOverlayShape(
-            overlayRadius: 12,
-          ),
         ),
       );
 

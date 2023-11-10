@@ -41,9 +41,9 @@ class VerticalProgressView extends StatelessWidget {
       angle: 270 * pi / 180,
       child: Card(
         elevation: 0,
+        margin: margin,
         color: Colors.black38,
         clipBehavior: Clip.antiAlias,
-        margin: margin ?? const EdgeInsets.all(24),
         shape: shape ??
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
