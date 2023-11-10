@@ -2,6 +2,9 @@
 
 欢迎使用 '看番咩？' 开源项目！本项目基于 Flutter 3.13.2 版本开发。
 
+<img alt="桌面端" height="200" width="260" src="./readme/desktop.png"/>
+<img alt="桌面端" height="200" width="110" src="./readme/mobile.jpg"/>
+
 ## 部署步骤
 
 请按照以下步骤来部署 '看番咩？' 项目：
