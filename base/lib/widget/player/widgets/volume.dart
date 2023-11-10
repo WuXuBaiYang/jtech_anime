@@ -37,6 +37,7 @@ class CustomPlayerVolume extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final focusNode = FocusNode();
     return Theme(
       data: _getTheme(context),
       child: ValueListenableBuilder<double>(
@@ -58,6 +59,8 @@ class CustomPlayerVolume extends StatelessWidget {
                   size: const Size(120, 10),
                   child: Slider(
                     value: volume,
+                    focusNode: focusNode,
+                    onChangeEnd: (_) => focusNode.unfocus(),
                     onChanged: (v) {
                       controller.setVolume(v);
                       controller.setControlVisible(true);

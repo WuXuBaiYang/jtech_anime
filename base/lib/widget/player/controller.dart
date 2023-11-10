@@ -173,11 +173,11 @@ class CustomVideoPlayerController extends ValueChangeNotifier<VideoCache?> {
   }
 
   // 增加音量
-  Future<double> volumeRaise([double step = 0.15]) =>
+  Future<double> volumeRaise([double step = 0.08]) =>
       setVolume(currentVolume + step);
 
   // 降低音量
-  Future<double> volumeLower([double step = 0.15]) =>
+  Future<double> volumeLower([double step = 0.08]) =>
       setVolume(currentVolume - step);
 
   // 切换静音状态

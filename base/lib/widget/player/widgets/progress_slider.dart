@@ -52,6 +52,7 @@ class _CustomPlayerProgressSliderState
 
   @override
   Widget build(BuildContext context) {
+    final focusNode = FocusNode();
     final controller = widget.controller;
     const textStyle = TextStyle(color: Colors.white54, fontSize: 12);
     return ValueListenableBuilder<Duration?>(
@@ -70,18 +71,15 @@ class _CustomPlayerProgressSliderState
                       style: textStyle),
                   Expanded(
                     child: _buildProgressSlider(progress,
-                        buffer: buffer, total: total),
+                        buffer: buffer, total: total, focusNode: focusNode),
                   ),
                   Text(total.format(DurationPattern.fullTime),
                       style: textStyle),
                 ],
               );
             }
-            return _buildProgressSlider(
-              progress,
-              total: total,
-              buffer: buffer,
-            );
+            return _buildProgressSlider(progress,
+                total: total, buffer: buffer, focusNode: focusNode);
           },
         );
       },
@@ -89,9 +87,14 @@ class _CustomPlayerProgressSliderState
   }
 
   // 构建进度条
-  Widget _buildProgressSlider(Duration progress,
-      {required Duration buffer, required Duration total}) {
+  Widget _buildProgressSlider(
+    Duration progress, {
+    required Duration buffer,
+    required Duration total,
+    required FocusNode focusNode,
+  }) {
     return Slider(
+      focusNode: focusNode,
       inactiveColor: Colors.black26,
       max: max(total.inMilliseconds.toDouble(), 0),
       value: max(progress.inMilliseconds.toDouble(), 0),
@@ -99,7 +102,10 @@ class _CustomPlayerProgressSliderState
       secondaryTrackValue: max(buffer.inMilliseconds.toDouble(), 0),
       onChanged: (v) =>
           tempProgress.setValue(Duration(milliseconds: v.toInt())),
-      onChangeEnd: (v) => _delaySeekVideo(Duration(milliseconds: v.toInt())),
+      onChangeEnd: (v) {
+        _delaySeekVideo(Duration(milliseconds: v.toInt()));
+        focusNode.unfocus();
+      },
     );
   }
 

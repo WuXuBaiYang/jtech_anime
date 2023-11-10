@@ -74,7 +74,6 @@ class _DesktopCustomPlayerControlsState
   Widget _buildControls() {
     final controller = widget.controller;
     return Focus(
-      // 处理所有键盘事件，防止焦点抢夺
       onKey: (_, __) => KeyEventResult.handled,
       child: Listener(
         // 滚轮操作音量
@@ -202,9 +201,7 @@ class _DesktopCustomPlayerControlsState
         // 空格键暂停/恢复播放
         LogicalKeyboardKey.space: widget.controller.resumeOrPause,
         // esc取消全屏
-        LogicalKeyboardKey.escape: () {
-          widget.controller.setFullscreen(false);
-        },
+        LogicalKeyboardKey.escape: () => widget.controller.setFullscreen(false),
       };
 
   // 处理键盘事件
