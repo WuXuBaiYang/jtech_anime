@@ -1,125 +1,84 @@
+import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:jtech_anime_base/base.dart';
+import 'package:pad/common/route.dart';
+import 'package:pad/common/custom.dart';
+import 'package:pad/manage/config.dart';
+import 'package:pad/manage/notification.dart';
+import 'package:pad/page/home/index.dart';
+import 'package:pad/tool/network.dart';
+import 'package:pad/tool/tool.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  /// 下方设置系统主题，全局的配置/样式
+  Custom.setup(
+    config: Custom.config,
+    themeData: Custom.themeData,
+    systemTheme: Custom.systemThemeData,
+  );
+  // 初始化核心内容
+  await ensureInitializedCore();
+  // 初始化各种manage
+  await platformConfig.init(); // 初始化平台配置
+  await notice.init(); // 初始化消息通知
+  // 强制竖屏
+  setScreenOrientation(true);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+      overlays: SystemUiOverlay.values);
+  // 设置沉浸式状态栏
+  if (Platform.isAndroid) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarIconBrightness: Brightness.light,
+      statusBarColor: Colors.transparent,
+    ));
+  }
+  // 监听网络状态变化
+  Connectivity().onConnectivityChanged.listen((status) async {
+    // 当网络状态切换为流量时，则判断是否需要暂停所有下载任务
+    if (status == ConnectivityResult.mobile) {
+      if (cache.getBool(Network.checkNetworkStatusKey) ?? true) {
+        // 只暂停当前资源下的所有下载任务，切换资源的时候则会暂停全部任务
+        final source = animeParser.currentSource;
+        if (source == null) return;
+        final records = await db.getDownloadRecordList(source,
+            status: [DownloadRecordStatus.download]);
+        await download.stopTasks(records);
+      }
+    }
+  });
+  // 监听下载任务变化并弹出通知
+  const noticeFlag = 9527;
+  download.downloadProgress.listen((task) {
+    if (task != null && task.downloadingMap.isNotEmpty) {
+      final progress = task.totalRatio * 100;
+      final totalCount = task.downloadingMap.length;
+      final content = '(${progress.toStringAsFixed(1)}%)  正在下载 $totalCount 条视频';
+      notice.showProgress(
+        progress: progress.toInt(),
+        indeterminate: false,
+        maxProgress: 100,
+        title: content,
+        id: noticeFlag,
+      );
+      return;
+    }
+    notice.cancel(noticeFlag);
+  });
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return CustomMaterialApp(
+      routesMap: RoutePath.routes,
+      home: const HomePage(),
     );
   }
 }

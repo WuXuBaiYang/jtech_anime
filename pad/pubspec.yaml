@@ -53,9 +53,6 @@ dependencies:
   # 应用安装
   install_plugin: ^2.1.0
 
-  # 跑马灯(ALL)
-  text_scroll: ^0.2.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
