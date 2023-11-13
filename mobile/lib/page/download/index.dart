@@ -126,6 +126,11 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
     );
   }
 
+  // 列表间距
+  late final listPadding =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+          .copyWith(bottom: kToolbarHeight * 1.5);
+
   // 构建下载队列
   Widget _buildDownloadingList(BuildContext context) {
     return ValueListenableBuilder<List<DownloadGroup>>(
@@ -137,11 +142,10 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           builder: (_, snap) {
             return DownloadRecordListView(
               groupList: groups,
+              padding: listPadding,
               initialExpanded: expandedList,
               downloadTask: snap.data ?? DownloadTask(),
               onRemoveRecords: logic.removeDownloadRecord,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                  .copyWith(bottom: kToolbarHeight * 1.5),
               onStartDownloads: (records) async {
                 // 当检查网络状态并且处于流量模式，弹窗未继续则直接返回
                 final result =
@@ -169,10 +173,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           builder: (_, groups, __) {
             return DownloadRecordListView(
               groupList: groups,
+              padding: listPadding,
               playRecordMap: playRecordMap,
               onRemoveRecords: logic.removeDownloadRecord,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                  .copyWith(bottom: kToolbarHeight * 1.5),
               onPlayRecords: (records) {
                 if (records.isEmpty) return;
                 final item = records.first;

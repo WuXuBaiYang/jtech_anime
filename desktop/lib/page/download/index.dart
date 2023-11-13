@@ -134,20 +134,23 @@ class _HomeDownloadPageState
     );
   }
 
+  // 列表间距
+  late final listPadding =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+          .copyWith(bottom: kToolbarHeight * 1.5);
+
   // 构建下载队列
   Widget _buildDownloadingList(BuildContext context) {
     return ValueListenableBuilder<List<DownloadGroup>>(
       valueListenable: logic.downloadingList,
       builder: (_, groups, __) {
         final expandedList = groups.map((e) => e.url).toList();
-        final padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-            .copyWith(bottom: kToolbarHeight * 1.5);
         return StreamBuilder<DownloadTask?>(
           stream: download.downloadProgress,
           builder: (_, snap) {
             return DownloadRecordListView(
-              padding: padding,
               groupList: groups,
+              padding: listPadding,
               initialExpanded: expandedList,
               onStopDownloads: download.stopTasks,
               onStartDownloads: download.startTasks,
@@ -170,11 +173,9 @@ class _HomeDownloadPageState
         return ValueListenableBuilder<List<DownloadGroup>>(
           valueListenable: logic.downloadedList,
           builder: (_, groups, __) {
-            final padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                .copyWith(bottom: kToolbarHeight * 1.5);
             return DownloadRecordListView(
-              padding: padding,
               groupList: groups,
+              padding: listPadding,
               playRecordMap: playRecordMap,
               onRemoveRecords: logic.removeDownloadRecord,
               onPlayRecords: (records) {
