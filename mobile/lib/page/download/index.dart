@@ -144,6 +144,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
               groupList: groups,
               padding: listPadding,
               initialExpanded: expandedList,
+              onStopDownloads: download.stopTasks,
               downloadTask: snap.data ?? DownloadTask(),
               onRemoveRecords: logic.removeDownloadRecord,
               onStartDownloads: (records) async {
@@ -153,7 +154,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
                 if (!result) return;
                 download.startTasks(records);
               },
-              onStopDownloads: download.stopTasks,
             );
           },
         );
