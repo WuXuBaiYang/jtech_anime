@@ -174,10 +174,13 @@ class _MobileCustomPlayerControlsState
       first: controller.controlVisible,
       second: controller.screenLocked,
       builder: (_, visible, locked, __) {
-        return AnimatedOpacity(
-          opacity: visible ? 1 : 0,
-          duration: const Duration(milliseconds: 80),
-          child: Container(
+        return AnimatedCrossFade(
+          firstCurve: Curves.easeIn,
+          secondCurve: Curves.easeOut,
+          firstChild: const SizedBox(),
+          duration: const Duration(milliseconds: 120),
+          crossFadeState: CrossFadeState.values[visible ? 1 : 0],
+          secondChild: Container(
             color: Colors.black38,
             child: Stack(
               children: [
@@ -205,12 +208,17 @@ class _MobileCustomPlayerControlsState
                   controller: controller,
                 ),
                 if (locked)
-                  CustomPlayerProgress(
-                    controller: controller,
+                  Align(
+                    child: CustomPlayerProgress(
+                      controller: controller,
+                    ),
                   ),
               ],
             ),
           ),
+          layoutBuilder: (topChild, _, bottomChild, __) {
+            return Stack(children: [bottomChild, topChild]);
+          },
         );
       },
     );

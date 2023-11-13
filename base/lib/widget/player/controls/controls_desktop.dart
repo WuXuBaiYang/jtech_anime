@@ -151,10 +151,13 @@ class _DesktopCustomPlayerControlsState
       second: controller.screenLocked,
       third: controller.miniWindow,
       builder: (_, visible, locked, isMiniWindow, __) {
-        return AnimatedOpacity(
-          opacity: visible ? 1 : 0,
-          duration: const Duration(milliseconds: 80),
-          child: Stack(
+        return AnimatedCrossFade(
+          firstCurve: Curves.easeIn,
+          secondCurve: Curves.easeOut,
+          firstChild: const SizedBox(),
+          duration: const Duration(milliseconds: 120),
+          crossFadeState: CrossFadeState.values[visible ? 1 : 0],
+          secondChild: Stack(
             children: [
               if (isMiniWindow)
                 CustomPlayerControlsMini(
@@ -183,6 +186,9 @@ class _DesktopCustomPlayerControlsState
               ],
             ],
           ),
+          layoutBuilder: (topChild, _, bottomChild, __) {
+            return Stack(children: [bottomChild, topChild]);
+          },
         );
       },
     );
