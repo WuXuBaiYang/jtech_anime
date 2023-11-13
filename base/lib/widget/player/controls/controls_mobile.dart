@@ -67,6 +67,22 @@ class _MobileCustomPlayerControlsState
   final playerSeekStream = StreamController<Duration?>.broadcast();
 
   @override
+  void initState() {
+    super.initState();
+    // 长按快进状态监听
+    final controller = widget.controller;
+    double speed = controller.state.rate;
+    visiblePlaySpeed.addListener(() {
+      if (visiblePlaySpeed.value) {
+        speed = widget.controller.state.rate;
+        controller.setRate(speed + 1.0);
+      } else {
+        controller.setRate(speed);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Theme(
       data: widget.getTheme(context),
