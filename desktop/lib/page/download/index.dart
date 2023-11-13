@@ -170,7 +170,10 @@ class _HomeDownloadPageState
         return ValueListenableBuilder<List<DownloadGroup>>(
           valueListenable: logic.downloadedList,
           builder: (_, groups, __) {
+            final padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+                .copyWith(bottom: kToolbarHeight * 1.5);
             return DownloadRecordListView(
+              padding: padding,
               groupList: groups,
               playRecordMap: playRecordMap,
               onRemoveRecords: logic.removeDownloadRecord,
