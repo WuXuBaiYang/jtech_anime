@@ -43,7 +43,7 @@ class RootJTechConfig extends BaseJTechConfig {
     this.noPictureMode = false,
     this.noPlayerContent = true,
     this.baseCachePath = '',
-    this.m3u8DownloadBatchSize = 30,
+    this.m3u8DownloadBatchSize = 25,
     this.showDebugLog = true,
   });
 
