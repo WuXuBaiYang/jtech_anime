@@ -11,7 +11,7 @@ class Custom {
   static final JTechConfig config = JTechConfig(
     noPictureMode: true,
     noPlayerContent: true,
-    screenType: ScreenType.mobile,
+    screenType: ScreenType.pad,
   );
 
   // 全局样式配置
