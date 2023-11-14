@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime_base/base.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime_base/manage/proxy.dart';
+import 'package:jtech_anime_base/manage/router.dart';
+import 'package:jtech_anime_base/model/database/proxy.dart';
+import 'package:jtech_anime_base/tool/log.dart';
+import 'package:jtech_anime_base/tool/snack.dart';
+import 'proxy_update.dart';
 /*
 * 代理配置编辑/新增
 * @author wuxubaiyang
 * @Time 2023/10/23 14:26
 */
 
-class AnimeSourceProxyUpdateSheet extends StatefulWidget {
-  // 代理记录
-  final ProxyRecord? record;
-
-  const AnimeSourceProxyUpdateSheet({super.key, this.record});
-
-  static Future<ProxyRecord?> show(BuildContext context,
-      {ProxyRecord? record}) {
-    return showModalBottomSheet<ProxyRecord>(
-      context: context,
-      builder: (_) {
-        return AnimeSourceProxyUpdateSheet(
-          record: record,
-        );
-      },
-    );
-  }
+class AnimeSourceProxyUpdateDesktopSheet extends AnimeSourceProxyUpdateSheet {
+  const AnimeSourceProxyUpdateDesktopSheet({super.key, super.record});
 
   @override
-  State<StatefulWidget> createState() => _AnimeSourceProxyUpdateSheetState();
+  State<StatefulWidget> createState() =>
+      _AnimeSourceProxyUpdateDesktopSheetState();
 }
 
 /*
@@ -34,8 +26,8 @@ class AnimeSourceProxyUpdateSheet extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/10/23 14:27
 */
-class _AnimeSourceProxyUpdateSheetState
-    extends State<AnimeSourceProxyUpdateSheet> {
+class _AnimeSourceProxyUpdateDesktopSheetState
+    extends State<AnimeSourceProxyUpdateDesktopSheet> {
   // host输入控制
   late TextEditingController hostController =
       TextEditingController(text: widget.record?.host ?? '');

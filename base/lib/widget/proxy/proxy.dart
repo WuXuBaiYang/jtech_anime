@@ -1,7 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:jtech_anime_base/base.dart';
-import 'proxy_update.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime_base/manage/event.dart';
+import 'package:jtech_anime_base/manage/proxy.dart';
+import 'package:jtech_anime_base/model/database/proxy.dart';
+import 'package:jtech_anime_base/model/database/source.dart';
+import 'package:jtech_anime_base/widget/future_builder.dart';
+import 'package:jtech_anime_base/widget/proxy/proxy_update.dart';
 
 /*
 * 番剧代理设置弹窗

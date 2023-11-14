@@ -7,10 +7,8 @@ import 'package:desktop/page/record/index.dart';
 import 'package:desktop/page/timetable/index.dart';
 import 'package:desktop/tool/version.dart';
 import 'package:desktop/widget/page.dart';
-import 'package:desktop/widget/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-
 import 'source.dart';
 
 /*

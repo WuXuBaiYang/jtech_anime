@@ -26,15 +26,14 @@ class MaskView extends StatelessWidget {
   final OnDraw? drawAfter;
 
   const MaskView({
-    Key? key,
+    super.key,
     required this.maskViewSize,
     required this.backgroundColor,
     required this.color,
     this.rRect,
     this.pathBuilder,
     this.drawAfter,
-  })  : assert(rRect != null || pathBuilder != null),
-        super(key: key);
+  }) : assert(rRect != null || pathBuilder != null);
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,6 @@ import 'package:mobile/page/home/source.dart';
 import 'package:mobile/page/home/timetable.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/tool/version.dart';
-import 'package:mobile/widget/proxy.dart';
 import 'package:mobile/widget/qr_code/sheet.dart';
 
 /*

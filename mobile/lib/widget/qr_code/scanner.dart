@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile/widget/mask_view.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:camera/camera.dart';
 import 'package:mobile/widget/qr_code/scan/view.dart';
-
 import 'scan/controller.dart';
 
 /*
