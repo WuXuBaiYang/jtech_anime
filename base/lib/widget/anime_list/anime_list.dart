@@ -136,6 +136,7 @@ class _AnimeListViewState extends State<AnimeListView> {
         enableRefresh: widget.enableRefresh,
         enableLoadMore: widget.enableLoadMore,
         initialRefresh: widget.initialRefresh,
+        columnCount: widget.columnCount,
       ),
     );
   }

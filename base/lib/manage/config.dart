@@ -15,16 +15,23 @@ class ConfigManage extends BaseManage {
   ConfigManage._internal();
 
   // 缓存配置
-  late final JTechConfig config;
+  JTechConfig? _config;
 
   // 缓存样式
-  late final JTechThemeData theme;
+  JTechThemeData? _theme;
 
   // 设置全局配置样式
   void setup(JTechConfig config, JTechThemeData theme) {
-    config = config;
-    theme = theme;
+    _config = config;
+    _theme = theme;
   }
+
+  // 获取当前配置
+  JTechConfig get config =>
+      _config ?? JTechConfig(screenType: ScreenType.mobile);
+
+  // 获取当前样式
+  JTechThemeData get theme => _theme ?? JTechThemeData();
 
   // 判断是否为无图模式
   bool get isNoPictureMode => config.noPictureMode;

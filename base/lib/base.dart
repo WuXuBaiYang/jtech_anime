@@ -100,10 +100,10 @@ Future<void> ensureInitializedCore({
 }) async {
   // 初始化视频播放器
   MediaKit.ensureInitialized();
-  // 部署系统样式
-  theme.setup(systemTheme);
   // 部署全局配置
   rootConfig.setup(config, themeData);
+  // 部署系统样式
+  theme.setup(systemTheme);
   // 初始化各种manage
   await rootConfig.init(); // 全局配置
   await router.init(); // 路由服务
