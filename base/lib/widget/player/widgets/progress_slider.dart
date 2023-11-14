@@ -95,10 +95,8 @@ class _CustomPlayerProgressSliderState
   }) {
     return Slider(
       focusNode: focusNode,
-      inactiveColor: Colors.black26,
       max: max(total.inMilliseconds.toDouble(), 0),
       value: max(progress.inMilliseconds.toDouble(), 0),
-      secondaryActiveColor: kPrimaryColor.withOpacity(0.3),
       secondaryTrackValue: max(buffer.inMilliseconds.toDouble(), 0),
       onChanged: (v) =>
           tempProgress.setValue(Duration(milliseconds: v.toInt())),

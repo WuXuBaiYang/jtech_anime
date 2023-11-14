@@ -25,53 +25,40 @@ class CustomPlayerVolume extends StatelessWidget {
         FontAwesomeIcons.volumeHigh,
       ];
 
-  // 获取样式配置
-  ThemeData _getTheme(BuildContext context) => Theme.of(context).copyWith(
-        sliderTheme: const SliderThemeData(
-          trackHeight: 1,
-          thumbShape: RoundSliderThumbShape(
-            enabledThumbRadius: 4,
-          ),
-        ),
-      );
-
   @override
   Widget build(BuildContext context) {
     final focusNode = FocusNode();
-    return Theme(
-      data: _getTheme(context),
-      child: ValueListenableBuilder<double>(
-        valueListenable: controller.volume,
-        builder: (_, volume, __) {
-          final length = volumeLevelIcons.length - 1;
-          final index = (volume * length).ceil();
-          final icon = volumeLevelIcons[min(index, length)];
-          return Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              IconButton(
-                icon: Icon(icon),
-                onPressed: controller.toggleMute,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 34),
-                child: SizedBox.fromSize(
-                  size: const Size(120, 10),
-                  child: Slider(
-                    value: volume,
-                    focusNode: focusNode,
-                    onChangeEnd: (_) => focusNode.unfocus(),
-                    onChanged: (v) {
-                      controller.setVolume(v);
-                      controller.setControlVisible(true);
-                    },
-                  ),
+    return ValueListenableBuilder<double>(
+      valueListenable: controller.volume,
+      builder: (_, volume, __) {
+        final length = volumeLevelIcons.length - 1;
+        final index = (volume * length).ceil();
+        final icon = volumeLevelIcons[min(index, length)];
+        return Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            IconButton(
+              icon: Icon(icon),
+              onPressed: controller.toggleMute,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 34),
+              child: SizedBox.fromSize(
+                size: const Size(120, 10),
+                child: Slider(
+                  value: volume,
+                  focusNode: focusNode,
+                  onChangeEnd: (_) => focusNode.unfocus(),
+                  onChanged: (v) {
+                    controller.setVolume(v);
+                    controller.setControlVisible(true);
+                  },
                 ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
