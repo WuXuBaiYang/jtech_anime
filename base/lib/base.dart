@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:media_kit/media_kit.dart';
 import 'base.dart';
@@ -54,6 +55,7 @@ export 'tool/tool.dart';
 export 'tool/js_runtime.dart';
 export 'tool/qrcode.dart';
 export 'tool/version.dart';
+export 'tool/screen_type.dart';
 
 ///自定义组件
 export 'widget/player/controller.dart';
@@ -91,9 +93,17 @@ export 'package:path/path.dart' show join, basename;
 export 'package:path_provider/path_provider.dart';
 
 // 初始化核心方法
-Future<void> ensureInitializedCore() async {
+Future<void> ensureInitializedCore({
+  required JTechConfig config,
+  required JTechThemeData themeData,
+  required Map<String, ThemeData> systemTheme,
+}) async {
   // 初始化视频播放器
   MediaKit.ensureInitialized();
+  // 部署系统样式
+  theme.setup(systemTheme);
+  // 部署全局配置
+  rootConfig.setup(config, themeData);
   // 初始化各种manage
   await rootConfig.init(); // 全局配置
   await router.init(); // 路由服务

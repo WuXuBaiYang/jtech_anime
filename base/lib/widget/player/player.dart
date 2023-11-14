@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/manage/config.dart';
-import 'package:jtech_anime_base/tool/tool.dart';
 import 'package:jtech_anime_base/widget/player/controls/controls_mobile.dart';
+import 'package:jtech_anime_base/widget/screen_builder.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'controls/controls_desktop.dart';
 import 'controller.dart';
@@ -105,24 +105,8 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   // 构建控制层
   Widget _adaptiveVideoControls(VideoState state) {
-    if (isMobile) {
-      return MobileCustomPlayerControls(
-        theme: widget.theme,
-        title: widget.title,
-        leading: widget.leading,
-        subTitle: widget.subTitle,
-        topActions: widget.topActions,
-        controller: widget.controller,
-        buffingSize: widget.buffingSize,
-        bottomActions: widget.bottomActions,
-        showVolume: widget.showVolume,
-        showSpeed: widget.showSpeed,
-        showProgressText: widget.showProgressText,
-        showTimer: widget.showTimer,
-      );
-    }
-    if (isDesktop) {
-      return DesktopCustomPlayerControls(
+    return ScreenBuilder(
+      builder: (_) => DesktopCustomPlayerControls(
         theme: widget.theme,
         title: widget.title,
         leading: widget.leading,
@@ -137,8 +121,21 @@ class _CustomVideoPlayerState extends State<CustomVideoPlayer> {
         showFullScreen: widget.showFullScreen,
         showProgressText: widget.showProgressText,
         showTimer: widget.showTimer,
-      );
-    }
-    return const SizedBox();
+      ),
+      mobile: (_) => MobileCustomPlayerControls(
+        theme: widget.theme,
+        title: widget.title,
+        leading: widget.leading,
+        subTitle: widget.subTitle,
+        topActions: widget.topActions,
+        controller: widget.controller,
+        buffingSize: widget.buffingSize,
+        bottomActions: widget.bottomActions,
+        showVolume: widget.showVolume,
+        showSpeed: widget.showSpeed,
+        showProgressText: widget.showProgressText,
+        showTimer: widget.showTimer,
+      ),
+    );
   }
 }

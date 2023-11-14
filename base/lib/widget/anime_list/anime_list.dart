@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/model/anime.dart';
-import 'package:jtech_anime_base/tool/tool.dart';
 import 'package:jtech_anime_base/widget/refresh/controller.dart';
 import 'package:jtech_anime_base/widget/refresh/refresh_view.dart';
+import 'package:jtech_anime_base/widget/screen_builder.dart';
 import 'anime_list_desktop.dart';
 import 'anime_list_mobile.dart';
 
@@ -107,8 +107,8 @@ class AnimeListView extends BaseAnimeListView {
 class _AnimeListViewState extends State<AnimeListView> {
   @override
   Widget build(BuildContext context) {
-    if (isMobile) {
-      return MobileAnimeListView(
+    return ScreenBuilder(
+      builder: (_) => DesktopAnimeListView(
         animeList: widget.animeList,
         onRefresh: widget.onRefresh,
         header: widget.header,
@@ -121,22 +121,22 @@ class _AnimeListViewState extends State<AnimeListView> {
         enableRefresh: widget.enableRefresh,
         enableLoadMore: widget.enableLoadMore,
         initialRefresh: widget.initialRefresh,
-      );
-    }
-    return DesktopAnimeListView(
-      animeList: widget.animeList,
-      onRefresh: widget.onRefresh,
-      header: widget.header,
-      itemTap: widget.itemTap,
-      padding: widget.padding,
-      emptyHint: widget.emptyHint,
-      maxItemExtent: widget.maxItemExtent,
-      itemSpacing: widget.itemSpacing,
-      refreshController: widget.refreshController,
-      enableRefresh: widget.enableRefresh,
-      enableLoadMore: widget.enableLoadMore,
-      initialRefresh: widget.initialRefresh,
-      columnCount: widget.columnCount,
+        columnCount: widget.columnCount,
+      ),
+      mobile: (_) => MobileAnimeListView(
+        animeList: widget.animeList,
+        onRefresh: widget.onRefresh,
+        header: widget.header,
+        itemTap: widget.itemTap,
+        padding: widget.padding,
+        emptyHint: widget.emptyHint,
+        maxItemExtent: widget.maxItemExtent,
+        itemSpacing: widget.itemSpacing,
+        refreshController: widget.refreshController,
+        enableRefresh: widget.enableRefresh,
+        enableLoadMore: widget.enableLoadMore,
+        initialRefresh: widget.initialRefresh,
+      ),
     );
   }
 }

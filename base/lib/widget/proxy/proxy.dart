@@ -14,17 +14,13 @@ import 'package:jtech_anime_base/widget/proxy/proxy_update.dart';
 * @Time 2023/8/30 17:29
 */
 class AnimeSourceProxyDialog extends StatefulWidget {
-  const AnimeSourceProxyDialog({
-    super.key,
-  });
+  const AnimeSourceProxyDialog({super.key});
 
   static Future<AnimeSource?> show(BuildContext context) {
     return showCupertinoDialog<AnimeSource>(
-      barrierDismissible: true,
       context: context,
-      builder: (_) {
-        return const AnimeSourceProxyDialog();
-      },
+      barrierDismissible: true,
+      builder: (_) => const AnimeSourceProxyDialog(),
     );
   }
 

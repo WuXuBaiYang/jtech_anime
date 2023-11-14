@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/model/database/proxy.dart';
-import 'package:jtech_anime_base/tool/tool.dart';
-import 'proxy_update_desktop.dart';
-import 'proxy_update_mobile.dart';
+import 'package:jtech_anime_base/widget/proxy/proxy_update_desktop.dart';
+import 'package:jtech_anime_base/widget/proxy/proxy_update_mobile.dart';
+import 'package:jtech_anime_base/widget/screen_builder.dart';
 
 /*
 * 代理配置编辑/新增
@@ -20,16 +20,10 @@ abstract class AnimeSourceProxyUpdateSheet extends StatefulWidget {
     return showModalBottomSheet<ProxyRecord>(
       context: context,
       isScrollControlled: true,
-      builder: (_) {
-        if (isMobile) {
-          return MobileAnimeSourceProxyUpdateSheet(
-            record: record,
-          );
-        }
-        return DesktopAnimeSourceProxyUpdateSheet(
-          record: record,
-        );
-      },
+      builder: (_) => ScreenBuilder(
+        builder: (_) => DesktopAnimeSourceProxyUpdateSheet(record: record),
+        mobile: (_) => MobileAnimeSourceProxyUpdateSheet(record: record),
+      ),
     );
   }
 }

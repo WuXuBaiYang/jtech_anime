@@ -92,7 +92,7 @@ dependencies:
   # zxing扫码组件(ALL)
   zxing_widget: ^1.1.0
 
-  # 系统音量调节（NO WEB）
+  # 系统音量调节(NO WEB)
   flutter_volume_controller: ^1.3.0
 
 dev_dependencies:
