@@ -1,9 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile/widget/qr_code/sheet.dart';
-import 'package:jtech_anime_base/base.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime_base/common/notifier.dart';
+import 'package:jtech_anime_base/manage/anime_parser/functions.dart';
+import 'package:jtech_anime_base/manage/anime_parser/parser.dart';
+import 'package:jtech_anime_base/manage/router.dart';
+import 'package:jtech_anime_base/manage/theme.dart';
+import 'package:jtech_anime_base/model/database/source.dart';
+import 'package:jtech_anime_base/tool/date.dart';
+import 'package:jtech_anime_base/tool/js_runtime.dart';
+import 'package:jtech_anime_base/tool/loading.dart';
+import 'package:jtech_anime_base/tool/log.dart';
+import 'package:jtech_anime_base/tool/snack.dart';
+import 'package:jtech_anime_base/widget/source_logo.dart';
+import 'package:jtech_anime_base/widget/status_box.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'listenable_builders.dart';
 
 /*
 * 番剧解析源导入sheet
@@ -25,31 +40,23 @@ class AnimeSourceImportSheet extends StatefulWidget {
 
   static Future<AnimeSource?> show(
     BuildContext context, {
-    Widget? title,
+    required String content,
   }) async {
-    return QRCodeSheet.show(context, title: title).then((result) {
-      try {
-        if (result?.isNotEmpty == false) return null;
-        final source = AnimeSource.from(jsonDecode(result!));
-        // 检查是否存在必须信息
-        if (!source.checkRequireInfo()) {
-          SnackTool.showMessage(message: '缺少必要信息');
-          return null;
-        }
-        return showModalBottomSheet<AnimeSource>(
-          context: context,
-          builder: (_) {
-            return AnimeSourceImportSheet(
-              source: source,
-            );
-          },
-        );
-      } catch (e) {
-        LogTool.e('解析源导入失败', error: e);
-        SnackTool.showMessage(message: '解析源导入失败');
-      }
+    if (content.isEmpty) return null;
+    final source = AnimeSource.from(jsonDecode(content));
+    // 检查是否存在必须信息
+    if (!source.checkRequireInfo()) {
+      SnackTool.showMessage(message: '缺少必要信息');
       return null;
-    });
+    }
+    return showModalBottomSheet<AnimeSource>(
+      context: context,
+      builder: (_) {
+        return AnimeSourceImportSheet(
+          source: source,
+        );
+      },
+    );
   }
 
   static Future<AnimeSource?> showInfo(BuildContext context,
@@ -178,6 +185,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
                 final item = functions[i];
                 return RawChip(
                   side: BorderSide.none,
+                  clipBehavior: Clip.antiAlias,
                   label: Text(item.functionNameCN),
                   backgroundColor: kSecondaryColor.withOpacity(0.2),
                 );
@@ -192,6 +200,7 @@ class _AnimeSourceImportSheetState extends State<AnimeSourceImportSheet> {
                   return RawChip(
                     side: BorderSide.none,
                     backgroundColor: Colors.red,
+                    clipBehavior: Clip.antiAlias,
                     label: Text(item.functionNameCN),
                     labelStyle: const TextStyle(color: Colors.white),
                     avatar: const Icon(FontAwesomeIcons.triangleExclamation,

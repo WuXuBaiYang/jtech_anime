@@ -8,7 +8,7 @@ import 'package:mobile/page/home/timetable.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/tool/version.dart';
 import 'package:mobile/widget/proxy.dart';
-import 'package:mobile/widget/source_import.dart';
+import 'package:mobile/widget/qr_code/sheet.dart';
 
 /*
 * 首页
@@ -134,7 +134,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     '插件导入': (
       FontAwesomeIcons.fileImport,
       (BuildContext context) =>
-          AnimeSourceImportSheet.show(context, title: const Text('导入插件'))
+          QRCodeSheet.show(context, title: const Text('导入插件')).then((content) =>
+              AnimeSourceImportSheet.show(context, content: content ?? ''))
     ),
     '设置代理': (
       FontAwesomeIcons.globe,

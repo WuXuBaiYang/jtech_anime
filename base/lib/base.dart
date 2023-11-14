@@ -76,6 +76,7 @@ export 'widget/blur.dart';
 export 'widget/download/list.dart';
 export 'widget/timer.dart';
 export 'widget/vertical_progress.dart';
+export 'widget/source_import.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
