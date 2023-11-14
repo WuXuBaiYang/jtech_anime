@@ -4,7 +4,6 @@ import 'package:pad/page/detail/download.dart';
 import 'package:pad/page/detail/info.dart';
 import 'package:pad/tool/network.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:pad/widget/anime_list.dart';
 
 /*
 * 番剧详情页
@@ -236,7 +235,6 @@ class _AnimeDetailPageState
   Widget _buildAnimeResourcesItem(ResourceItemModel item,
       Map<String, DownloadRecord> downloadMap, String? playResUrl) {
     final downloadRecord = downloadMap[item.url];
-    final hasPlayRecord = playResUrl == item.url;
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       child: Stack(
@@ -251,10 +249,11 @@ class _AnimeDetailPageState
               border: Border.all(color: Colors.black26),
             ),
             child: Text(
-              hasPlayRecord ? '上次看到 ${item.name}' : item.name,
+              item.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: hasPlayRecord ? kPrimaryColor : null),
+              style: TextStyle(
+                  color: playResUrl == item.url ? kPrimaryColor : null),
             ),
           ),
           if (downloadRecord != null)

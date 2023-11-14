@@ -95,7 +95,6 @@ class PlayerResourceDrawer extends StatelessWidget {
 
   // 构建资源分类tabView子项
   Widget _buildAnimeResourcesItem(ResourceItemModel item, bool downloaded) {
-    final hasPlayRecord = currentItem?.url == item.url;
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       child: Stack(
@@ -110,11 +109,14 @@ class PlayerResourceDrawer extends StatelessWidget {
               border: Border.all(color: Colors.white24),
             ),
             child: Text(
-              hasPlayRecord ? '正在看 ${item.name}' : item.name,
+              item.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: hasPlayRecord ? kPrimaryColor : Colors.white54),
+                color: currentItem?.url == item.url
+                    ? kPrimaryColor
+                    : Colors.white54,
+              ),
             ),
           ),
           if (downloaded)

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pad/widget/source_import.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:pad/widget/qr_code/sheet.dart';
 
 /*
 * 番剧解析源快速切换弹窗
@@ -74,10 +74,11 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
             if (animeSources.isEmpty)
               IconButton.outlined(
                 icon: const Icon(FontAwesomeIcons.plus),
-                onPressed: () => AnimeSourceImportSheet.show(
-                  context,
-                  title: const Text('扫码并导入插件'),
-                ).then((source) {
+                onPressed: () =>
+                    QRCodeSheet.show(context, title: const Text('导入插件'))
+                        .then((content) => AnimeSourceImportSheet.show(context,
+                            content: content ?? ''))
+                        .then((source) {
                   if (source != null) controller.refreshValue();
                 }),
               ),
