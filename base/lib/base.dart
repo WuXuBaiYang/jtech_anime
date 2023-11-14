@@ -127,4 +127,4 @@ Future<void> ensureInitializedCore({
 }
 
 // 数据库自动生成id
-int dbAutoIncrementId = Isar.autoIncrement;
+const int dbAutoIncrementId = Isar.autoIncrement;
