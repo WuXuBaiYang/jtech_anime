@@ -1,5 +1,4 @@
 import 'package:desktop/common/route.dart';
-import 'package:desktop/widget/anime_list.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'filter.dart';

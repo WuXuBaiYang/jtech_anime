@@ -1,65 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime_base/base.dart';
-
-// 番剧点击事件
-typedef AnimeListItemTap = void Function(AnimeModel item);
+import 'package:jtech_anime_base/model/anime.dart';
+import 'package:jtech_anime_base/widget/image.dart';
+import 'package:jtech_anime_base/widget/refresh/refresh_view.dart';
+import 'package:jtech_anime_base/widget/status_box.dart';
+import 'anime_list.dart';
 
 /*
-* 番剧列表
+* 番剧列表-移动端
 * @author wuxubaiyang
 * @Time 2023/8/28 16:13
 */
-class AnimeListView extends StatefulWidget {
-  // 刷新控制器
-  final CustomRefreshController? refreshController;
-
-  // 是否启用下拉刷新
-  final bool enableRefresh;
-
-  // 是否启用上拉加载
-  final bool enableLoadMore;
-
-  // 是否初始化加载
-  final bool initialRefresh;
-
-  // 异步加载回调
-  final AsyncRefreshCallback onRefresh;
-
-  // 番剧列表
-  final List<AnimeModel> animeList;
-
-  // 空内容提示
-  final Widget? emptyHint;
-
-  // 列数
-  final int columnCount;
-
-  // 番剧点击事件
-  final AnimeListItemTap? itemTap;
-
-  // 添加头部组件
-  final Widget? header;
-
-  // 内间距
-  final EdgeInsetsGeometry? padding;
-
-  const AnimeListView({
+class MobileAnimeListView extends BaseAnimeListView {
+  const MobileAnimeListView({
     super.key,
-    this.header,
-    this.itemTap,
-    this.padding,
-    this.emptyHint,
-    this.columnCount = 3,
-    this.refreshController,
-    this.enableRefresh = true,
-    this.enableLoadMore = true,
-    this.initialRefresh = false,
-    required this.animeList,
-    required this.onRefresh,
+    required super.animeList,
+    required super.onRefresh,
+    super.header,
+    super.itemTap,
+    super.padding,
+    super.emptyHint,
+    super.itemSpacing,
+    super.columnCount,
+    super.enableRefresh,
+    super.maxItemExtent,
+    super.enableLoadMore,
+    super.initialRefresh,
+    super.refreshController,
   });
 
   @override
-  State<StatefulWidget> createState() => _AnimeListViewState();
+  State<StatefulWidget> createState() => _MobileAnimeListViewState();
 }
 
 /*
@@ -67,7 +37,7 @@ class AnimeListView extends StatefulWidget {
 * @author wuxubaiyang
 * @Time 2023/8/28 16:14
 */
-class _AnimeListViewState extends State<AnimeListView> {
+class _MobileAnimeListViewState extends State<MobileAnimeListView> {
   @override
   Widget build(BuildContext context) {
     return CustomRefreshView(

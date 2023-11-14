@@ -8,26 +8,26 @@ import 'package:jtech_anime_base/tool/log.dart';
 import 'package:jtech_anime_base/tool/snack.dart';
 import 'proxy_update.dart';
 /*
-* 代理配置编辑/新增
+* 代理配置编辑/新增-移动端
 * @author wuxubaiyang
 * @Time 2023/10/23 14:26
 */
 
-class AnimeSourceProxyUpdateMobileSheet extends AnimeSourceProxyUpdateSheet {
-  const AnimeSourceProxyUpdateMobileSheet({super.key, super.record});
+class MobileAnimeSourceProxyUpdateSheet extends AnimeSourceProxyUpdateSheet {
+  const MobileAnimeSourceProxyUpdateSheet({super.key, super.record});
 
   @override
   State<StatefulWidget> createState() =>
-      _AnimeSourceProxyUpdateMobileSheetState();
+      _MobileAnimeSourceProxyUpdateSheetState();
 }
 
 /*
-* 代理配置编辑/新增-状态
+* 代理配置编辑/新增-移动端-状态
 * @author wuxubaiyang
 * @Time 2023/10/23 14:27
 */
-class _AnimeSourceProxyUpdateMobileSheetState
-    extends State<AnimeSourceProxyUpdateMobileSheet> {
+class _MobileAnimeSourceProxyUpdateSheetState
+    extends State<MobileAnimeSourceProxyUpdateSheet> {
   // host输入控制
   late TextEditingController hostController =
       TextEditingController(text: widget.record?.host ?? '');

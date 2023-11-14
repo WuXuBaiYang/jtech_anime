@@ -22,11 +22,11 @@ abstract class AnimeSourceProxyUpdateSheet extends StatefulWidget {
       isScrollControlled: true,
       builder: (_) {
         if (isMobile) {
-          return AnimeSourceProxyUpdateMobileSheet(
+          return MobileAnimeSourceProxyUpdateSheet(
             record: record,
           );
         }
-        return AnimeSourceProxyUpdateDesktopSheet(
+        return DesktopAnimeSourceProxyUpdateSheet(
           record: record,
         );
       },

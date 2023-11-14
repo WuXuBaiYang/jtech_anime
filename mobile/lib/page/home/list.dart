@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/page/home/filter.dart';
-import 'package:mobile/widget/anime_list.dart';
 import 'package:jtech_anime_base/base.dart';
 
 // 过滤条件变化
