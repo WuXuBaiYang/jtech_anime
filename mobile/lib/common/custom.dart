@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:mobile/manage/config.dart';
-import 'package:mobile/model/config.dart';
 
 /*
 * 自定义样式配置

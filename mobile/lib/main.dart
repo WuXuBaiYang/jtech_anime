@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:jtech_anime_base/base.dart';
 import 'package:mobile/common/route.dart';
 import 'package:mobile/common/custom.dart';
-import 'package:mobile/manage/config.dart';
 import 'package:mobile/manage/notification.dart';
 import 'package:mobile/page/home/index.dart';
 import 'package:mobile/tool/network.dart';

@@ -1,5 +1,3 @@
-import 'package:desktop/manage/config.dart';
-import 'package:desktop/model/config.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
