@@ -26,9 +26,6 @@ class _CollectPageState extends LogicState<CollectPage, _CollectLogic> {
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('我的收藏'),
-      ),
       body: _buildCollectList(),
     );
   }

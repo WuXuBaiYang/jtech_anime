@@ -74,9 +74,13 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
             },
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight + 14),
-              child: CustomTabBar(
-                controller: tabController,
-                tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: CustomTabBar(
+                  isScrollable: true,
+                  controller: tabController,
+                  tabs: ['下载队列', '已下载'].map((e) => Tab(text: e)).toList(),
+                ),
               ),
             ),
           ),

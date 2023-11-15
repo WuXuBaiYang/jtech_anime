@@ -59,10 +59,10 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
-        ndk {
-            // 默认仅支持 v7 v8,如有其他架构需要请自行修改
-            abiFilters 'armeabi-v7a','arm64-v8a'
-        }
+//        ndk {
+//            // 默认仅支持 v7 v8,如有其他架构需要请自行修改
+//            abiFilters 'armeabi-v7a','arm64-v8a'
+//        }
     }
 
     signingConfigs {

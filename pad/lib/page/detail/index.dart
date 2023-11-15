@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pad/common/custom.dart';
 import 'package:pad/common/route.dart';
 import 'package:pad/page/detail/download.dart';
 import 'package:pad/page/detail/info.dart';
@@ -283,6 +284,7 @@ class _AnimeDetailPageState
           animeList: animeList,
           enableRefresh: false,
           enableLoadMore: false,
+          maxItemExtent: Custom.animeMaxItemSize,
           onRefresh: (_) async {},
         );
       },

@@ -27,9 +27,6 @@ class _PlayRecordPageState
   @override
   Widget buildWidget(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('播放记录'),
-      ),
       body: _buildPlayRecords(),
       floatingActionButton: _buildPlayFAB(),
     );

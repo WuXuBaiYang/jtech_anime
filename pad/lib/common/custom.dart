@@ -7,6 +7,8 @@ import 'package:jtech_anime_base/base.dart';
 * @Time 2023/9/6 12:34
 */
 class Custom {
+  // 番剧最大子项尺寸限制
+  static const animeMaxItemSize = Size(240, 300);
   // 全局配置
   static final JTechConfig config = JTechConfig(
     noPictureMode: true,
@@ -32,6 +34,9 @@ class Custom {
       ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
+        appBarTheme: const AppBarTheme(
+          toolbarHeight: 75,
+        ),
         cardTheme: CardTheme(
           color: colorScheme.primary.withOpacity(0.12),
           elevation: 0,

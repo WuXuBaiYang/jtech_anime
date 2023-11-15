@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pad/common/route.dart';
+import 'package:pad/page/collect/index.dart';
 import 'package:pad/page/home/list.dart';
 import 'package:pad/page/home/source.dart';
 import 'package:pad/page/home/timetable.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:pad/page/record/index.dart';
 import 'package:pad/tool/version.dart';
 import 'package:pad/widget/qr_code/sheet.dart';
 
@@ -55,7 +57,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
   Widget buildWidget(BuildContext context) {
     return WillPopScope(
       child: DefaultTabController(
-        length: 2,
+        length: 4,
         child: SourceStreamView(builder: (_, snap) {
           return Scaffold(
             appBar: AppBar(
@@ -96,6 +98,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
         tabs: [
           Tab(text: '最新番剧'),
           Tab(text: '新番时间表'),
+          Tab(text: '我的收藏'),
+          Tab(text: '播放记录'),
         ],
       ),
     );
@@ -112,77 +116,36 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           icon: const Icon(FontAwesomeIcons.download),
           onPressed: () => router.pushNamed(RoutePath.download),
         ),
-        _buildExpandPopupMenu(),
-        const SizedBox(width: 14),
-      ];
-
-  // 扩展菜单表
-  final Map<String, (IconData, Function)> _expandPopupMenu = {
-    '我的收藏': (
-      FontAwesomeIcons.heart,
-      (BuildContext context) => router.pushNamed(RoutePath.collect),
-    ),
-    '播放记录': (
-      FontAwesomeIcons.clockRotateLeft,
-      (BuildContext context) => router.pushNamed(RoutePath.record),
-    ),
-    '插件管理': (
-      FontAwesomeIcons.plug,
-      (BuildContext context) => router.pushNamed(RoutePath.animeSource),
-    ),
-    '插件导入': (
-      FontAwesomeIcons.fileImport,
-      (BuildContext context) =>
-          QRCodeSheet.show(context, title: const Text('导入插件')).then((content) =>
-              AnimeSourceImportSheet.show(context, content: content ?? ''))
-    ),
-    '设置代理': (
-      FontAwesomeIcons.globe,
-      (BuildContext context) => AnimeSourceProxyDialog.show(context)
-    ),
-    '检查更新': (
-      FontAwesomeIcons.wrench,
-      (BuildContext context) async {
-        SnackTool.showMessage(message: '正在检查最新版本');
-        final result = await AppVersionTool().check(context);
-        if (!result) SnackTool.showMessage(message: '已是最新版本');
-      }
-    ),
-  };
-
-  // 构建扩展菜单
-  Widget _buildExpandPopupMenu() {
-    return SourceStreamView(
-      builder: (c, snap) {
-        final event = snap.data;
-        if (event?.source == null) return const SizedBox();
-        return GestureDetector(
-          child: PopupMenuButton<Function?>(
-            tooltip: '',
-            icon: AnimeSourceLogo(source: event!.source!),
-            itemBuilder: (_) => _expandPopupMenu.keys.map((key) {
-              final tuple = _expandPopupMenu[key]!;
-              return PopupMenuItem<Function?>(
-                value: tuple.$2,
-                child: Row(
-                  children: [
-                    Icon(tuple.$1),
-                    const SizedBox(width: 14),
-                    Text(key),
-                  ],
-                ),
-              );
-            }).toList(),
-            onSelected: (fun) => fun?.call(c),
-          ),
-          onLongPress: () {
-            HapticFeedback.vibrate();
-            AnimeSourceChangeDialog.show(c);
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.fileImport),
+          onPressed: () => QRCodeSheet.show(context, title: const Text('导入插件'))
+              .then((content) => AnimeSourceImportSheet.show(
+                    context,
+                    content: content ?? '',
+                  )),
+        ),
+        IconButton(
+          icon: const Icon(FontAwesomeIcons.globe),
+          onPressed: () => AnimeSourceProxyDialog.show(context),
+        ),
+        SourceStreamView(
+          builder: (c, snap) {
+            final event = snap.data;
+            if (event?.source == null) return const SizedBox();
+            return GestureDetector(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: AnimeSourceLogo(source: event!.source!),
+              ),
+              onTap: () => router.pushNamed(RoutePath.animeSource),
+              onLongPress: () {
+                HapticFeedback.vibrate();
+                AnimeSourceChangeDialog.show(c);
+              },
+            );
           },
-        );
-      },
-    );
-  }
+        ),
+      ];
 
   // 判断是否支持番剧时间表
   bool get _supportTimeTable =>
@@ -194,6 +157,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
     return TabBarView(children: [
       _buildAnimeList(),
       _buildAnimeTimeTable(),
+      const CollectPage(),
+      const PlayRecordPage(),
     ]);
   }
 

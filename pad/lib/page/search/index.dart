@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:pad/common/custom.dart';
 import 'package:pad/common/route.dart';
 import 'package:pad/page/search/search.dart';
 import 'package:jtech_anime_base/base.dart';
@@ -47,25 +48,25 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
       searchRecordList: logic.searchRecordList,
       search: (keyword) => logic.startSearch(keyword),
       recordDelete: (item) => logic.deleteSearchRecord(item),
-      actions: [
-        ValueListenableBuilder(
-          valueListenable: logic.columnCount,
-          builder: (_, columnCount, __) {
-            return IconButton(
-              onPressed: () {
-                int value = columnCount + 1;
-                if (value > 3) value = 1;
-                logic.columnCount.setValue(value);
-              },
-              icon: Icon([
-                Icons.format_list_bulleted_rounded,
-                Icons.drag_indicator_rounded,
-                Icons.apps_rounded,
-              ][columnCount - 1]),
-            );
-          },
-        ),
-      ],
+      // actions: [
+      //   ValueListenableBuilder(
+      //     valueListenable: logic.columnCount,
+      //     builder: (_, columnCount, __) {
+      //       return IconButton(
+      //         onPressed: () {
+      //           int value = columnCount + 1;
+      //           if (value > 3) value = 1;
+      //           logic.columnCount.setValue(value);
+      //         },
+      //         icon: Icon([
+      //           Icons.format_list_bulleted_rounded,
+      //           Icons.drag_indicator_rounded,
+      //           Icons.apps_rounded,
+      //         ][columnCount - 1]),
+      //       );
+      //     },
+      //   ),
+      // ],
     );
   }
 
@@ -81,6 +82,7 @@ class _SearchPageState extends LogicState<SearchPage, _SearchLogic> {
           itemTap: logic.goDetail,
           columnCount: columnCount,
           refreshController: logic.controller,
+          maxItemExtent: Custom.animeMaxItemSize,
         );
       },
     );

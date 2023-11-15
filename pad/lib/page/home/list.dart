@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pad/common/custom.dart';
 import 'package:pad/page/home/filter.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -71,6 +72,7 @@ class _HomeLatestAnimeListState extends State<HomeLatestAnimeList>
           onRefresh: widget.onRefresh,
           emptyHint: const Text('下拉试试看~'),
           refreshController: widget.controller,
+          maxItemExtent: Custom.animeMaxItemSize,
         );
       },
     );

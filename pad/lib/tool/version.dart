@@ -7,6 +7,10 @@ import 'permission.dart';
 
 class AppVersionTool extends AppVersionToolBase {
   @override
+  String get platform =>
+      '${rootConfig.screenType.name}_${Platform.operatingSystem}';
+
+  @override
   Future<void> upgradePlatform(BuildContext context, AppVersion info) async {
     if (Platform.isAndroid) _upgradeAndroidPlatform(context, info);
     if (Platform.isIOS) _upgradeIosPlatform(context, info);
