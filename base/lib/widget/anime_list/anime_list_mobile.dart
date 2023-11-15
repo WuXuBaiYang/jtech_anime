@@ -55,10 +55,10 @@ class _MobileAnimeListViewState extends State<MobileAnimeListView> {
     final isMultiLine = widget.columnCount > 1;
     final isThird = widget.columnCount == 3;
     return Stack(
+      fit: StackFit.expand,
       children: [
         if (widget.animeList.isEmpty) _buildEmptyResults(),
         CustomScrollView(
-          shrinkWrap: true,
           slivers: [
             if (widget.header != null)
               SliverList(
