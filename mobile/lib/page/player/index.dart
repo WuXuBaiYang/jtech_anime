@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/page/player/resource.dart';
@@ -122,9 +123,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         return IconButton(
           onPressed: canPlayNext
               ? Throttle.click(() {
-            logic.controller.setControlVisible(true);
-            logic.changeVideo(resource);
-          }, 'playNextResource')
+                  logic.controller.setControlVisible(true);
+                  logic.changeVideo(resource);
+                }, 'playNextResource')
               : null,
           icon: Icon(FontAwesomeIcons.forward,
               color: canPlayNext ? Colors.white : Colors.white30),
@@ -277,7 +278,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 当前屏幕方向
   final screenOrientation =
-  ValueChangeNotifier<Orientation>(Orientation.landscape);
+      ValueChangeNotifier<Orientation>(Orientation.landscape);
 
   @override
   void init() {
@@ -297,7 +298,7 @@ class _PlayerLogic extends BaseLogic {
     controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
-            () => _updateVideoProgress(e),
+        () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
     });
@@ -305,6 +306,8 @@ class _PlayerLogic extends BaseLogic {
     screenOrientation.addListener(() {
       setScreenOrientation(screenOrientation.value == Orientation.portrait);
     });
+    // 监听音频设备状态
+    _listenAudioSession();
   }
 
   @override
@@ -345,7 +348,7 @@ class _PlayerLogic extends BaseLogic {
         if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
         final result =
-        await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
+            await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
@@ -404,9 +407,8 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 一定时间后关闭播放记录弹窗
-  void time2CloseRecord() =>
-      Debounce.c(
-            () => playRecord.setValue(null),
+  void time2CloseRecord() => Debounce.c(
+        () => playRecord.setValue(null),
         'time2CloseRecord',
         delay: const Duration(milliseconds: 5000),
       );
@@ -457,6 +459,18 @@ class _PlayerLogic extends BaseLogic {
       }
     }
     return null;
+  }
+
+  // 监听音频设备状态
+  void _listenAudioSession() async {
+    const configure = AudioSessionConfiguration.music();
+    final session = await AudioSession.instance;
+    await session.configure(configure);
+    session.devicesChangedEventStream.listen((event) {
+      if (event.devicesRemoved.isNotEmpty) {
+        if (controller.state.playing) controller.pause();
+      }
+    });
   }
 
   @override
