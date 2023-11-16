@@ -1,10 +1,10 @@
 function getFetchOptions() {
     return {
         method: 'GET', headers: {
-            host: 'www.yhdmz.org',
+            host: 'm.iyhdmm.com',
             responseType: 'plain',
             contentType: 'text/html; charset=utf-8',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
+            userAgent: 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36 Edg/119.0.0.0',
         }
     }
 }
@@ -20,7 +20,7 @@ function getUri(path, params) {
             queryParams += `&${item}`
         }
     });
-    return `https://www.yhdmz.org${path || ''}${queryParams}`
+    return `https://m.iyhdmm.com${path || ''}${queryParams}`
 }
 
 function sleep(ms) {
@@ -43,7 +43,7 @@ async function getTimeTable() {
     let resp = await request(getUri(), getFetchOptions())
     if (!resp.ok) throw new Error('时间表获取失败，请重试')
     let tempList = []
-    const selector = 'body > div.area > div.side.r > div.bg > div.tlist > ul'
+    const selector = 'body > div.tlist > ul'
     let uls = await resp.doc.querySelectorAll(selector)
     for (const i in uls) {
         const ul = uls[i]
@@ -347,7 +347,7 @@ async function loadFilterList() {
  */
 async function searchAnimeList(pageIndex, pageSize, keyword, filterSelect) {
     let resp = await request(getUri('/s_all', {
-        'pageindex': pageIndex - 1, 'pagesize': pageSize, 'kw': keyword, ...filterSelect
+        'pageindex': pageIndex, 'pagesize': pageSize, 'kw': keyword, ...filterSelect
     }), getFetchOptions())
     if (!resp.ok) {
         if (resp.code === 404) return []
@@ -411,14 +411,12 @@ async function loadHomeList(pageIndex, pageSize, filterSelect) {
 async function getAnimeDetail(animeUrl) {
     let resp = await request(animeUrl, getFetchOptions())
     if (!resp.ok) throw new Error('获取番剧详情失败，请重试')
-    let info = await resp.doc
-        .querySelector('body > div:nth-child(3) > div.fire.l > div.rate.r')
-    let cover = await resp.doc
-        .querySelector('body > div:nth-child(3) > div.fire.l > div.thumb.l > img', 'src')
+    let info = await resp.doc.querySelector('body > div.list > div.show')
+    let cover = await info.querySelector('img', 'src')
     if (cover?.startsWith('//')) cover = `https:${cover}`
     let resIndex = 10000;
     let resources = []
-    let resList = await resp.doc.querySelectorAll('#main0 > div.movurl')
+    let resList = await resp.doc.querySelectorAll('body > div.tabs > div.main0 > div.movurl')
     for (const i in resList) {
         let index = 0
         let temp = []
@@ -433,16 +431,25 @@ async function getAnimeDetail(animeUrl) {
         }
         if (temp.length > 0) resources.push(temp)
     }
+    let name = await info.querySelector('h1', 'text')
+    let pInfoList = await info.querySelectorAll('div.info-sub > p', 'text')
+    let updateTime = pInfoList[3].replaceAll(/\n|上映：/g, '').trim()
+    let region = ''
+    let types = pInfoList[4].replaceAll(/类型：/g, '').trim()
+        .split(/\n/)
+    let last = types.pop()
+    if (last) types.push(last)
+    let status = pInfoList[2].replaceAll(/\n|连载：/g, '').trim()
+    let intro = await resp.doc.querySelector('body > div.info', 'text')
     return {
         url: animeUrl,
-        name: await info.querySelector('h1', 'text'),
+        name: name,
         cover: cover,
-        updateTime: (await info.querySelector('div.sinfo > span', 'text'))
-            .replaceAll(/\n|上映:/g, '').trim(),
-        region: await info.querySelector('div.sinfo > span:nth-child(5) > a', 'text'),
-        types: await info.querySelectorAll('div.sinfo > span:nth-child(7) > a', 'text'),
-        status: await info.querySelector('div.sinfo > p:nth-child(13)', 'text'),
-        intro: await resp.doc.querySelector('body > div:nth-child(3) > div.fire.l > div.info', 'text'),
+        updateTime: updateTime,
+        region: region,
+        types: types,
+        status: status,
+        intro: intro,
         resources: resources,
     }
 }
@@ -575,7 +582,7 @@ async function loadRecommendList(animeUrl, animeInfo) {
 
 async function parserAnimeList(doc) {
     let tempList = []
-    const selector = 'body > div:nth-child(4) > ul > li'
+    const selector = 'body > div.list > ul > li'
     let lis = await doc.querySelectorAll(selector)
     for (const i in lis) {
         const li = lis[i]
@@ -583,17 +590,12 @@ async function parserAnimeList(doc) {
         cover = cover.match(/'([^']+)'/)[0].replaceAll('\'', '')
         if (cover?.startsWith('//')) cover = `https:${cover}`
         let status = (await li.querySelector('a', 'text')).replace(/\s/g, '')
-        let name = await li.querySelector('a:nth-child(2)', 'text')
+        let name = await li.querySelector('a.itemtext', 'text')
         let url = getUri(await li.querySelector('div > a', 'href'))
         let types = []
         let intro = ''
         tempList.push({
-            cover: cover,
-            status: status,
-            name: name,
-            types: types,
-            intro: intro,
-            url: url,
+            cover: cover, status: status, name: name, types: types, intro: intro, url: url,
         })
     }
     return tempList
