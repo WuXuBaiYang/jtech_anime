@@ -575,21 +575,25 @@ async function loadRecommendList(animeUrl, animeInfo) {
 
 async function parserAnimeList(doc) {
     let tempList = []
-    const selector = 'body > div:nth-child(7) > div.fire.l > div.lpic > ul > li'
+    const selector = 'body > div:nth-child(4) > ul > li'
     let lis = await doc.querySelectorAll(selector)
     for (const i in lis) {
         const li = lis[i]
-        let cover = await li.querySelector('li > a > img', 'src')
+        let cover = await li.querySelector('div > a > div > div', 'style')
+        cover = cover.match(/'([^']+)'/)[0].replaceAll('\'', '')
         if (cover?.startsWith('//')) cover = `https:${cover}`
+        let status = (await li.querySelector('a', 'text')).replace(/\s/g, '')
+        let name = await li.querySelector('a:nth-child(2)', 'text')
+        let url = getUri(await li.querySelector('div > a', 'href'))
+        let types = []
+        let intro = ''
         tempList.push({
             cover: cover,
-            name: await li.querySelector('h2 > a', 'text'),
-            status: await li.querySelector('span > font', 'text'),
-            types: (await li.querySelector('span:nth-child(7)', 'text'))
-                .replaceAll('类型：', '')
-                .split(' '),
-            intro: await li.querySelector('p', 'text'),
-            url: getUri(await li.querySelector('a:nth-child(1)', 'href')),
+            status: status,
+            name: name,
+            types: types,
+            intro: intro,
+            url: url,
         })
     }
     return tempList

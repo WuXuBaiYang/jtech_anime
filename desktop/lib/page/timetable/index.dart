@@ -65,14 +65,16 @@ class _HomeTimeTablePageState
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomTabBar(
-            isScrollable: true,
-            controller: tabController,
-            overlayColor: Colors.transparent,
-            tabs: logic.weekdayKeys
-                .map((e) => Tab(text: '${e.value}', height: 35))
-                .toList(),
-          ),
+          Row(children: [
+            CustomTabBar(
+              isScrollable: true,
+              controller: tabController,
+              overlayColor: Colors.transparent,
+              tabs: logic.weekdayKeys
+                  .map((e) => Tab(text: '${e.value}', height: 35))
+                  .toList(),
+            ),
+          ]),
           Expanded(child: _buildTimeTable()),
         ],
       ),

@@ -141,11 +141,7 @@ class AnimeParserManage extends BaseManage {
         pageIndex: pageIndex, pageSize: pageSize, filterSelect: filterSelect);
     final result =
         await _doJSFunction(content, request, cancelToken: cancelToken);
-    return (result ?? [])
-        .map<AnimeModel>(
-          (e) => AnimeModel.from(e),
-        )
-        .toList();
+    return (result ?? []).map<AnimeModel>((e) => AnimeModel.from(e)).toList();
   }
 
   // 获取详情页数据(缓存时间：6小时)
