@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:jtech_anime_base/base.dart';
 import 'package:jtech_anime_base/widget/player/controller.dart';
 
 /*
@@ -46,8 +47,8 @@ class CustomPlayerVolume extends StatelessWidget {
               child: SizedBox.fromSize(
                 size: const Size(120, 10),
                 child: Slider(
-                  value: volume,
                   focusNode: focusNode,
+                  value: range(volume, 0, 1),
                   onChangeEnd: (_) => focusNode.unfocus(),
                   onChanged: (v) {
                     controller.setVolume(v);

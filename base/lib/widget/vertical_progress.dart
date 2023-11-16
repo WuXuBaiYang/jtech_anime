@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 垂直进度组件
@@ -54,8 +55,8 @@ class VerticalProgressView extends StatelessWidget {
             SizedBox.fromSize(
               size: size ?? const Size(160, 35),
               child: LinearProgressIndicator(
+                value: range(progress, 0, 1),
                 backgroundColor: Colors.transparent,
-                value: progress,
               ),
             ),
             Padding(
