@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:jtech_anime_base/base.dart';
 
 /*
 * 垂直进度组件
@@ -46,16 +47,16 @@ class VerticalProgressView extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         shape: shape ??
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(500),
             ),
         child: Stack(
           alignment: Alignment.centerLeft,
           children: [
             SizedBox.fromSize(
-              size: size ?? const Size(160, 40),
+              size: size ?? const Size(160, 35),
               child: LinearProgressIndicator(
+                value: range(progress, 0, 1),
                 backgroundColor: Colors.transparent,
-                value: progress,
               ),
             ),
             Padding(

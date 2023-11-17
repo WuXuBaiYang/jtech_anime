@@ -1,5 +1,3 @@
-import 'package:desktop/manage/config.dart';
-import 'package:desktop/model/config.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -22,6 +20,7 @@ class Custom {
     loadingDismissible: true,
     m3u8DownloadBatchSize: 30,
     baseCachePath: 'jtech_anime',
+    screenType: ScreenType.desktop,
   );
 
   // 全局样式配置
@@ -91,17 +90,6 @@ class Custom {
           ),
         ),
       );
-
-  // 管理所有配置样式
-  static void setup({
-    required JTechConfig config,
-    required JTechThemeData themeData,
-    required Map<String, ThemeData> systemTheme,
-  }) {
-    theme.setup(systemTheme);
-    rootConfig.setup(config: config, theme: themeData);
-    platformConfig.setup(config: config, theme: themeData);
-  }
 }
 
 const kToolbarHeightCustom = 35.0;

@@ -4,13 +4,13 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime_base/base.dart';
 import 'package:jtech_anime_base/manage/cache.dart';
 import 'package:jtech_anime_base/manage/router.dart';
 import 'package:jtech_anime_base/model/version.dart';
 import 'package:jtech_anime_base/tool/file.dart';
 import 'package:jtech_anime_base/tool/log.dart';
 import 'package:jtech_anime_base/widget/message_dialog.dart';
+import 'package:path/path.dart';
 
 /*
 * 应用版本检查
@@ -25,13 +25,16 @@ abstract class AppVersionToolBase {
   static const String _defaultUpdateConfigPath =
       'packages/jtech_anime_base/assets/update_config.json';
 
+  // 获取平台信息
+  String get platform => Platform.operatingSystem;
+
   // 检查更新
   Future<bool> check(BuildContext context, {bool immediately = false}) async {
     // 判断是否需要进行版本更新
     if (!immediately && (cache.getBool(_ignoreUpdateKey) ?? false)) {
       return false;
     }
-    final versionInfo = await _getLatestVersion(Platform.operatingSystem);
+    final versionInfo = await _getLatestVersion(platform);
     if (versionInfo == null) return false;
     return versionInfo.checkUpdate().then((isUpdate) {
       if (isUpdate) {
@@ -47,7 +50,8 @@ abstract class AppVersionToolBase {
   Future<void> upgradePlatform(BuildContext context, AppVersion info);
 
   // 下载更新文件并返回文件路径
-  Future<String?> downloadUpdateFile(AppVersion info, {
+  Future<String?> downloadUpdateFile(
+    AppVersion info, {
     required String saveDir,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
@@ -76,11 +80,12 @@ abstract class AppVersionToolBase {
   }
 
   // 断点续传的方式下载附件
-  Future<String?> _download(String url,
-      String savePath, {
-        CancelToken? cancelToken,
-        ProgressCallback? onReceiveProgress,
-      }) async {
+  Future<String?> _download(
+    String url,
+    String savePath, {
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+  }) async {
     int downloadBegin = 0;
     final file = File(savePath);
     if (file.existsSync()) downloadBegin = file.lengthSync();

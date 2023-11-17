@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jtech_anime_base/base.dart';
+import 'package:jtech_anime_base/manage/theme.dart';
+import 'package:jtech_anime_base/model/database/download_record.dart';
+import 'package:jtech_anime_base/model/database/play_record.dart';
 import 'list.dart';
 
 /*

@@ -1,25 +1,12 @@
 import 'package:flutter/foundation.dart';
-
-/*
-* 全局配置基类
-* @author wuxubaiyang
-* @Time 2023/10/20 10:24
-*/
-abstract class BaseJTechConfig with Diagnosticable {}
-
-/*
-* 全局样式基类
-* @author wuxubaiyang
-* @Time 2023/10/20 10:25
-*/
-abstract class BaseJTechThemeData with Diagnosticable {}
+import 'package:jtech_anime_base/tool/screen_type.dart';
 
 /*
 * 全局配置
 * @author wuxubaiyang
 * @Time 2023/9/25 9:16
 */
-class RootJTechConfig extends BaseJTechConfig {
+class JTechConfig with Diagnosticable {
   // 加载弹窗是否可取消
   final bool loadingDismissible;
 
@@ -38,13 +25,17 @@ class RootJTechConfig extends BaseJTechConfig {
   // 是否展示debug日志
   final bool showDebugLog;
 
-  RootJTechConfig({
-    this.loadingDismissible = false,
+  // 当前屏幕类型
+  final ScreenType screenType;
+
+  JTechConfig({
+    required this.screenType,
+    this.baseCachePath = '',
+    this.showDebugLog = true,
     this.noPictureMode = false,
     this.noPlayerContent = true,
-    this.baseCachePath = '',
-    this.m3u8DownloadBatchSize = 30,
-    this.showDebugLog = true,
+    this.loadingDismissible = false,
+    this.m3u8DownloadBatchSize = 25,
   });
 
   copyWith({
@@ -54,8 +45,9 @@ class RootJTechConfig extends BaseJTechConfig {
     String? baseCachePath,
     int? m3u8DownloadBatchSize,
     bool? showDebugLog,
+    ScreenType? screenType,
   }) {
-    return RootJTechConfig(
+    return JTechConfig(
       loadingDismissible: loadingDismissible ?? this.loadingDismissible,
       noPictureMode: noPictureMode ?? this.noPictureMode,
       noPlayerContent: noPlayerContent ?? this.noPlayerContent,
@@ -63,6 +55,7 @@ class RootJTechConfig extends BaseJTechConfig {
       m3u8DownloadBatchSize:
           m3u8DownloadBatchSize ?? this.m3u8DownloadBatchSize,
       showDebugLog: showDebugLog ?? this.showDebugLog,
+      screenType: screenType ?? this.screenType,
     );
   }
 }
@@ -72,14 +65,14 @@ class RootJTechConfig extends BaseJTechConfig {
 * @author wuxubaiyang
 * @Time 2023/9/25 9:16
 */
-class RootJTechThemeData extends BaseJTechThemeData {
+class JTechThemeData with Diagnosticable {
   // 状态组件默认尺寸
   final double statusSize;
 
   // 加载弹窗默认尺寸
   final double loadingSize;
 
-  RootJTechThemeData({
+  JTechThemeData({
     this.statusSize = 120,
     this.loadingSize = 100,
   });
@@ -88,7 +81,7 @@ class RootJTechThemeData extends BaseJTechThemeData {
     double? statusSize,
     double? loadingSize,
   }) {
-    return RootJTechThemeData(
+    return JTechThemeData(
       statusSize: statusSize ?? this.statusSize,
       loadingSize: loadingSize ?? this.loadingSize,
     );

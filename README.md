@@ -1,6 +1,6 @@
 # <img alt="app-logo" height="50" width="50" src="./readme/app_logo.png"/> 看番咩？ - Flutter 开源项目
 
-欢迎使用 '看番咩？' 开源项目！本项目基于 Flutter 3.13.2 版本开发。
+欢迎使用 '看番咩？' 开源项目！本项目基于 Flutter 3.16.0 版本开发。
 
 <img alt="桌面端" height="200" width="260" src="./readme/desktop.png"/>
 <img alt="桌面端" height="200" width="110" src="./readme/mobile.jpg"/>

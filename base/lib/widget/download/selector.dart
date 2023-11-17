@@ -84,29 +84,31 @@ class DownloadRecordSelectorList extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    group.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      group.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 13),
-                  Text(
-                    '共有 ${group.records.length} 条下载任务',
-                    style: const TextStyle(
-                      color: Colors.black38,
-                      fontSize: 12,
+                    const SizedBox(height: 13),
+                    Text(
+                      '共有 ${group.records.length} 条下载任务',
+                      style: const TextStyle(
+                        color: Colors.black38,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
               Checkbox(
                 value: checked,
                 tristate: true,
@@ -134,7 +136,7 @@ class DownloadRecordSelectorList extends StatelessWidget {
       itemBuilder: (_, i) {
         final record = records[i];
         return InkWell(
-          child:Row(
+          child: Row(
             children: [
               const SizedBox(width: 14),
               Text(

@@ -1,62 +1,37 @@
 import 'package:jtech_anime_base/common/manage.dart';
 import 'package:jtech_anime_base/model/config.dart';
+import 'package:jtech_anime_base/tool/screen_type.dart';
 
 /*
 * 配置管理基类
 * @author wuxubaiyang
 * @Time 2023/10/20 10:26
 */
-abstract class BaseConfigManage<C extends BaseJTechConfig,
-    T extends BaseJTechThemeData> extends BaseManage {
+class ConfigManage extends BaseManage {
+  static final ConfigManage _instance = ConfigManage._internal();
+
+  factory ConfigManage() => _instance;
+
+  ConfigManage._internal();
+
   // 缓存配置
-  C? _config;
+  JTechConfig? _config;
 
   // 缓存样式
-  T? _theme;
+  JTechThemeData? _theme;
 
   // 设置全局配置样式
-  void setup({C? config, T? theme}) {
+  void setup(JTechConfig config, JTechThemeData theme) {
     _config = config;
     _theme = theme;
   }
 
-  // 创建默认配置
-  C createDefaultConfig();
+  // 获取当前配置
+  JTechConfig get config =>
+      _config ?? JTechConfig(screenType: ScreenType.mobile);
 
-  // 获取配置
-  C get config => _config ??= createDefaultConfig();
-
-  // 设置配置
-  void setConfig(C config) => _config = config;
-
-  // 创建默认样式
-  T createDefaultTheme();
-
-  // 获取样式
-  T get theme => _theme ??= createDefaultTheme();
-
-  // 设置样式
-  void setTheme(T theme) => _theme = theme;
-}
-
-/*
-* 全局配置管理
-* @author wuxubaiyang
-* @Time 2022/3/17 14:14
-*/
-class RootConfigManage
-    extends BaseConfigManage<RootJTechConfig, RootJTechThemeData> {
-  static final RootConfigManage _instance = RootConfigManage._internal();
-
-  factory RootConfigManage() => _instance;
-
-  RootConfigManage._internal();
-
-  @override
-  RootJTechConfig createDefaultConfig() => RootJTechConfig();
-
-  @override
-  RootJTechThemeData createDefaultTheme() => RootJTechThemeData();
+  // 获取当前样式
+  JTechThemeData get theme => _theme ?? JTechThemeData();
 
   // 判断是否为无图模式
   bool get isNoPictureMode => config.noPictureMode;
@@ -75,7 +50,10 @@ class RootConfigManage
 
   // 获取是否展示debug日志
   bool get showDebugLog => config.showDebugLog;
+
+  // 获取当前屏幕类型
+  ScreenType get screenType => config.screenType;
 }
 
 // 单例调用
-final rootConfig = RootConfigManage();
+final rootConfig = ConfigManage();

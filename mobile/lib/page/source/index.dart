@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/widget/source_import.dart';
 import 'package:jtech_anime_base/base.dart';
+import 'package:mobile/widget/qr_code/sheet.dart';
 
 /*
 * 番剧解析源管理
@@ -33,10 +33,10 @@ class _AnimeSourcePageState
       body: _buildAnimeSourceList(),
       floatingActionButton: FloatingActionButton(
         child: const Icon(FontAwesomeIcons.plus),
-        onPressed: () => AnimeSourceImportSheet.show(
-          context,
-          title: const Text('扫码并导入插件'),
-        ).then((source) {
+        onPressed: () => QRCodeSheet.show(context, title: const Text('导入插件'))
+            .then((content) =>
+                AnimeSourceImportSheet.show(context, content: content ?? ''))
+            .then((source) {
           if (source != null) logic.controller.refreshValue();
         }),
       ),

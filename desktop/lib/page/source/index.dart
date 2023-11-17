@@ -1,5 +1,4 @@
 import 'package:desktop/widget/page.dart';
-import 'package:desktop/widget/source_import.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
 
@@ -34,10 +33,10 @@ class _AnimeSourcePageState
         body: _buildAnimeSourceList(),
         floatingActionButton: FloatingActionButton(
           child: const Icon(FontAwesomeIcons.plus),
-          onPressed: () => AnimeSourceImportSheet.show(
-            context,
-            title: const Text('扫码并导入插件'),
-          ).then((source) {
+          onPressed: () => QRCode.decodeFromGallery()
+              .then((content) =>
+                  AnimeSourceImportSheet.show(context, content: content ?? ''))
+              .then((source) {
             if (source != null) logic.controller.refreshValue();
           }),
         ),

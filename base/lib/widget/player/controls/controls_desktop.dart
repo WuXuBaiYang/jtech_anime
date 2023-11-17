@@ -74,7 +74,6 @@ class _DesktopCustomPlayerControlsState
   Widget _buildControls() {
     final controller = widget.controller;
     return Focus(
-      // 处理所有键盘事件，防止焦点抢夺
       onKey: (_, __) => KeyEventResult.handled,
       child: Listener(
         // 滚轮操作音量
@@ -152,10 +151,13 @@ class _DesktopCustomPlayerControlsState
       second: controller.screenLocked,
       third: controller.miniWindow,
       builder: (_, visible, locked, isMiniWindow, __) {
-        return AnimatedOpacity(
-          opacity: visible ? 1 : 0,
-          duration: const Duration(milliseconds: 80),
-          child: Stack(
+        return AnimatedCrossFade(
+          firstCurve: Curves.easeIn,
+          secondCurve: Curves.easeOut,
+          firstChild: const SizedBox(),
+          duration: const Duration(milliseconds: 120),
+          crossFadeState: CrossFadeState.values[visible ? 1 : 0],
+          secondChild: Stack(
             children: [
               if (isMiniWindow)
                 CustomPlayerControlsMini(
@@ -184,6 +186,9 @@ class _DesktopCustomPlayerControlsState
               ],
             ],
           ),
+          layoutBuilder: (topChild, _, bottomChild, __) {
+            return Stack(children: [bottomChild, topChild]);
+          },
         );
       },
     );
@@ -202,9 +207,7 @@ class _DesktopCustomPlayerControlsState
         // 空格键暂停/恢复播放
         LogicalKeyboardKey.space: widget.controller.resumeOrPause,
         // esc取消全屏
-        LogicalKeyboardKey.escape: () {
-          widget.controller.setFullscreen(false);
-        },
+        LogicalKeyboardKey.escape: () => widget.controller.setFullscreen(false),
       };
 
   // 处理键盘事件

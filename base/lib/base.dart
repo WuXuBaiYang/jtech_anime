@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:media_kit/media_kit.dart';
 import 'base.dart';
@@ -54,6 +55,7 @@ export 'tool/tool.dart';
 export 'tool/js_runtime.dart';
 export 'tool/qrcode.dart';
 export 'tool/version.dart';
+export 'tool/screen_type.dart';
 
 ///自定义组件
 export 'widget/player/controller.dart';
@@ -76,6 +78,11 @@ export 'widget/blur.dart';
 export 'widget/download/list.dart';
 export 'widget/timer.dart';
 export 'widget/vertical_progress.dart';
+export 'widget/source_import.dart';
+export 'widget/mask_view.dart';
+export 'widget/proxy/proxy.dart';
+export 'widget/anime_list/anime_list.dart';
+export 'widget/keep_alive.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -86,9 +93,17 @@ export 'package:path/path.dart' show join, basename;
 export 'package:path_provider/path_provider.dart';
 
 // 初始化核心方法
-Future<void> ensureInitializedCore() async {
+Future<void> ensureInitializedCore({
+  required JTechConfig config,
+  required JTechThemeData themeData,
+  required Map<String, ThemeData> systemTheme,
+}) async {
   // 初始化视频播放器
   MediaKit.ensureInitialized();
+  // 部署全局配置
+  rootConfig.setup(config, themeData);
+  // 部署系统样式
+  theme.setup(systemTheme);
   // 初始化各种manage
   await rootConfig.init(); // 全局配置
   await router.init(); // 路由服务
@@ -112,4 +127,4 @@ Future<void> ensureInitializedCore() async {
 }
 
 // 数据库自动生成id
-int dbAutoIncrementId = Isar.autoIncrement;
+const int dbAutoIncrementId = Isar.autoIncrement;

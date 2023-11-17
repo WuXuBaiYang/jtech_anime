@@ -67,6 +67,22 @@ class _MobileCustomPlayerControlsState
   final playerSeekStream = StreamController<Duration?>.broadcast();
 
   @override
+  void initState() {
+    super.initState();
+    // 长按快进状态监听
+    final controller = widget.controller;
+    double speed = controller.state.rate;
+    visiblePlaySpeed.addListener(() {
+      if (visiblePlaySpeed.value) {
+        speed = widget.controller.state.rate;
+        controller.setRate(speed + 1.0);
+      } else {
+        controller.setRate(speed);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Theme(
       data: widget.getTheme(context),
@@ -174,10 +190,13 @@ class _MobileCustomPlayerControlsState
       first: controller.controlVisible,
       second: controller.screenLocked,
       builder: (_, visible, locked, __) {
-        return AnimatedOpacity(
-          opacity: visible ? 1 : 0,
-          duration: const Duration(milliseconds: 80),
-          child: Container(
+        return AnimatedCrossFade(
+          firstCurve: Curves.easeIn,
+          secondCurve: Curves.easeOut,
+          firstChild: const SizedBox(),
+          duration: const Duration(milliseconds: 120),
+          crossFadeState: CrossFadeState.values[visible ? 1 : 0],
+          secondChild: Container(
             color: Colors.black38,
             child: Stack(
               children: [
@@ -205,12 +224,17 @@ class _MobileCustomPlayerControlsState
                   controller: controller,
                 ),
                 if (locked)
-                  CustomPlayerProgress(
-                    controller: controller,
+                  Align(
+                    child: CustomPlayerProgress(
+                      controller: controller,
+                    ),
                   ),
               ],
             ),
           ),
+          layoutBuilder: (topChild, _, bottomChild, __) {
+            return Stack(children: [bottomChild, topChild]);
+          },
         );
       },
     );

@@ -10,13 +10,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// 下方设置系统主题，全局的配置/样式
-  Custom.setup(
+  await ensureInitializedCore(
     config: Custom.config,
     themeData: Custom.themeData,
     systemTheme: Custom.systemThemeData,
   );
-  // 初始化核心内容
-  await ensureInitializedCore();
   // 初始化窗口管理
   await windowManager.ensureInitialized();
   const windowOptions = WindowOptions(

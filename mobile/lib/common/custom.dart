@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jtech_anime_base/base.dart';
-import 'package:mobile/manage/config.dart';
-import 'package:mobile/model/config.dart';
 
 /*
 * 自定义样式配置
@@ -13,6 +11,7 @@ class Custom {
   static final JTechConfig config = JTechConfig(
     noPictureMode: true,
     noPlayerContent: true,
+    screenType: ScreenType.mobile,
   );
 
   // 全局样式配置
@@ -74,15 +73,4 @@ class Custom {
           ),
         ),
       );
-
-  // 管理所有配置样式
-  static setup({
-    required JTechConfig config,
-    required JTechThemeData themeData,
-    required Map<String, ThemeData> systemTheme,
-  }) {
-    theme.setup(systemTheme);
-    rootConfig.setup(config: config, theme: themeData);
-    platformConfig.setup(config: config, theme: themeData);
-  }
 }

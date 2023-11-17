@@ -77,14 +77,16 @@ class _HomeDownloadPageState
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomTabBar(
-                isScrollable: true,
-                controller: tabController,
-                overlayColor: Colors.transparent,
-                tabs: ['下载队列', '   已下载   '].map((e) {
-                  return Tab(text: e, height: 35);
-                }).toList(),
-              ),
+              Row(children: [
+                CustomTabBar(
+                  isScrollable: true,
+                  controller: tabController,
+                  overlayColor: Colors.transparent,
+                  tabs: ['下载队列', '   已下载   '].map((e) {
+                    return Tab(text: e, height: 35);
+                  }).toList(),
+                ),
+              ]),
               Expanded(
                 child: TabBarView(
                   controller: tabController,
@@ -134,20 +136,23 @@ class _HomeDownloadPageState
     );
   }
 
+  // 列表间距
+  late final listPadding =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+          .copyWith(bottom: kToolbarHeight * 1.5);
+
   // 构建下载队列
   Widget _buildDownloadingList(BuildContext context) {
     return ValueListenableBuilder<List<DownloadGroup>>(
       valueListenable: logic.downloadingList,
       builder: (_, groups, __) {
         final expandedList = groups.map((e) => e.url).toList();
-        final padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-            .copyWith(bottom: kToolbarHeight * 1.5);
         return StreamBuilder<DownloadTask?>(
           stream: download.downloadProgress,
           builder: (_, snap) {
             return DownloadRecordListView(
-              padding: padding,
               groupList: groups,
+              padding: listPadding,
               initialExpanded: expandedList,
               onStopDownloads: download.stopTasks,
               onStartDownloads: download.startTasks,
@@ -172,6 +177,7 @@ class _HomeDownloadPageState
           builder: (_, groups, __) {
             return DownloadRecordListView(
               groupList: groups,
+              padding: listPadding,
               playRecordMap: playRecordMap,
               onRemoveRecords: logic.removeDownloadRecord,
               onPlayRecords: (records) {

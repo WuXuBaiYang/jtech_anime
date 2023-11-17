@@ -59,14 +59,16 @@ abstract class CustomPlayerControls extends StatefulWidget {
             iconColor: MaterialStatePropertyAll(Colors.white),
           ),
         ),
-        sliderTheme: const SliderThemeData(
+        sliderTheme: SliderThemeData(
           trackHeight: 2,
-          thumbShape: RoundSliderThumbShape(
+          inactiveTrackColor: Colors.white24,
+          thumbShape: const RoundSliderThumbShape(
             enabledThumbRadius: 6,
           ),
-          overlayShape: RoundSliderOverlayShape(
+          overlayShape: const RoundSliderOverlayShape(
             overlayRadius: 14,
           ),
+          secondaryActiveTrackColor: kPrimaryColor.withOpacity(0.3),
         ),
         textTheme: const TextTheme(
           bodyMedium: TextStyle(

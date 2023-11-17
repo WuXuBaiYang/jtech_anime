@@ -126,6 +126,11 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
     );
   }
 
+  // 列表间距
+  late final listPadding =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+          .copyWith(bottom: kToolbarHeight * 1.5);
+
   // 构建下载队列
   Widget _buildDownloadingList(BuildContext context) {
     return ValueListenableBuilder<List<DownloadGroup>>(
@@ -137,9 +142,9 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           builder: (_, snap) {
             return DownloadRecordListView(
               groupList: groups,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-                  .copyWith(bottom: kToolbarHeight * 1.5),
+              padding: listPadding,
               initialExpanded: expandedList,
+              onStopDownloads: download.stopTasks,
               downloadTask: snap.data ?? DownloadTask(),
               onRemoveRecords: logic.removeDownloadRecord,
               onStartDownloads: (records) async {
@@ -149,7 +154,6 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
                 if (!result) return;
                 download.startTasks(records);
               },
-              onStopDownloads: download.stopTasks,
             );
           },
         );
@@ -169,6 +173,7 @@ class _DownloadPageState extends LogicState<DownloadPage, _DownloadLogic>
           builder: (_, groups, __) {
             return DownloadRecordListView(
               groupList: groups,
+              padding: listPadding,
               playRecordMap: playRecordMap,
               onRemoveRecords: logic.removeDownloadRecord,
               onPlayRecords: (records) {
