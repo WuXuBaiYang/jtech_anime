@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime_base/base.dart';
 import 'view.dart';
 
 /*
@@ -68,10 +67,6 @@ class _FocusTileState extends State<FocusTile> {
       autofocus: widget.autofocus,
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent) return KeyEventResult.ignored;
-        SnackTool.showMessage(
-            context: context,
-            message:
-                '${event.logicalKey.keyLabel}   ${event.logicalKey.keyId}');
         if (keyEventMap.containsKey(event.logicalKey)) {
           return keyEventMap[event.logicalKey]!(node);
         }
