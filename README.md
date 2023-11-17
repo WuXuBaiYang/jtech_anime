@@ -4,6 +4,7 @@
 
 <img alt="桌面端" height="200" width="260" src="./readme/desktop.png"/>
 <img alt="桌面端" height="200" width="110" src="./readme/mobile.jpg"/>
+<img alt="PAD" height="200" width="110" src="./readme/pad.jpg"/>
 
 ## 部署步骤
 
