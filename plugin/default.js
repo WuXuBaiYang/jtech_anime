@@ -518,7 +518,7 @@ function genCookie(cookies, url, name) {
 async function getPlayUrls(resourceUrls) {
     if (resourceUrls.length <= 0) return []
     let headers = {
-        'Host': 'www.yhdmz.org',
+        'Host': 'm.iyhdmm.com',
         'Accept-Encoding': 'gzip, deflate, br',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.67',
     }
