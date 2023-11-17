@@ -309,7 +309,7 @@ async function getAnimeDetail(animeUrl) {
         types: await resp.doc.querySelectorAll('#player-div-wrapper > div.video-details-wrapper.video-tags-wrapper > div > a', 'text'),
         intro: await info.querySelector('div:nth-child(5)', 'text'),
         resources: resources,
-        region: '',
+        region: '-',
         cover: '',
     }
 }
