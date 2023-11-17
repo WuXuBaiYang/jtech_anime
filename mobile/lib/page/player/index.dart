@@ -213,10 +213,10 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
                 icon: const Icon(FontAwesomeIcons.xmark),
                 onPressed: () => logic.playRecord.setValue(null),
               ),
-              Text('上次看到 $fullTime', style: textStyle),
+              Text('已定位到 $fullTime', style: textStyle),
               TextButton(
-                onPressed: logic.seekVideo2Record,
-                child: const Text('继续观看'),
+                onPressed: logic.seekVideo2Rest,
+                child: const Text('重新播放'),
               ),
             ],
           ),
@@ -314,11 +314,10 @@ class _PlayerLogic extends BaseLogic {
   void setupArguments(BuildContext context, Map arguments) {
     animeInfo = ValueChangeNotifier(arguments['animeDetail']);
     resourceInfo = ValueChangeNotifier(arguments['item']);
-    final playTheRecord = arguments['playTheRecord'];
     // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
-      changeVideo(resourceInfo.value, playTheRecord).catchError((_) {
+      changeVideo(resourceInfo.value).catchError((_) {
         if (context.mounted) router.pop();
       });
     });
@@ -328,8 +327,7 @@ class _PlayerLogic extends BaseLogic {
   CancelToken? _cancelToken;
 
   // 选择资源/视频
-  Future<void> changeVideo(ResourceItemModel item,
-      [bool playTheRecord = false]) async {
+  Future<void> changeVideo(ResourceItemModel item) async {
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
     return Loading.show(loadFuture: Future(() async {
@@ -353,7 +351,7 @@ class _PlayerLogic extends BaseLogic {
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
-        // 如果视频已下载则使用本地路径；
+        // 如果视频已下载则使用本地路径;
         // 如果播放地址为m3u8则使用本地过滤缓存机制;
         if (downloadRecord != null) {
           playUrl = downloadRecord.playFilePath;
@@ -364,14 +362,14 @@ class _PlayerLogic extends BaseLogic {
         }
         // 播放已下载视频或者在线视频并跳转到指定位置
         await controller.play(playUrl);
-        if (playTheRecord && record != null) {
+        if (record != null) {
           final duration = Duration(
             milliseconds: record.progress,
           );
           await _waitVideoDuration();
           controller.seekTo(duration);
         }
-        if (!playTheRecord) playRecord.setValue(record);
+        playRecord.setValue(record);
       } catch (e) {
         SnackTool.showMessage(message: '获取播放地址失败，请重试~');
         rethrow;
@@ -430,15 +428,11 @@ class _PlayerLogic extends BaseLogic {
       ..progress = progress.inMilliseconds);
   }
 
-  // 跳转到视频的指定位置
-  Future<void> seekVideo2Record() async {
-    final record = playRecord.value;
-    if (record == null) return;
+  // 跳转到视频的开始位置
+  Future<void> seekVideo2Rest() async {
     playRecord.setValue(null);
     await _waitVideoDuration();
-    await controller.seekTo(Duration(
-      milliseconds: record.progress,
-    ));
+    await controller.seekTo(Duration.zero);
   }
 
   // 等待获取视频时长
