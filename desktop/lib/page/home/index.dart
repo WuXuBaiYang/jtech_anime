@@ -121,7 +121,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic> {
                 child: Text('v${snap.data ?? ''}'),
                 onPressed: () async {
                   SnackTool.showMessage(message: '正在检查最新版本');
-                  final result = await AppVersionTool().check(context);
+                  final result = await AppVersionTool().check(context, true);
                   if (!result) SnackTool.showMessage(message: '已是最新版本');
                 },
               );

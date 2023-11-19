@@ -432,7 +432,7 @@ class _PlayerLogic extends BaseLogic {
   Future<void> seekVideo2Rest() async {
     playRecord.setValue(null);
     await _waitVideoDuration();
-    await controller.seekTo(Duration.zero);
+    await controller.seekTo(const Duration(seconds: 1));
   }
 
   // 等待获取视频时长
