@@ -57,7 +57,7 @@ dependencies:
   text_scroll: ^0.2.0
 
   # 音频事件
-  audio_session: ^0.1.17
+  audio_session: ^0.1.18
 
 dev_dependencies:
   flutter_test:
