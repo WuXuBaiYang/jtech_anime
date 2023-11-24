@@ -22,11 +22,15 @@ class CustomTabBar extends StatelessWidget {
   // 覆盖颜色
   final Color? overlayColor;
 
+  //
+  final BoxConstraints? constraints;
+
   const CustomTabBar({
     super.key,
     required this.tabs,
     this.onTap,
     this.controller,
+    this.constraints,
     this.overlayColor,
     this.isScrollable = false,
   });
@@ -35,6 +39,7 @@ class CustomTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(100);
     return Container(
+      constraints: constraints,
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(

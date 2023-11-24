@@ -77,12 +77,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Widget _buildResourceOptions() {
     return Row(
       children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 220,
-          ),
-          child: _buildResourceTab(),
-        ),
+        _buildResourceTab(),
         const Spacer(),
         ValueListenableBuilder<bool>(
           valueListenable: widget.sortUp,
@@ -103,21 +98,20 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   // 构建资源分类tab
   Widget _buildResourceTab() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: ValueListenableBuilder<AnimeModel>(
-        valueListenable: widget.animeInfo,
-        builder: (_, animeInfo, __) {
-          return CustomTabBar(
-            isScrollable: true,
-            controller: widget.tabController,
-            overlayColor: Colors.transparent,
-            tabs: List.generate(animeInfo.resources.length, (i) {
-              return Tab(text: '资源${i + 1}', height: 35);
-            }),
-          );
-        },
-      ),
+    return ValueListenableBuilder<AnimeModel>(
+      valueListenable: widget.animeInfo,
+      builder: (_, animeInfo, __) {
+        return CustomTabBar(
+          isScrollable: true,
+          controller: widget.tabController,
+          overlayColor: Colors.transparent,
+          constraints: BoxConstraints.tightFor(
+              width: range(animeInfo.resources.length, 1, 3) * 68),
+          tabs: List.generate(animeInfo.resources.length, (i) {
+            return Tab(text: '资源${i + 1}', height: 35);
+          }),
+        );
+      },
     );
   }
 

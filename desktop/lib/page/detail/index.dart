@@ -146,19 +146,16 @@ class _AnimeDetailPageState
     return Row(
       children: [
         if (resources.isNotEmpty)
-          ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 220,
-            ),
-            child: CustomTabBar(
-              isScrollable: true,
-              controller: tabController,
-              overlayColor: Colors.transparent,
-              onTap: logic.resourceIndex.setValue,
-              tabs: List.generate(resources.length, (i) {
-                return Tab(text: '资源${i + 1}', height: 35);
-              }),
-            ),
+          CustomTabBar(
+            isScrollable: true,
+            controller: tabController,
+            overlayColor: Colors.transparent,
+            onTap: logic.resourceIndex.setValue,
+            constraints: BoxConstraints.tightFor(
+                width: range(resources.length, 1, 3) * 68),
+            tabs: List.generate(resources.length, (i) {
+              return Tab(text: '资源${i + 1}', height: 35);
+            }),
           ),
         const Spacer(),
         ValueListenableBuilder<bool>(
