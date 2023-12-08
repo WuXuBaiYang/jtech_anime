@@ -225,6 +225,7 @@ class _MobileCustomPlayerControlsState
                 ),
                 if (locked)
                   Align(
+                    alignment: Alignment.bottomCenter,
                     child: CustomPlayerProgress(
                       controller: controller,
                     ),
