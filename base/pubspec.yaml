@@ -33,10 +33,10 @@ dependencies:
   logger: ^2.0.2+1
 
   # 网络请求(ALL)
-  dio: ^5.3.3
+  dio: ^5.3.4
 
   # 图片(ALL)
-  extended_image: ^8.1.1
+  extended_image: ^8.2.0
 
   # 图标(ALL)
   font_awesome_flutter: ^10.6.0
@@ -46,7 +46,7 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
 
   # 包信息(ALL)
-  package_info_plus: ^4.2.0
+  package_info_plus: ^5.0.1
 
   # 动画(ALL)
   lottie: ^2.7.0

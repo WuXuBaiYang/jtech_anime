@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pad/page/player/resource.dart';
@@ -122,9 +123,9 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
         return IconButton(
           onPressed: canPlayNext
               ? Throttle.click(() {
-            logic.controller.setControlVisible(true);
-            logic.changeVideo(resource);
-          }, 'playNextResource')
+                  logic.controller.setControlVisible(true);
+                  logic.changeVideo(resource);
+                }, 'playNextResource')
               : null,
           icon: Icon(FontAwesomeIcons.forward,
               color: canPlayNext ? Colors.white : Colors.white30),
@@ -212,10 +213,10 @@ class _PlayerPageState extends LogicState<PlayerPage, _PlayerLogic>
                 icon: const Icon(FontAwesomeIcons.xmark),
                 onPressed: () => logic.playRecord.setValue(null),
               ),
-              Text('上次看到 $fullTime', style: textStyle),
+              Text('已定位到 $fullTime', style: textStyle),
               TextButton(
-                onPressed: logic.seekVideo2Record,
-                child: const Text('继续观看'),
+                onPressed: logic.seekVideo2Rest,
+                child: const Text('重新播放'),
               ),
             ],
           ),
@@ -277,7 +278,7 @@ class _PlayerLogic extends BaseLogic {
 
   // 当前屏幕方向
   final screenOrientation =
-  ValueChangeNotifier<Orientation>(Orientation.landscape);
+      ValueChangeNotifier<Orientation>(Orientation.landscape);
 
   @override
   void init() {
@@ -297,7 +298,7 @@ class _PlayerLogic extends BaseLogic {
     controller.stream.position.listen((e) {
       // 更新当前播放进度
       Throttle.c(
-            () => _updateVideoProgress(e),
+        () => _updateVideoProgress(e),
         'updateVideoProgress',
       );
     });
@@ -305,17 +306,18 @@ class _PlayerLogic extends BaseLogic {
     screenOrientation.addListener(() {
       setScreenOrientation(screenOrientation.value == Orientation.portrait);
     });
+    // 监听音频设备状态
+    _listenAudioSession();
   }
 
   @override
   void setupArguments(BuildContext context, Map arguments) {
     animeInfo = ValueChangeNotifier(arguments['animeDetail']);
     resourceInfo = ValueChangeNotifier(arguments['item']);
-    final playTheRecord = arguments['playTheRecord'];
     // 初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 选择当前视频(如果用户传入了播放记录则代表需要立即跳转到指定位置)
-      changeVideo(resourceInfo.value, playTheRecord).catchError((_) {
+      changeVideo(resourceInfo.value).catchError((_) {
         if (context.mounted) router.pop();
       });
     });
@@ -325,8 +327,7 @@ class _PlayerLogic extends BaseLogic {
   CancelToken? _cancelToken;
 
   // 选择资源/视频
-  Future<void> changeVideo(ResourceItemModel item,
-      [bool playTheRecord = false]) async {
+  Future<void> changeVideo(ResourceItemModel item) async {
     final resources = animeInfo.value.resources;
     if (resources.isEmpty) return;
     return Loading.show(loadFuture: Future(() async {
@@ -345,12 +346,12 @@ class _PlayerLogic extends BaseLogic {
         if (record?.resUrl != item.url) record = null;
         // 根据资源与视频下标切换视频播放地址
         final result =
-        await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
+            await animeParser.getPlayUrls([item], cancelToken: _cancelToken);
         if (result.isEmpty) throw Exception('视频地址解析失败');
         String playUrl = result.first.playUrl;
         final downloadRecord = await db.getDownloadRecord(playUrl,
             status: [DownloadRecordStatus.complete]);
-        // 如果视频已下载则使用本地路径；
+        // 如果视频已下载则使用本地路径;
         // 如果播放地址为m3u8则使用本地过滤缓存机制;
         if (downloadRecord != null) {
           playUrl = downloadRecord.playFilePath;
@@ -361,14 +362,14 @@ class _PlayerLogic extends BaseLogic {
         }
         // 播放已下载视频或者在线视频并跳转到指定位置
         await controller.play(playUrl);
-        if (playTheRecord && record != null) {
+        if (record != null) {
           final duration = Duration(
             milliseconds: record.progress,
           );
           await _waitVideoDuration();
           controller.seekTo(duration);
         }
-        if (!playTheRecord) playRecord.setValue(record);
+        playRecord.setValue(record);
       } catch (e) {
         SnackTool.showMessage(message: '获取播放地址失败，请重试~');
         rethrow;
@@ -404,9 +405,8 @@ class _PlayerLogic extends BaseLogic {
   }
 
   // 一定时间后关闭播放记录弹窗
-  void time2CloseRecord() =>
-      Debounce.c(
-            () => playRecord.setValue(null),
+  void time2CloseRecord() => Debounce.c(
+        () => playRecord.setValue(null),
         'time2CloseRecord',
         delay: const Duration(milliseconds: 5000),
       );
@@ -428,15 +428,11 @@ class _PlayerLogic extends BaseLogic {
       ..progress = progress.inMilliseconds);
   }
 
-  // 跳转到视频的指定位置
-  Future<void> seekVideo2Record() async {
-    final record = playRecord.value;
-    if (record == null) return;
+  // 跳转到视频的开始位置
+  Future<void> seekVideo2Rest() async {
     playRecord.setValue(null);
     await _waitVideoDuration();
-    await controller.seekTo(Duration(
-      milliseconds: record.progress,
-    ));
+    await controller.seekTo(const Duration(seconds: 1));
   }
 
   // 等待获取视频时长
@@ -457,6 +453,18 @@ class _PlayerLogic extends BaseLogic {
       }
     }
     return null;
+  }
+
+  // 监听音频设备状态
+  void _listenAudioSession() async {
+    const configure = AudioSessionConfiguration.music();
+    final session = await AudioSession.instance;
+    await session.configure(configure);
+    session.devicesChangedEventStream.listen((event) {
+      if (event.devicesRemoved.isNotEmpty) {
+        if (controller.state.playing) controller.pause();
+      }
+    });
   }
 
   @override

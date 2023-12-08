@@ -47,7 +47,7 @@ class VerticalProgressView extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         shape: shape ??
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(500),
+              borderRadius: BorderRadius.circular(100),
             ),
         child: Stack(
           alignment: Alignment.centerLeft,

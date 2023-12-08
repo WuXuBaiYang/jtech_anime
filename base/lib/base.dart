@@ -83,6 +83,8 @@ export 'widget/mask_view.dart';
 export 'widget/proxy/proxy.dart';
 export 'widget/anime_list/anime_list.dart';
 export 'widget/keep_alive.dart';
+export 'widget/focus/tile.dart';
+export 'widget/focus/view.dart';
 
 /// 第三方库
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';

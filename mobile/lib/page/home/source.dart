@@ -45,14 +45,14 @@ class _AnimeSourceChangeDialogState extends State<AnimeSourceChangeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
+    return PopScope(
+      canPop: widget.dismissible,
       child: AlertDialog(
         scrollable: true,
         clipBehavior: Clip.hardEdge,
         content: _buildAnimeSourceList(),
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
       ),
-      onWillPop: () async => widget.dismissible,
     );
   }
 

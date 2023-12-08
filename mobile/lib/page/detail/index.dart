@@ -139,18 +139,15 @@ class _AnimeDetailPageState
     return Row(
       children: [
         if (resources.isNotEmpty)
-          ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 220,
-            ),
-            child: CustomTabBar(
-              isScrollable: true,
-              controller: tabController,
-              onTap: logic.resourceIndex.setValue,
-              tabs: List.generate(resources.length, (i) {
-                return Tab(text: '资源${i + 1}', height: 35);
-              }),
-            ),
+          CustomTabBar(
+            isScrollable: true,
+            controller: tabController,
+            onTap: logic.resourceIndex.setValue,
+            constraints: BoxConstraints.tightFor(
+                width: range(resources.length, 1, 3) * 70),
+            tabs: List.generate(resources.length, (i) {
+              return Tab(text: '资源${i + 1}', height: 35);
+            }),
           ),
         const Spacer(),
         ValueListenableBuilder<bool>(
@@ -267,23 +264,6 @@ class _AnimeDetailPageState
         ],
       ),
       onTap: () => logic.goPlay(item),
-    );
-  }
-
-  // 构建推荐番剧列表
-  Widget _buildRecommendList() {
-    return CacheFutureBuilder<List<AnimeModel>>(
-      future: () => animeParser.loadRecommendList(logic.animeDetail.value),
-      builder: (_, snap) {
-        final animeList = snap.data ?? [];
-        if (animeList.isEmpty) return const SizedBox();
-        return AnimeListView(
-          animeList: animeList,
-          enableRefresh: false,
-          enableLoadMore: false,
-          onRefresh: (_) async {},
-        );
-      },
     );
   }
 }

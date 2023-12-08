@@ -30,8 +30,7 @@ class DownloadSheet extends StatefulWidget {
     this.tabController,
   });
 
-  static Future<void> show(
-    BuildContext context, {
+  static Future<void> show(BuildContext context, {
     required ValueChangeNotifier<AnimeModel> animeInfo,
     required ValueChangeNotifier<bool> checkNetwork,
     required ValueChangeNotifier<bool> sortUp,
@@ -66,7 +65,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   // 缓存控制器
   final cacheController =
-      CacheFutureBuilderController<Map<String, DownloadRecord>>();
+  CacheFutureBuilderController<Map<String, DownloadRecord>>();
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +85,7 @@ class _DownloadSheetState extends State<DownloadSheet> {
   Widget _buildResourceOptions() {
     return Row(
       children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 220,
-          ),
-          child: _buildResourceTab(),
-        ),
+        _buildResourceTab(),
         const Spacer(),
         ValueListenableBuilder<bool>(
           valueListenable: widget.sortUp,
@@ -106,9 +100,10 @@ class _DownloadSheetState extends State<DownloadSheet> {
           },
         ),
         TextButton(
-          onPressed: () => router
-              .pushNamed(RoutePath.download)
-              ?.then((_) => cacheController.refreshValue()),
+          onPressed: () =>
+              router
+                  .pushNamed(RoutePath.download)
+                  ?.then((_) => cacheController.refreshValue()),
           child: const Text('缓存管理'),
         ),
         const SizedBox(width: 8),
@@ -118,20 +113,19 @@ class _DownloadSheetState extends State<DownloadSheet> {
 
   // 构建资源分类tab
   Widget _buildResourceTab() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: ValueListenableBuilder<AnimeModel>(
-        valueListenable: widget.animeInfo,
-        builder: (_, animeInfo, __) {
-          return CustomTabBar(
-            isScrollable: true,
-            controller: widget.tabController,
-            tabs: List.generate(animeInfo.resources.length, (i) {
-              return Tab(text: '资源${i + 1}', height: 35);
-            }),
-          );
-        },
-      ),
+    return ValueListenableBuilder<AnimeModel>(
+      valueListenable: widget.animeInfo,
+      builder: (_, animeInfo, __) {
+        return CustomTabBar(
+          isScrollable: true,
+          controller: widget.tabController,
+          constraints: BoxConstraints.tightFor(
+              width: range(animeInfo.resources.length, 1, 3) * 68),
+          tabs: List.generate(animeInfo.resources.length, (i) {
+            return Tab(text: '资源${i + 1}', height: 35);
+          }),
+        );
+      },
     );
   }
 
@@ -163,11 +157,9 @@ class _DownloadSheetState extends State<DownloadSheet> {
   }
 
   // 构建资源分页列表页面子项
-  Widget _buildResourceTabViewItem(
-    List<ResourceItemModel> items,
-    Map<String, DownloadRecord> downloadMap,
-    List<ResourceItemModel> selectList,
-  ) {
+  Widget _buildResourceTabViewItem(List<ResourceItemModel> items,
+      Map<String, DownloadRecord> downloadMap,
+      List<ResourceItemModel> selectList,) {
     const padding = EdgeInsets.all(8);
     return SingleChildScrollView(
       padding: selectList.isNotEmpty
@@ -181,15 +173,16 @@ class _DownloadSheetState extends State<DownloadSheet> {
           final selected = selectList.contains(item);
           final downloaded = downloadMap.containsKey(item.url);
           final avatar =
-              downloaded ? const Icon(FontAwesomeIcons.circleCheck) : null;
+          downloaded ? const Icon(FontAwesomeIcons.circleCheck) : null;
           return ChoiceChip(
             avatar: avatar,
             selected: selected,
             label: Text(item.name),
             onSelected: !downloaded
-                ? (_) => selected
-                    ? selectResources.removeValue(item)
-                    : selectResources.addValue(item)
+                ? (_) =>
+            selected
+                ? selectResources.removeValue(item)
+                : selectResources.addValue(item)
                 : null,
           );
         }),
@@ -243,25 +236,28 @@ class _DownloadSheetState extends State<DownloadSheet> {
         if (videoCaches.isEmpty) throw Exception('视频加载失败');
         // 将视频缓存封装为下载记录结构
         final downloadRecords = videoCaches
-            .map((e) => DownloadRecord()
-              ..resUrl = e.url
-              ..source = source.key
-              ..downloadUrl = e.playUrl
-              ..name = e.item?.name ?? ''
-              ..order = e.item?.order ?? 0
-              ..url = animeInfo.url
-              ..title = animeInfo.name
-              ..cover = animeInfo.cover)
+            .map((e) =>
+        DownloadRecord()
+          ..resUrl = e.url
+          ..source = source.key
+          ..downloadUrl = e.playUrl
+          ..name = e.item?.name ?? ''
+          ..order = e.item?.order ?? 0
+          ..url = animeInfo.url
+          ..title = animeInfo.name
+          ..cover = animeInfo.cover)
             .toList();
         // 使用下载记录启动下载
         final results = await download.startTasks(downloadRecords);
         // 反馈下载结果
-        final successCount = results.where((e) => e).length;
+        final successCount = results
+            .where((e) => e)
+            .length;
         final failCount = results.length - successCount;
         final message = successCount <= 0
             ? '未能成功添加下载任务'
             : '已成功添加 $successCount 条任务'
-                '${failCount > 0 ? '，失败 $failCount 条' : ''}';
+            '${failCount > 0 ? '，失败 $failCount 条' : ''}';
         SnackTool.showMessage(message: message);
         cacheController.refreshValue();
         selectResources.setValue([]);

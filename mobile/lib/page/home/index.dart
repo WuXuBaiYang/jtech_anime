@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/common/route.dart';
@@ -53,7 +54,8 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
 
   @override
   Widget buildWidget(BuildContext context) {
-    return WillPopScope(
+    return PopScope(
+      canPop: false,
       child: DefaultTabController(
         length: 2,
         child: SourceStreamView(builder: (_, snap) {
@@ -77,12 +79,11 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
           );
         }),
       ),
-      onWillPop: () async {
-        if (appQuite.value) return true;
+      onPopInvoked: (_) {
+        if (appQuite.value) exit(0);
         appQuite.setValue(true);
         SnackTool.showMessage(message: '再次点击退出');
         Debounce.c(() => appQuite.setValue(false), 'appQuite');
-        return false;
       },
     );
   }
@@ -144,7 +145,7 @@ class _HomePageState extends LogicState<HomePage, _HomeLogic>
       FontAwesomeIcons.wrench,
       (BuildContext context) async {
         SnackTool.showMessage(message: '正在检查最新版本');
-        final result = await AppVersionTool().check(context);
+        final result = await AppVersionTool().check(context, true);
         if (!result) SnackTool.showMessage(message: '已是最新版本');
       }
     ),

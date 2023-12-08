@@ -29,7 +29,7 @@ abstract class AppVersionToolBase {
   String get platform => Platform.operatingSystem;
 
   // 检查更新
-  Future<bool> check(BuildContext context, {bool immediately = false}) async {
+  Future<bool> check(BuildContext context, [bool immediately = false]) async {
     // 判断是否需要进行版本更新
     if (!immediately && (cache.getBool(_ignoreUpdateKey) ?? false)) {
       return false;
@@ -50,8 +50,7 @@ abstract class AppVersionToolBase {
   Future<void> upgradePlatform(BuildContext context, AppVersion info);
 
   // 下载更新文件并返回文件路径
-  Future<String?> downloadUpdateFile(
-    AppVersion info, {
+  Future<String?> downloadUpdateFile(AppVersion info, {
     required String saveDir,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
@@ -80,12 +79,11 @@ abstract class AppVersionToolBase {
   }
 
   // 断点续传的方式下载附件
-  Future<String?> _download(
-    String url,
-    String savePath, {
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-  }) async {
+  Future<String?> _download(String url,
+      String savePath, {
+        CancelToken? cancelToken,
+        ProgressCallback? onReceiveProgress,
+      }) async {
     int downloadBegin = 0;
     final file = File(savePath);
     if (file.existsSync()) downloadBegin = file.lengthSync();
