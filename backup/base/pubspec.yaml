@@ -15,10 +15,10 @@ dependencies:
     sdk: flutter
 
   # 国际化(ALL)
-  intl: ^0.18.1
+  intl: ^0.19.0
 
   # 路径(ALL)
-  path: ^1.8.3
+  path: ^1.9.0
 
   # 路径管理(NO WEB)
   path_provider: ^2.1.1
@@ -33,7 +33,7 @@ dependencies:
   logger: ^2.0.2+1
 
   # 网络请求(ALL)
-  dio: ^5.3.4
+  dio: ^5.4.0
 
   # 图片(ALL)
   extended_image: ^8.2.0
@@ -55,7 +55,7 @@ dependencies:
   blur: ^3.1.0
 
   # 刷新组件(ALL)
-  easy_refresh: ^3.3.2+4
+  easy_refresh: ^3.3.4
 
   # 视频播放器(ALL)
   media_kit: ^1.1.10+1
@@ -66,7 +66,7 @@ dependencies:
   flutter_hls_parser: ^2.0.1
 
   # 后台下载器(NO WEB)
-  background_downloader: ^7.12.3
+  background_downloader: ^8.0.5
 
   # js运行时(NO WEB)
   flutter_js: ^0.8.0
@@ -78,16 +78,16 @@ dependencies:
   html: ^0.15.4
 
   # 图片选择器(ALL)
-  image_picker: ^1.0.4
+  image_picker: ^1.0.6
 
   # 集合操作(ALL)
   collection: any
 
   # url跳转(ALL)
-  url_launcher: ^6.2.1
+  url_launcher: ^6.2.2
 
   # zxing基础库(ALL)
-  zxing_lib: ^1.1.1
+  zxing_lib: ^1.1.2
 
   # zxing扫码组件(ALL)
   zxing_widget: ^1.1.0
@@ -104,7 +104,7 @@ dev_dependencies:
   isar_generator: ^3.1.0+1
 
   # 构建器
-  build_runner: ^2.4.6
+  build_runner: ^2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
