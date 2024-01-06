@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/base/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/base/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/base/build" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/desktop/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/desktop/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/desktop/build" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/mobile/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/mobile/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/mobile/build" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/pad/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/pad/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/pad/build" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/screen_fusion/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/screen_fusion/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/backup/screen_fusion/build" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+    </content>
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Dart SDK" level="project" />
+    <orderEntry type="library" name="Dart Packages" level="project" />
+  </component>
+</module>
