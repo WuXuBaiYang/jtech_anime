@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jtech_anime/page/splash/index.dart';
 
 /*
 * 路由路径静态变量
@@ -6,6 +7,9 @@ import 'package:flutter/material.dart';
 * @Time 2022/9/8 14:55
 */
 class RoutePath {
-  // 创建路由表
-  static Map<String, WidgetBuilder> get routes => {};
+  // 路由表
+  static final routers = GoRouter(routes: [
+    // 启动页
+    GoRoute(path: '/', builder: (_, __) => const SplashPage()),
+  ]);
 }

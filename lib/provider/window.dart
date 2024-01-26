@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 /*
@@ -43,4 +45,13 @@ class WindowProvider extends BaseProvider with WindowListener {
     windowManager.removeListener(this);
     super.dispose();
   }
+}
+
+// 为context扩展window方法
+extension WindowProviderExtension on BuildContext {
+  // 获取WindowProvider
+  WindowProvider get window => read<WindowProvider>();
+
+  // 获取WindowProvider监听
+  WindowProvider get watchWindow => watch<WindowProvider>();
 }

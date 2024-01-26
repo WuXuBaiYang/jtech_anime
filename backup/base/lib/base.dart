@@ -16,7 +16,7 @@ export 'manage/anime_parser/functions.dart';
 export 'manage/anime_parser/parser.dart';
 export 'manage/download/download.dart';
 export 'manage/download/parser.dart';
-export 'manage/cache.dart';
+export 'manage/local_cache.dart';
 export 'manage/db.dart';
 export 'manage/event.dart';
 export 'manage/router.dart';

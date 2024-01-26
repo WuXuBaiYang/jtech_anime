@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jtech_anime_base/manage/cache.dart';
+import 'package:jtech_anime_base/manage/local_cache.dart';
 import 'package:jtech_anime_base/manage/router.dart';
 import 'package:jtech_anime_base/model/version.dart';
 import 'package:jtech_anime_base/tool/file.dart';

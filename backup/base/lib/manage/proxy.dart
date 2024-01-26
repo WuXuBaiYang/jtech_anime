@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:jtech_anime_base/common/manage.dart';
-import 'package:jtech_anime_base/manage/cache.dart';
+import 'package:jtech_anime_base/manage/local_cache.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/manage/event.dart';
 import 'package:jtech_anime_base/model/database/proxy.dart';

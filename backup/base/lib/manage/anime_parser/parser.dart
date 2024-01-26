@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:html/parser.dart';
 import 'package:jtech_anime_base/common/common.dart';
 import 'package:jtech_anime_base/common/manage.dart';
-import 'package:jtech_anime_base/manage/cache.dart';
+import 'package:jtech_anime_base/manage/local_cache.dart';
 import 'package:jtech_anime_base/manage/config.dart';
 import 'package:jtech_anime_base/manage/db.dart';
 import 'package:jtech_anime_base/manage/event.dart';

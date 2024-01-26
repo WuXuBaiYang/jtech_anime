@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jtech_anime/common/route.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -9,9 +10,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'JTech Anime',
-      home: SizedBox(),
+      routerConfig: RoutePath.routers,
     );
   }
 }

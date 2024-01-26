@@ -1,6 +1,5 @@
 import 'package:isar/isar.dart';
 import 'package:jtech_anime/common/common.dart';
-import 'package:jtech_anime/common/manage.dart';
 import 'package:jtech_anime/model/collect.dart';
 import 'package:jtech_anime/model/download_record.dart';
 import 'package:jtech_anime/model/filter_select.dart';
@@ -16,21 +15,26 @@ import 'package:jtech_anime/tool/file.dart';
 * @author wuxubaiyang
 * @Time 2022/3/17 14:14
 */
-class DatabaseManage extends BaseManage {
-  static final DatabaseManage _instance = DatabaseManage._internal();
+class Database {
+  static final Database _instance = Database._internal();
 
-  factory DatabaseManage() => _instance;
+  factory Database() => _instance;
 
-  DatabaseManage._internal();
+  Database._internal();
 
   // 数据库对象
-  late Isar isar;
+  Isar? _isar;
 
-  @override
+  // 获取数据库对象
+  Isar get isar {
+    assert(_isar != null, '请先先完成初始化 database.initialize();');
+    return _isar!;
+  }
+
   Future<void> initialize() async {
     final dir = await FileTool.getDirPath(Common.baseCachePath,
         root: FileDir.applicationDocuments);
-    isar = await Isar.open([
+    _isar = await Isar.open([
       VideoCacheSchema,
       FilterSelectSchema,
       SearchRecordSchema,
@@ -41,7 +45,6 @@ class DatabaseManage extends BaseManage {
       ProxyRecordSchema,
     ], directory: dir ?? '');
   }
-
 
   // 获取代理记录
   Future<List<ProxyRecord>> getProxyList() =>
@@ -87,9 +90,9 @@ class DatabaseManage extends BaseManage {
 
   // 获取下载记录(根据番剧的播放地址，不是访问地址)
   Future<DownloadRecord?> getDownloadRecord(
-      String playUrl, {
-        List<DownloadRecordStatus> status = const [],
-      }) =>
+    String playUrl, {
+    List<DownloadRecordStatus> status = const [],
+  }) =>
       isar.downloadRecords
           .filter()
           .downloadUrlEqualTo(playUrl)
@@ -99,10 +102,10 @@ class DatabaseManage extends BaseManage {
 
   // 获取下载记录列表
   Future<List<DownloadRecord>> getDownloadRecordList(
-      AnimeSource source, {
-        List<DownloadRecordStatus> status = const [],
-        List<String> animeList = const [],
-      }) =>
+    AnimeSource source, {
+    List<DownloadRecordStatus> status = const [],
+    List<String> animeList = const [],
+  }) =>
       isar.downloadRecords
           .where()
           .sourceEqualTo(source.key)
@@ -122,7 +125,7 @@ class DatabaseManage extends BaseManage {
         }
         // 不存在则添加(排序增加)
         final count =
-        await isar.collects.where().sourceEqualTo(item.source).count();
+            await isar.collects.where().sourceEqualTo(item.source).count();
         return isar.collects
             .put(item..order = count)
             .then((id) => item..id = id);
@@ -130,7 +133,7 @@ class DatabaseManage extends BaseManage {
 
   // 更新排序
   Future<bool> updateCollectOrder(String url,
-      {required AnimeSource source, required int to}) =>
+          {required AnimeSource source, required int to}) =>
       isar.writeTxn<bool>(() async {
         // 查出全部收藏列表
         final items = await isar.collects
@@ -142,9 +145,9 @@ class DatabaseManage extends BaseManage {
         int i = 0;
         return isar.collects
             .putAll(items.map((e) {
-          if (i == to) i++;
-          return e..order = e.url == url ? to : i++;
-        }).toList())
+              if (i == to) i++;
+              return e..order = e.url == url ? to : i++;
+            }).toList())
             .then((v) => v.length == items.length);
       });
 
@@ -210,8 +213,8 @@ class DatabaseManage extends BaseManage {
         item ??= SearchRecord();
         return isar.searchRecords
             .put(item
-          ..heat += 1
-          ..keyword = keyword)
+              ..heat += 1
+              ..keyword = keyword)
             .then(isar.searchRecords.get);
       });
 
@@ -254,11 +257,11 @@ class DatabaseManage extends BaseManage {
         // 插入视频缓存并返回
         return isar.videoCaches
             .put(VideoCache()
-          ..url = url
-          ..playUrl = playUrl)
+              ..url = url
+              ..playUrl = playUrl)
             .then(isar.videoCaches.get);
       });
 }
 
 // 单例调用
-final database = DatabaseManage();
+final database = Database();

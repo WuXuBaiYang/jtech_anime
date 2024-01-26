@@ -1,7 +1,8 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:jtech_anime/common/provider.dart';
-import 'package:jtech_anime/manage/cache.dart';
+import 'package:jtech_anime/manage/local_cache.dart';
+import 'package:provider/provider.dart';
 
 // 主题配色方案元组
 typedef ThemeSchemeTuple = ({
@@ -52,8 +53,8 @@ class ThemeProvider extends BaseProvider {
       };
 
   // 获取当前主题模式
-  ThemeMode get themeMode => _themeMode ??=
-      ThemeMode.values[cache.getInt(_themeModeKey) ?? _defaultThemeMode.index];
+  ThemeMode get themeMode => _themeMode ??= ThemeMode
+      .values[localCache.getInt(_themeModeKey) ?? _defaultThemeMode.index];
 
   // 获取暗色主题
   ThemeData get darkThemeData =>
@@ -64,7 +65,7 @@ class ThemeProvider extends BaseProvider {
 
   // 获取主题配色方案
   FlexScheme get _themeScheme => _scheme ??= FlexScheme
-      .values[cache.getInt(_themeSchemeKey) ?? _defaultThemeScheme.index];
+      .values[localCache.getInt(_themeSchemeKey) ?? _defaultThemeScheme.index];
 
   // 根据scheme获取配色
   FlexSchemeColor getSchemeColor(FlexScheme scheme) {
@@ -93,7 +94,7 @@ class ThemeProvider extends BaseProvider {
     if (themeMode == null) return;
     _brightness = null;
     _themeMode = themeMode;
-    cache.setInt(_themeModeKey, _themeMode!.index);
+    await localCache.setInt(_themeModeKey, _themeMode!.index);
     return _updateThemeData();
   }
 
@@ -101,7 +102,7 @@ class ThemeProvider extends BaseProvider {
   Future<void> changeThemeScheme(ThemeSchemeTuple? themeScheme) async {
     if (themeScheme == null) return;
     _scheme = themeScheme.scheme;
-    cache.setInt(_themeSchemeKey, _scheme!.index);
+    await localCache.setInt(_themeSchemeKey, _scheme!.index);
     return _updateThemeData();
   }
 
@@ -141,6 +142,15 @@ class ThemeProvider extends BaseProvider {
   // 根据主题亮度生成不同的主题数据
   ThemeData _genThemeData(Brightness brightness, [bool useMaterial3 = true]) =>
       _getThemeData(brightness, useMaterial3).copyWith();
+}
+
+// 为context扩展theme方法
+extension ThemeProviderExtension on BuildContext {
+  // 获取ThemeProvider
+  ThemeProvider get theme => read<ThemeProvider>();
+
+  // 获取ThemeProvider监听
+  ThemeProvider get watchTheme => watch<ThemeProvider>();
 }
 
 /*
