@@ -44,35 +44,4 @@ class AnimeSource {
 
   // 获取色值
   Color getColor() => Tool.parseColor(color, const Color(0xFFFFEEF4));
-
-  // 获取支持的方法列表
-  List<AnimeParserFunction> getFunctions() => AnimeParserFunction.values
-      .where((e) => functions.contains(e.name))
-      .toList();
-
-  static AnimeSource from(obj,
-      [List<AnimeParserFunction> functions = const []]) {
-    return AnimeSource()
-      ..key = obj['key'] ?? ''
-      ..name = obj['name'] ?? ''
-      ..logoUrl = obj['logoUrl'] ?? ''
-      ..homepage = obj['homepage'] ?? ''
-      ..version = obj['version'] ?? ''
-      ..color = obj['color'] ?? ''
-      ..lastEditDate =
-          DateTime.tryParse(obj['lastEditDate'] ?? '') ?? DateTime(1)
-      ..fileUri = obj['fileUri'] ?? ''
-      ..nsfw = obj['nsfw'] ?? false
-      ..proxy = obj['proxy'] ?? false
-      ..functions = functions.map((e) => e.name).toList();
-  }
-
-  // 检查必须信息是否满足
-  bool checkRequireInfo() {
-    return key.isNotEmpty &&
-        name.isNotEmpty &&
-        homepage.isNotEmpty &&
-        version.isNotEmpty &&
-        fileUri.isNotEmpty;
-  }
 }
